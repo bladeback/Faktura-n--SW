@@ -103,7 +103,7 @@ namespace InvoiceApp.Services
                 // Položky
                 col.Item().PaddingTop(12).Element(c => ItemsTable(c, inv, supplierIsVatPayer));
 
-                // Souhrn
+                // Souhrn (bez duplicitní věty „Dodavatel je plátce DPH.“)
                 col.Item().PaddingTop(10).Element(c => TotalsBox(c, inv, supplierIsVatPayer));
 
                 // Poznámka
@@ -134,41 +134,20 @@ namespace InvoiceApp.Services
                     txt.Span(party?.DIC ?? "");
                 });
 
-                if (supplierIsVatPayer.HasValue)
+                // Informace o plátcovství DPH chceme pouze tady (u Dodavatele)
+                if (isSupplier && supplierIsVatPayer.HasValue)
                 {
                     col.Item().PaddingTop(4).Text(supplierIsVatPayer.Value
                         ? "Dodavatel je plátce DPH."
                         : "Dodavatel není plátce DPH.").FontColor(Colors.Grey.Darken1);
                 }
 
-                // Bankovní údaje – Banka, Účet a IBAN (IBAN hezky s mezerami)
-                if (!string.IsNullOrWhiteSpace(party?.Bank) ||
-                    !string.IsNullOrWhiteSpace(party?.AccountNumber) ||
-                    !string.IsNullOrWhiteSpace(party?.IBAN))
-                {
-                    col.Item().PaddingTop(2).Text(txt =>
-                    {
-                        if (!string.IsNullOrWhiteSpace(party?.Bank))
-                        {
-                            txt.Span("Banka: ").SemiBold();
-                            txt.Span($"{party!.Bank}   ");
-                        }
-                        if (!string.IsNullOrWhiteSpace(party?.AccountNumber))
-                        {
-                            txt.Span("Účet: ").SemiBold();
-                            txt.Span($"{party!.AccountNumber}   ");
-                        }
-                        if (!string.IsNullOrWhiteSpace(party?.IBAN))
-                        {
-                            txt.Span("IBAN: ").SemiBold();
-                            txt.Span(FormatIbanDisplay(party!.IBAN));
-                        }
-                    });
-                }
+                // POŽADAVEK: v rámečku „Dodavatel“ už NEzobrazovat bankovní údaje,
+                // ty patří jen do rámečku „Platební údaje“. Takže blok Banka/Účet/IBAN zde vynecháváme.
 
                 if (!string.IsNullOrWhiteSpace(party?.Email) || !string.IsNullOrWhiteSpace(party?.Phone))
                 {
-                    col.Item().Text(txt =>
+                    col.Item().PaddingTop(2).Text(txt =>
                     {
                         if (!string.IsNullOrWhiteSpace(party?.Email))
                         {
@@ -281,13 +260,12 @@ namespace InvoiceApp.Services
             decimal vatTotal = supplierIsVatPayer ? items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate) : 0m;
             decimal grandTotal = baseTotal + vatTotal;
 
+            // POŽADAVEK: odstranit duplicitní větu o plátcovství z tohoto bloku.
+            // Necháme tu pouze tabulku součtů vpravo.
             container.Row(row =>
             {
-                row.RelativeItem().Text(t =>
-                {
-                    t.Span(supplierIsVatPayer ? "Dodavatel je plátce DPH." : "Dodavatel není plátce DPH.")
-                    .FontColor(Colors.Grey.Darken1);
-                });
+                // Levá strana prázdná (můžeme nechat malý spacer pro layout)
+                row.RelativeItem().Text(" ");
 
                 row.ConstantItem(260).Border(0.5f).Padding(8).Column(stack =>
                 {
@@ -321,7 +299,6 @@ namespace InvoiceApp.Services
             });
         }
 
-
         // ========== HELPERY ==========
 
         private static string FormatDate(DateTime dt) => dt.ToString("dd.MM.yyyy", new CultureInfo("cs-CZ"));
@@ -350,7 +327,7 @@ namespace InvoiceApp.Services
         {
             if (string.IsNullOrWhiteSpace(iban)) return string.Empty;
             var compact = iban.Replace(" ", "").ToUpperInvariant();
-            // CZxx + 20 číslic -> skupiny po 4 znacích
+            // CZxx + 20 číslic → skupiny po 4 znacích
             return string.Join(" ", Enumerable.Range(0, (compact.Length + 3) / 4)
                                               .Select(i => i * 4)
                                               .TakeWhile(i => i < compact.Length)
