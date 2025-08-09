@@ -5,7 +5,9 @@ using InvoiceApp.Services;
 using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,17 +24,16 @@ namespace InvoiceApp.ViewModels
         [ObservableProperty] private Invoice current = new();
         public ObservableCollection<InvoiceItem> Items { get; } = new();
 
-        // ====== NOVÉ: plátcovství DPH dodavatele + stav ARES ======
-        [ObservableProperty] private bool supplierIsVatPayer = true;
-        [ObservableProperty] private bool isAresBusy;
+        // Plátce DPH – vazba na CheckBox v UI + na DPH sloupec a přepočet celkové částky
+        [ObservableProperty]
+        private bool supplierIsVatPayer;
 
-        // Příkazy
-        public IAsyncRelayCommand LoadCustomerFromIcoCommand { get; }
-        public IAsyncRelayCommand LoadSupplierFromIcoCommand { get; }
+        // Zobrazení součtu vpravo dole
+        public string TotalDisplay => FormatMoney(ComputeTotal(), Current?.Currency ?? "CZK");
 
         public MainViewModel()
         {
-            // výchozí hodnoty dodavatele – můžeš si je pak uložit jako default
+            // výchozí dodavatel – můžeš přepsat
             Current.Supplier.Name = "Vaše firma s.r.o.";
             Current.Supplier.Address = "Ulice 1";
             Current.Supplier.City = "123 45 Město";
@@ -46,42 +47,62 @@ namespace InvoiceApp.ViewModels
             Current.VariableSymbol = DateTime.Now.ToString("yyyyMMdd");
             Current.Currency = "CZK";
 
-            LoadCustomerFromIcoCommand = new AsyncRelayCommand(LoadCustomerFromIco, CanRunAres);
-            LoadSupplierFromIcoCommand = new AsyncRelayCommand(LoadSupplierFromIco, CanRunAres);
+            // Vazby na změny položek – přepočítáme Celkem při každé editaci
+            Items.CollectionChanged += Items_CollectionChanged;
         }
 
-        private bool CanRunAres() => !IsAresBusy;
-
-        private static bool IsValidIco(string? s)
-        {
-            if (string.IsNullOrWhiteSpace(s)) return false;
-            s = new string(s.Where(char.IsDigit).ToArray());
-            return s.Length == 8;
-        }
-
-        // ====== NOVÉ: celková částka podle plátcovství ======
-        public decimal TotalDisplay =>
-            SupplierIsVatPayer ? CalcTotalWithVat() : CalcTotalNoVat();
-
-        private decimal CalcTotalWithVat()
-            => Current.Items.Sum(i => i.Quantity * i.UnitPrice * (1 + i.VatRate));
-
-        private decimal CalcTotalNoVat()
-            => Current.Items.Sum(i => i.Quantity * i.UnitPrice);
-
+        // Reaguj, když uživatel přepne plátce DPH
         partial void OnSupplierIsVatPayerChanged(bool value)
         {
-            // přepočítej zobrazenou celkovou cenu
             OnPropertyChanged(nameof(TotalDisplay));
         }
 
-        private void BumpTotals()
+        private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            if (e.OldItems != null)
+                foreach (InvoiceItem it in e.OldItems)
+                    it.PropertyChanged -= Item_PropertyChanged;
+
+            if (e.NewItems != null)
+                foreach (InvoiceItem it in e.NewItems)
+                    it.PropertyChanged += Item_PropertyChanged;
+
+            // přepočet celku při přidání/odebrání
             OnPropertyChanged(nameof(TotalDisplay));
-            OnPropertyChanged(nameof(Current)); // pro jistotu kvůli dalším vazbám
         }
 
-        // ====== položky ======
+        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(InvoiceItem.Quantity)
+                or nameof(InvoiceItem.UnitPrice)
+                or nameof(InvoiceItem.VatRate)
+                or nameof(InvoiceItem.Name))
+            {
+                OnPropertyChanged(nameof(TotalDisplay));
+            }
+        }
+
+        private decimal ComputeTotal()
+        {
+            if (Current == null) return 0m;
+            decimal total = 0m;
+            foreach (var it in Items)
+            {
+                var line = it.Quantity * it.UnitPrice;
+                if (SupplierIsVatPayer)
+                    line *= (1 + it.VatRate);
+                total += line;
+            }
+            return total;
+        }
+
+        private static string FormatMoney(decimal value, string currency)
+        {
+            var ci = new CultureInfo("cs-CZ");
+            return $"{string.Format(ci, "{0:N2}", value)} {currency}";
+        }
+
+        // ===== Položky =====
         [RelayCommand]
         private void AddItem()
         {
@@ -94,7 +115,7 @@ namespace InvoiceApp.ViewModels
             };
             Items.Add(item);
             Current.Items.Add(item);
-            BumpTotals();
+            OnPropertyChanged(nameof(TotalDisplay));
         }
 
         [RelayCommand]
@@ -104,10 +125,11 @@ namespace InvoiceApp.ViewModels
             {
                 Items.Remove(it);
                 Current.Items.Remove(it);
-                BumpTotals();
+                OnPropertyChanged(nameof(TotalDisplay));
             }
         }
 
+        // ===== Nový doklad =====
         [RelayCommand]
         private void NewInvoice()
         {
@@ -118,7 +140,8 @@ namespace InvoiceApp.ViewModels
                 Currency = "CZK"
             };
             Items.Clear();
-            BumpTotals();
+            SupplierIsVatPayer = false;    // výchozí
+            OnPropertyChanged(nameof(TotalDisplay));
         }
 
         [RelayCommand]
@@ -131,23 +154,29 @@ namespace InvoiceApp.ViewModels
                 Currency = "CZK"
             };
             Items.Clear();
-            BumpTotals();
+            SupplierIsVatPayer = false;    // objednávka = spíš bez DPH zobrazení
+            OnPropertyChanged(nameof(TotalDisplay));
         }
 
+        // ===== Export PDF =====
         [RelayCommand]
         private void ExportPdf()
         {
             try
             {
-                // QR zatím necháme, DPH zapojíme do PDF v dalším kroku
-                string payload = _qr.BuildCzechQrPaymentPayload(
-                    Current.PaymentIban,
-                    TotalDisplay,                    // <<< použijeme zobrazenou celkovou částku
-                    Current.Currency,
-                    Current.VariableSymbol,
-                    $"{Current.Type} {Current.Number}"
-                );
-                var png = _qr.GenerateQrPng(payload);
+                // QR platba generujeme jen pro Fakturu
+                byte[]? png = null;
+                if (Current.Type == DocType.Invoice)
+                {
+                    string payload = _qr.BuildCzechQrPaymentPayload(
+                        Current.PaymentIban,
+                        ComputeTotal(),                // vezmeme částku stejně jako v UI
+                        Current.Currency,
+                        Current.VariableSymbol,
+                        $"{Current.Type} {Current.Number}"
+                    );
+                    png = _qr.GenerateQrPng(payload);
+                }
 
                 var dialog = new SaveFileDialog
                 {
@@ -166,36 +195,31 @@ namespace InvoiceApp.ViewModels
             }
         }
 
-        // ====== ARES – odběratel ======
+        // ===== ARES: Načtení podle IČO (Odběratel) =====
+        [RelayCommand]
         private async Task LoadCustomerFromIco()
         {
             try
             {
                 var ico = Current.Customer.ICO?.Trim();
-                if (!IsValidIco(ico))
+                if (string.IsNullOrWhiteSpace(ico))
                 {
-                    MessageBox.Show("Zadejte platné IČO (8 číslic) odběratele.");
+                    MessageBox.Show("Zadejte prosím IČO odběratele.");
                     return;
                 }
 
-                IsAresBusy = true;
-                LoadCustomerFromIcoCommand.NotifyCanExecuteChanged();
-                LoadSupplierFromIcoCommand.NotifyCanExecuteChanged();
-
-                var (name, address, city, dic) = await _ares.GetByIcoAsync(ico!);
-
+                var (name, address, city, dic) = await _ares.GetByIcoAsync(ico);
                 if (name == null && address == null && city == null)
                 {
                     MessageBox.Show("Subjekt s tímto IČO se v ARES nenašel.");
                     return;
                 }
 
-                if (!string.IsNullOrWhiteSpace(name)) Current.Customer.Name = NormalizeName(name);
-                if (!string.IsNullOrWhiteSpace(address)) Current.Customer.Address = NormalizeAddress(address);
-                if (!string.IsNullOrWhiteSpace(city)) Current.Customer.City = NormalizeCity(city);
-                if (!string.IsNullOrWhiteSpace(dic)) Current.Customer.DIC = (dic ?? string.Empty).Trim();
-
-                BumpTotals();
+                if (!string.IsNullOrWhiteSpace(name)) Current.Customer.Name = name!;
+                if (!string.IsNullOrWhiteSpace(address)) Current.Customer.Address = address!;
+                if (!string.IsNullOrWhiteSpace(city)) Current.Customer.City = city!;
+                if (!string.IsNullOrWhiteSpace(dic)) Current.Customer.DIC = dic!;
+                OnPropertyChanged(nameof(Current));
             }
             catch (TaskCanceledException)
             {
@@ -209,47 +233,38 @@ namespace InvoiceApp.ViewModels
             {
                 MessageBox.Show($"Chyba při načítání z ARES: {ex.Message}");
             }
-            finally
-            {
-                IsAresBusy = false;
-                LoadCustomerFromIcoCommand.NotifyCanExecuteChanged();
-                LoadSupplierFromIcoCommand.NotifyCanExecuteChanged();
-            }
         }
 
-        // ====== ARES – dodavatel ======
+        // ===== ARES: Načtení podle IČO (Dodavatel) =====
+        [RelayCommand]
         private async Task LoadSupplierFromIco()
         {
             try
             {
                 var ico = Current.Supplier.ICO?.Trim();
-                if (!IsValidIco(ico))
+                if (string.IsNullOrWhiteSpace(ico))
                 {
-                    MessageBox.Show("Zadejte platné IČO (8 číslic) dodavatele.");
+                    MessageBox.Show("Zadejte prosím IČO dodavatele.");
                     return;
                 }
 
-                IsAresBusy = true;
-                LoadCustomerFromIcoCommand.NotifyCanExecuteChanged();
-                LoadSupplierFromIcoCommand.NotifyCanExecuteChanged();
-
-                var (name, address, city, dic) = await _ares.GetByIcoAsync(ico!);
-
+                var (name, address, city, dic) = await _ares.GetByIcoAsync(ico);
                 if (name == null && address == null && city == null)
                 {
                     MessageBox.Show("Subjekt s tímto IČO se v ARES nenašel.");
                     return;
                 }
 
-                if (!string.IsNullOrWhiteSpace(name)) Current.Supplier.Name = NormalizeName(name);
-                if (!string.IsNullOrWhiteSpace(address)) Current.Supplier.Address = NormalizeAddress(address);
-                if (!string.IsNullOrWhiteSpace(city)) Current.Supplier.City = NormalizeCity(city);
-                if (!string.IsNullOrWhiteSpace(dic)) Current.Supplier.DIC = (dic ?? string.Empty).Trim();
+                if (!string.IsNullOrWhiteSpace(name)) Current.Supplier.Name = name!;
+                if (!string.IsNullOrWhiteSpace(address)) Current.Supplier.Address = address!;
+                if (!string.IsNullOrWhiteSpace(city)) Current.Supplier.City = city!;
+                Current.Supplier.DIC = dic ?? string.Empty;
 
-                // Heuristika: když máme DIČ, předpokládej plátce; bez DIČ neplátce (ručně lze přepnout)
-                SupplierIsVatPayer = !string.IsNullOrWhiteSpace(Current.Supplier.DIC);
+                // Automaticky zaškrtni plátce, když má DIČ
+                SupplierIsVatPayer = !string.IsNullOrWhiteSpace(dic);
 
-                BumpTotals();
+                OnPropertyChanged(nameof(Current));
+                OnPropertyChanged(nameof(TotalDisplay));
             }
             catch (TaskCanceledException)
             {
@@ -263,22 +278,6 @@ namespace InvoiceApp.ViewModels
             {
                 MessageBox.Show($"Chyba při načítání z ARES: {ex.Message}");
             }
-            finally
-            {
-                IsAresBusy = false;
-                LoadCustomerFromIcoCommand.NotifyCanExecuteChanged();
-                LoadSupplierFromIcoCommand.NotifyCanExecuteChanged();
-            }
         }
-
-        // ====== drobné formátovací pomocníky ======
-        private static string NormalizeName(string name)
-            => name.Trim();
-
-        private static string NormalizeAddress(string address)
-            => System.Text.RegularExpressions.Regex.Replace(address.Trim(), @"\s+", " ");
-
-        private static string NormalizeCity(string city)
-            => System.Text.RegularExpressions.Regex.Replace(city.Trim(), @"\s+", " ");
     }
 }

@@ -1,14 +1,15 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace InvoiceApp.Models
 {
-    public class InvoiceItem
+    // Díky ObservableObject se generuje INotifyPropertyChanged pro všechny [ObservableProperty]
+    public partial class InvoiceItem : ObservableObject
     {
-        public string Name { get; set; } = string.Empty;
-        public string Unit { get; set; } = "ks";
-        public decimal Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal VatRate { get; set; } // e.g. 0, 0.12, 0.21
-        public decimal LineNet => Quantity * UnitPrice;
-        public decimal LineVat => decimal.Round(LineNet * VatRate, 2);
-        public decimal LineTotal => LineNet + LineVat;
+        [ObservableProperty] private string name = "Nová položka";
+        [ObservableProperty] private string unit = "ks";
+        [ObservableProperty] private decimal quantity = 1m;
+        [ObservableProperty] private decimal unitPrice = 1000m;
+        // 0.21 = 21 % DPH (u neplátce se ignoruje)
+        [ObservableProperty] private decimal vatRate = 0.21m;
     }
 }

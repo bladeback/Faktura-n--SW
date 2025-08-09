@@ -201,7 +201,7 @@ namespace InvoiceApp.Services
 
         private void ItemsTable(IContainer container, Invoice inv, bool supplierIsVatPayer)
         {
-            var items = inv.Items ?? new List<InvoiceItem>();
+            IEnumerable<InvoiceItem> items = inv.Items as IEnumerable<InvoiceItem> ?? Array.Empty<InvoiceItem>();
 
             container.Table(table =>
             {
@@ -251,9 +251,10 @@ namespace InvoiceApp.Services
             static IContainer BodyCell(IContainer c) => c.PaddingVertical(4);
         }
 
+
         private void TotalsBox(IContainer container, Invoice inv, bool supplierIsVatPayer)
         {
-            var items = inv.Items ?? new List<InvoiceItem>();
+            IEnumerable<InvoiceItem> items = inv.Items as IEnumerable<InvoiceItem> ?? Array.Empty<InvoiceItem>();
 
             decimal baseTotal = items.Sum(i => i.Quantity * i.UnitPrice);
             decimal vatTotal = supplierIsVatPayer ? items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate) : 0m;
@@ -264,7 +265,7 @@ namespace InvoiceApp.Services
                 row.RelativeItem().Text(t =>
                 {
                     t.Span(supplierIsVatPayer ? "Dodavatel je plátce DPH." : "Dodavatel není plátce DPH.")
-                     .FontColor(Colors.Grey.Darken1);
+                    .FontColor(Colors.Grey.Darken1);
                 });
 
                 row.ConstantItem(260).Border(0.5f).Padding(8).Column(stack =>
@@ -298,6 +299,7 @@ namespace InvoiceApp.Services
                 });
             });
         }
+
 
         // ========== HELPERY ==========
 

@@ -1,28 +1,55 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace InvoiceApp.Models
 {
-    public enum DocType { Invoice, Order }
-
-    public class Invoice
+    public enum DocType
     {
-        public DocType Type { get; set; } = DocType.Invoice;
-        public string Number { get; set; } = string.Empty;
-        public DateTime IssueDate { get; set; } = DateTime.Today;
-        public DateTime DueDate { get; set; } = DateTime.Today.AddDays(14);
-        public string VariableSymbol { get; set; } = string.Empty; // VS
-        public Company Supplier { get; set; } = new();
-        public Company Customer { get; set; } = new();
-        public string Currency { get; set; } = "CZK";
-        public System.Collections.Generic.List<InvoiceItem> Items { get; set; } = new();
-        public string Notes { get; set; } = string.Empty;
+        Invoice,
+        Order
+    }
 
-        public decimal TotalNet => Items.Sum(i => i.LineNet);
-        public decimal TotalVat => Items.Sum(i => i.LineVat);
-        public decimal Total => Items.Sum(i => i.LineTotal);
+    public partial class Party : ObservableObject
+    {
+        [ObservableProperty] private string name = string.Empty;
+        [ObservableProperty] private string address = string.Empty;
+        [ObservableProperty] private string city = string.Empty;
+        [ObservableProperty] private string iCO = string.Empty;
+        [ObservableProperty] private string dIC = string.Empty;
+        [ObservableProperty] private string bank = string.Empty;
+        [ObservableProperty] private string iBAN = string.Empty;
+        [ObservableProperty] private string email = string.Empty;
+        [ObservableProperty] private string phone = string.Empty;
+    }
 
-        public string PaymentIban => Supplier.IBAN;
+    public partial class Invoice : ObservableObject
+    {
+        [ObservableProperty] private DocType type = DocType.Invoice;
+        [ObservableProperty] private string number = string.Empty;
+
+        [ObservableProperty] private DateTime issueDate = DateTime.Today;
+        [ObservableProperty] private DateTime dueDate = DateTime.Today.AddDays(14);
+
+        [ObservableProperty] private Party supplier = new();
+        [ObservableProperty] private Party customer = new();
+
+        // Položky dokladu
+        public ObservableCollection<InvoiceItem> Items { get; } = new();
+
+        // Platební a ostatní údaje
+        [ObservableProperty] private string variableSymbol = string.Empty;
+        [ObservableProperty] private string currency = "CZK";
+        [ObservableProperty] private string notes = string.Empty;
+
+        // IBAN pro platbu – bereme ze Suppliera (může být přepsán ve ViewModelu)
+        public string PaymentIban => Supplier?.IBAN ?? string.Empty;
+
+        // Souhrny – čistě podle řádků (bez ohledu na plátcovství).
+        // Plátcovství řešíme v UI (TotalDisplay) a v PDF (podle plátce).
+        public decimal SubtotalNet => Items.Sum(i => i.Quantity * i.UnitPrice);
+        public decimal VatTotal => Items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate);
+        public decimal Total => SubtotalNet + VatTotal;
     }
 }
