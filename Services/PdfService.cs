@@ -141,7 +141,10 @@ namespace InvoiceApp.Services
                         : "Dodavatel není plátce DPH.").FontColor(Colors.Grey.Darken1);
                 }
 
-                if (!string.IsNullOrWhiteSpace(party?.Bank) || !string.IsNullOrWhiteSpace(party?.IBAN))
+                // Bankovní údaje – Banka, Účet (domácí číslo účtu) a IBAN
+                if (!string.IsNullOrWhiteSpace(party?.Bank) ||
+                    !string.IsNullOrWhiteSpace(party?.AccountNumber) ||
+                    !string.IsNullOrWhiteSpace(party?.IBAN))
                 {
                     col.Item().PaddingTop(2).Text(txt =>
                     {
@@ -150,6 +153,11 @@ namespace InvoiceApp.Services
                             txt.Span("Banka: ").SemiBold();
                             txt.Span($"{party!.Bank}   ");
                         }
+                        if (!string.IsNullOrWhiteSpace(party?.AccountNumber))
+                        {
+                            txt.Span("Účet: ").SemiBold();
+                            txt.Span($"{party!.AccountNumber}   ");
+                        }
                         if (!string.IsNullOrWhiteSpace(party?.IBAN))
                         {
                             txt.Span("IBAN: ").SemiBold();
@@ -157,6 +165,7 @@ namespace InvoiceApp.Services
                         }
                     });
                 }
+
                 if (!string.IsNullOrWhiteSpace(party?.Email) || !string.IsNullOrWhiteSpace(party?.Phone))
                 {
                     col.Item().Text(txt =>
@@ -181,6 +190,17 @@ namespace InvoiceApp.Services
             container.Border(0.5f).Padding(8).Column(col =>
             {
                 col.Item().Text("Platební údaje").SemiBold().FontSize(11);
+
+                // Účet (domácí číslo účtu) – pokud je vyplněn u dodavatele
+                if (!string.IsNullOrWhiteSpace(inv?.Supplier?.AccountNumber))
+                {
+                    col.Item().PaddingTop(2).Text(txt =>
+                    {
+                        txt.Span("Účet: ").SemiBold();
+                        txt.Span(inv!.Supplier!.AccountNumber);
+                    });
+                }
+
                 col.Item().PaddingTop(2).Text(txt =>
                 {
                     txt.Span("IBAN: ").SemiBold();

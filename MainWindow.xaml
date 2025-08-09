@@ -97,11 +97,10 @@
 
                                         <!-- Dodavatel -->
                                         <GroupBox Header="Dodavatel"
-                                                        Grid.Row="1"
-                                                        Margin="0,10,0,0">
-                                                <Grid Margin="5">
+                                                  Margin="0,10,0,0">
+                                                <Grid Margin="8">
                                                         <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="120"/>
                                                                 <ColumnDefinition Width="*"/>
                                                                 <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
@@ -132,122 +131,120 @@
 
                                                         <!-- Název -->
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Název:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="0"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.Name}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Název:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="0"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Name}"
+                                                                   Margin="6,0,0,4"/>
 
                                                         <!-- Ulice a č.p. -->
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Ulice a č.p.:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.Street}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Ulice a č.p.:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="1"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Address}"
+                                                                   Margin="6,0,0,4"/>
 
                                                         <!-- PSČ a obec -->
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="PSČ a obec:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.City}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="PSČ a obec:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="2"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.City}"
+                                                                   Margin="6,0,0,4"/>
 
-                                                        <!-- IČO -->
+                                                        <!-- IČO + ARES -->
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="IČO:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <StackPanel Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        Orientation="Horizontal"
-                                                                        Margin="6,0,0,4">
-                                                                <TextBox Width="150"
-                                                                                Text="{Binding Current.Supplier.ICO}"
-                                                                                Margin="0,0,6,0"/>
-                                                                <Button Content="Načíst z ARES"
-                                                                                Command="{Binding LoadSupplierFromAresCommand}"/>
-                                                        </StackPanel>
+                                                                   Grid.Column="0"
+                                                                   Text="IČO:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="3"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.ICO}"
+                                                                   Margin="6,0,0,4"/>
+                                                        <Button    Grid.Row="3"
+                                                                   Grid.Column="2"
+                                                                   Content="Načíst z ARES"
+                                                                   Margin="6,0,0,4"
+                                                                   Command="{Binding LoadSupplierFromIcoCommand}"/>
 
                                                         <!-- DIČ -->
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="DIČ:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="4"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.DIC}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="DIČ:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="4"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.DIC}"
+                                                                   Margin="6,0,0,4"/>
 
                                                         <!-- Banka -->
                                                         <TextBlock Grid.Row="5"
-                                                                        Grid.Column="0"
-                                                                        Text="Banka:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="5"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.Bank}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Banka:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="5"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Bank}"
+                                                                   Margin="6,0,0,4"/>
 
-                                                        <!-- Účet -->
+                                                        <!-- Účet (domácí číslo účtu) -->
                                                         <TextBlock Grid.Row="6"
-                                                                        Grid.Column="0"
-                                                                        Text="Účet:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="6"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.AccountNumber}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Účet:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="6"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.AccountNumber}"
+                                                                   Margin="6,0,0,4"/>
 
                                                         <!-- IBAN -->
                                                         <TextBlock Grid.Row="7"
-                                                                        Grid.Column="0"
-                                                                        Text="IBAN:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="7"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.IBAN}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="IBAN:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="7"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.IBAN}"
+                                                                   Margin="6,0,0,4"/>
 
                                                         <!-- E-mail -->
                                                         <TextBlock Grid.Row="8"
-                                                                        Grid.Column="0"
-                                                                        Text="E-mail:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="8"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.Email}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="E-mail:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="8"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Email}"
+                                                                   Margin="6,0,0,4"/>
 
                                                         <!-- Telefon -->
                                                         <TextBlock Grid.Row="9"
-                                                                        Grid.Column="0"
-                                                                        Text="Telefon:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <TextBox Grid.Row="9"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.Phone}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Telefon:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="9"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Phone}"
+                                                                   Margin="6,0,0,4"/>
 
-                                                        <!-- Plátce DPH -->
+                                                        <!-- Plátce DPH (vazba na VM) -->
                                                         <TextBlock Grid.Row="10"
-                                                                        Grid.Column="0"
-                                                                        Text="Plátce DPH:"
-                                                                        VerticalAlignment="Center"/>
-                                                        <CheckBox Grid.Row="10"
-                                                                        Grid.Column="1"
-                                                                        IsChecked="{Binding Current.Supplier.IsVatPayer}"
-                                                                        Margin="6,0,0,4"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Plátce DPH:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <CheckBox  Grid.Row="10"
+                                                                   Grid.Column="1"
+                                                                   IsChecked="{Binding SupplierIsVatPayer}"
+                                                                   Margin="6,0,0,4"/>
                                                 </Grid>
                                         </GroupBox>
-
 
                                         <!-- Odběratel -->
                                         <GroupBox Header="Odběratel"

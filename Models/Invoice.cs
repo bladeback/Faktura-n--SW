@@ -18,8 +18,14 @@ namespace InvoiceApp.Models
         [ObservableProperty] private string city = string.Empty;
         [ObservableProperty] private string iCO = string.Empty;
         [ObservableProperty] private string dIC = string.Empty;
+
         [ObservableProperty] private string bank = string.Empty;
+
+        // NOVÉ: domácí číslo účtu (např. 12-3456789012/0100)
+        [ObservableProperty] private string accountNumber = string.Empty;
+
         [ObservableProperty] private string iBAN = string.Empty;
+
         [ObservableProperty] private string email = string.Empty;
         [ObservableProperty] private string phone = string.Empty;
     }
@@ -46,8 +52,7 @@ namespace InvoiceApp.Models
         // IBAN pro platbu – bereme ze Suppliera (může být přepsán ve ViewModelu)
         public string PaymentIban => Supplier?.IBAN ?? string.Empty;
 
-        // Souhrny – čistě podle řádků (bez ohledu na plátcovství).
-        // Plátcovství řešíme v UI (TotalDisplay) a v PDF (podle plátce).
+        // Souhrny (bez ohledu na plátcovství; to řeší UI/PDF)
         public decimal SubtotalNet => Items.Sum(i => i.Quantity * i.UnitPrice);
         public decimal VatTotal => Items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate);
         public decimal Total => SubtotalNet + VatTotal;

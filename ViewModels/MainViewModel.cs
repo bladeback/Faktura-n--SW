@@ -175,37 +175,49 @@ namespace InvoiceApp.ViewModels
         {
             try
             {
-                // QR platba jen pro Fakturu – ať sedí částka s UI
-                byte[]? png = null;
-                if (Current.Type == DocType.Invoice)
+                // Částka do QR = to, co vidíš jako Celkem (na 2 desetiny, tečka)
+                var amountToPay = Math.Round(Current.Total, 2, MidpointRounding.AwayFromZero);
+
+                // Zpráva do QR – krátká a užitečná
+                var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
+                var msg = $"{label} {Current.Number}".Trim();
+
+                // QR generujeme JEN u faktury a jen když je IBAN + částka > 0
+                byte[]? qrPng = null;
+                var iban = Current.Supplier?.IBAN?.Trim();
+                if (Current.Type == DocType.Invoice &&
+                    !string.IsNullOrWhiteSpace(iban) &&
+                    amountToPay > 0m)
                 {
-                    var amount = ComputeBaseTotal() + ComputeVatTotal();
-                    string payload = _qr.BuildCzechQrPaymentPayload(
-                        Current.PaymentIban,
-                        amount,
-                        Current.Currency,
-                        Current.VariableSymbol,
-                        $"{Current.Type} {Current.Number}"
+                    var payload = _qr.BuildCzechQrPaymentPayload(
+                        iban: iban,
+                        amount: amountToPay,
+                        currency: string.IsNullOrWhiteSpace(Current.Currency) ? "CZK" : Current.Currency,
+                        variableSymbol: Current.VariableSymbol,
+                        message: msg
                     );
-                    png = _qr.GenerateQrPng(payload);
+
+                    qrPng = _qr.GenerateQrPng(payload);
                 }
 
-                var dialog = new SaveFileDialog
+                var dialog = new Microsoft.Win32.SaveFileDialog
                 {
                     Filter = "PDF (*.pdf)|*.pdf",
                     FileName = $"{Current.Number}.pdf"
                 };
+
                 if (dialog.ShowDialog() == true)
                 {
-                    var path = _pdf.SaveInvoicePdf(Current, png, dialog.FileName);
-                    MessageBox.Show($"Uloženo: {path}");
+                    var path = _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName);
+                    System.Windows.MessageBox.Show($"Uloženo: {path}");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Chyba při exportu PDF: {ex.Message}");
+                System.Windows.MessageBox.Show($"Chyba při exportu PDF: {ex.Message}");
             }
         }
+
 
         // ======= ARES: Odběratel =======
         [RelayCommand]
