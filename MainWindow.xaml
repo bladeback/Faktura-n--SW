@@ -2,462 +2,437 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
-        xmlns:models="clr-namespace:InvoiceApp.Models"
         Title="InvoiceApp"
-        Height="760"
-        Width="1180"
-        MinWidth="900"
-        MinHeight="600">
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
+        Height="720"
+        Width="1200">
+        <Window.Resources>
+                <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        </Window.Resources>
 
-    <Window.Resources>
-        <!-- Labely a vstupy -->
-        <Style x:Key="FormLabel"
-               TargetType="TextBlock">
-            <Setter Property="VerticalAlignment"
-                    Value="Center"/>
-            <Setter Property="FontWeight"
-                    Value="SemiBold"/>
-            <Setter Property="Margin"
-                    Value="0,2,8,2"/>
-            <Setter Property="Foreground"
-                    Value="#444"/>
-        </Style>
-        <Style x:Key="FormInput"
-               TargetType="TextBox">
-            <Setter Property="Margin"
-                    Value="0,2,0,2"/>
-            <Setter Property="Padding"
-                    Value="6,4"/>
-        </Style>
-        <Style TargetType="GroupBox">
-            <Setter Property="Margin"
-                    Value="0,10,0,0"/>
-            <Setter Property="Padding"
-                    Value="8"/>
-        </Style>
-        <!-- ARES tlačítko -->
-        <Style x:Key="AresButtonStyle"
-               TargetType="Button">
-            <Setter Property="MinWidth"
-                    Value="110"/>
-            <Setter Property="Margin"
-                    Value="8,2,0,2"/>
-            <Setter Property="Content"
-                    Value="Načíst z ARES"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding IsAresBusy}"
-                             Value="True">
-                    <Setter Property="IsEnabled"
-                            Value="False"/>
-                    <Setter Property="Content"
-                            Value="Načítám…"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <Window.DataContext>
+                <vm:MainViewModel/>
+        </Window.DataContext>
 
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-    </Window.Resources>
+        <DockPanel>
+                <!-- Toolbar -->
+                <ToolBar DockPanel.Dock="Top">
+                        <Button Content="Nová faktura"
+                                Command="{Binding NewInvoiceCommand}"/>
+                        <Button Content="Nová objednávka"
+                                Command="{Binding NewOrderCommand}"
+                                Margin="6,0,0,0"/>
+                        <Separator/>
+                        <Button Content="Přidat položku"
+                                Command="{Binding AddItemCommand}"/>
+                        <Button Content="Export do PDF"
+                                Command="{Binding ExportPdfCommand}"
+                                Margin="6,0,0,0"/>
+                </ToolBar>
 
-    <DockPanel>
-        <ToolBar DockPanel.Dock="Top">
-            <Button Content="Nová faktura"
-                    Command="{Binding NewInvoiceCommand}"/>
-            <Button Content="Nová objednávka"
-                    Command="{Binding NewOrderCommand}"
-                    Margin="6,0,0,0"/>
-            <Separator/>
-            <Button Content="Přidat položku"
-                    Command="{Binding AddItemCommand}"/>
-            <Button Content="Export do PDF"
-                    Command="{Binding ExportPdfCommand}"
-                    Margin="6,0,0,0"/>
-        </ToolBar>
-
-        <Grid Margin="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="420"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- LEVÝ SLOUPEC (rolovatelný) -->
-            <ScrollViewer Grid.Column="0"
-                          Margin="0,0,12,0"
-                          VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-
-                    <!-- Doklad -->
-                    <GroupBox Header="Doklad">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="120"/>
+                <Grid Margin="8">
+                        <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="420"/>
                                 <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                        </Grid.ColumnDefinitions>
 
-                            <TextBlock Grid.Row="0"
-                                       Grid.Column="0"
-                                       Text="Typ:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <ComboBox   Grid.Row="0"
-                                        Grid.Column="1"
-                                        Margin="0,2,0,2"
-                                        SelectedValue="{Binding Current.Type}">
-                                <ComboBoxItem Content="Faktura"/>
-                                <ComboBoxItem Content="Objednávka"/>
-                            </ComboBox>
+                        <!-- Levá část (scroll) -->
+                        <ScrollViewer Grid.Column="0"
+                                      VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="0,0,10,0">
 
-                            <TextBlock Grid.Row="1"
-                                       Grid.Column="0"
-                                       Text="Číslo:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox    Grid.Row="1"
-                                        Grid.Column="1"
-                                        Text="{Binding Current.Number}"
-                                        Style="{StaticResource FormInput}"/>
+                                        <!-- Doklad -->
+                                        <GroupBox Header="Doklad">
+                                                <Grid Margin="8">
+                                                        <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="2"
-                                       Grid.Column="0"
-                                       Text="Vystaveno:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <DatePicker Grid.Row="2"
-                                        Grid.Column="1"
-                                        SelectedDate="{Binding Current.IssueDate}"
-                                        Margin="0,2,0,2"/>
+                                                        <TextBlock Grid.Row="0"
+                                                                   Grid.Column="0"
+                                                                   Text="Typ:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <ComboBox Grid.Row="0"
+                                                                  Grid.Column="1"
+                                                                  SelectedValue="{Binding Current.Type}"
+                                                                  Margin="6,0,0,4">
+                                                                <ComboBoxItem Content="Faktura"/>
+                                                                <ComboBoxItem Content="Objednávka"/>
+                                                        </ComboBox>
 
-                            <TextBlock Grid.Row="3"
-                                       Grid.Column="0"
-                                       Text="Splatnost:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <DatePicker Grid.Row="3"
-                                        Grid.Column="1"
-                                        SelectedDate="{Binding Current.DueDate}"
-                                        Margin="0,2,0,2"/>
+                                                        <TextBlock Grid.Row="1"
+                                                                   Grid.Column="0"
+                                                                   Text="Číslo:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="1"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Number}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="2"
+                                                                   Grid.Column="0"
+                                                                   Text="Vystaveno:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <DatePicker Grid.Row="2"
+                                                                    Grid.Column="1"
+                                                                    SelectedDate="{Binding Current.IssueDate}"
+                                                                    Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="3"
+                                                                   Grid.Column="0"
+                                                                   Text="Splatnost:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <DatePicker Grid.Row="3"
+                                                                    Grid.Column="1"
+                                                                    SelectedDate="{Binding Current.DueDate}"
+                                                                    Margin="6,0,0,0"/>
+                                                </Grid>
+                                        </GroupBox>
+
+                                        <!-- Dodavatel -->
+                                        <GroupBox Header="Dodavatel"
+                                                  Margin="0,10,0,0">
+                                                <Grid Margin="8">
+                                                        <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <TextBlock Grid.Row="0"
+                                                                   Grid.Column="0"
+                                                                   Text="Název:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="0"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Name}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="1"
+                                                                   Grid.Column="0"
+                                                                   Text="Ulice a č.p.:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="1"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Address}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="2"
+                                                                   Grid.Column="0"
+                                                                   Text="PSČ a obec:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="2"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.City}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="3"
+                                                                   Grid.Column="0"
+                                                                   Text="IČO:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="3"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.ICO}"
+                                                                   Margin="6,0,0,4"/>
+                                                        <Button    Grid.Row="3"
+                                                                   Grid.Column="2"
+                                                                   Content="Načíst z ARES"
+                                                                   Margin="6,0,0,4"
+                                                                   Command="{Binding LoadSupplierFromIcoCommand}"/>
+
+                                                        <TextBlock Grid.Row="4"
+                                                                   Grid.Column="0"
+                                                                   Text="DIČ:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="4"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.DIC}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="5"
+                                                                   Grid.Column="0"
+                                                                   Text="Banka:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="5"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Bank}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="6"
+                                                                   Grid.Column="0"
+                                                                   Text="IBAN:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="6"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.IBAN}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="7"
+                                                                   Grid.Column="0"
+                                                                   Text="E-mail:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="7"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Email}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="8"
+                                                                   Grid.Column="0"
+                                                                   Text="Telefon:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="8"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.Phone}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="9"
+                                                                   Grid.Column="0"
+                                                                   Text="Plátce DPH:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <CheckBox  Grid.Row="9"
+                                                                   Grid.Column="1"
+                                                                   IsChecked="{Binding SupplierIsVatPayer}"
+                                                                   Margin="6,0,0,4"/>
+                                                </Grid>
+                                        </GroupBox>
+
+                                        <!-- Odběratel -->
+                                        <GroupBox Header="Odběratel"
+                                                  Margin="0,10,0,10">
+                                                <Grid Margin="8">
+                                                        <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <TextBlock Grid.Row="0"
+                                                                   Grid.Column="0"
+                                                                   Text="Název:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="0"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Customer.Name}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="1"
+                                                                   Grid.Column="0"
+                                                                   Text="Ulice a č.p.:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="1"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Customer.Address}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="2"
+                                                                   Grid.Column="0"
+                                                                   Text="PSČ a obec:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="2"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Customer.City}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="3"
+                                                                   Grid.Column="0"
+                                                                   Text="IČO:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="3"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Customer.ICO}"
+                                                                   Margin="6,0,0,4"/>
+                                                        <Button    Grid.Row="3"
+                                                                   Grid.Column="2"
+                                                                   Content="Načíst z ARES"
+                                                                   Margin="6,0,0,4"
+                                                                   Command="{Binding LoadCustomerFromIcoCommand}"/>
+
+                                                        <TextBlock Grid.Row="4"
+                                                                   Grid.Column="0"
+                                                                   Text="DIČ:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="4"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Customer.DIC}"
+                                                                   Margin="6,0,0,0"/>
+                                                </Grid>
+                                        </GroupBox>
+
+                                        <!-- Platební údaje -->
+                                        <GroupBox Header="Platební údaje">
+                                                <Grid Margin="8">
+                                                        <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <TextBlock Grid.Row="0"
+                                                                   Grid.Column="0"
+                                                                   Text="VS:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="0"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.VariableSymbol}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="1"
+                                                                   Grid.Column="0"
+                                                                   Text="Měna:"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="1"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Currency}"
+                                                                   Margin="6,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="2"
+                                                                   Grid.Column="0"
+                                                                   Text="Poznámka:"
+                                                                   VerticalAlignment="Top"/>
+                                                        <!-- OPRAVA: odstraněná přebytečná '}' v Margin -->
+                                                        <TextBox   Grid.Row="2"
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Notes}"
+                                                                   Margin="6,0,0,0"
+                                                                   Height="70"
+                                                                   AcceptsReturn="True"
+                                                                   TextWrapping="Wrap"/>
+                                                </Grid>
+                                        </GroupBox>
+
+                                </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Pravá část -->
+                        <Grid Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Položky -->
+                                <DataGrid Grid.Row="0"
+                                          ItemsSource="{Binding Items}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          HeadersVisibility="Column"
+                                          Margin="0,0,0,6">
+                                        <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Položka"
+                                                                    Binding="{Binding Name}"
+                                                                    Width="*"/>
+                                                <DataGridTextColumn Header="Mj"
+                                                                    Binding="{Binding Unit}"
+                                                                    Width="60"/>
+                                                <DataGridTextColumn Header="Množství"
+                                                                    Binding="{Binding Quantity}"
+                                                                    Width="100"/>
+                                                <DataGridTextColumn Header="Cena/ks"
+                                                                    Binding="{Binding UnitPrice}"
+                                                                    Width="120"/>
+                                                <DataGridTextColumn Header="DPH (%)"
+                                                                    Binding="{Binding VatRate}"
+                                                                    Width="100"/>
+                                                <DataGridTemplateColumn Header=""
+                                                                        Width="40">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                        <Button Content="✕"
+                                                                                Command="{Binding DataContext.RemoveSelectedCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                                CommandParameter="{Binding}"
+                                                                                Padding="0"
+                                                                                Margin="4,0,0,0"/>
+                                                                </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                        </DataGrid.Columns>
+                                </DataGrid>
+
+                                <!-- Souhrn vpravo dole -->
+                                <Grid Grid.Row="1"
+                                      HorizontalAlignment="Right"
+                                      Margin="0,0,8,0"
+                                      Width="280">
+                                        <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="8"/>
+                                                <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="140"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Pro plátce: Základ / DPH -->
+                                        <TextBlock Grid.Row="0"
+                                                   Grid.Column="0"
+                                                   Text="Základ bez DPH:"
+                                                   Visibility="{Binding SupplierIsVatPayer, Converter={StaticResource BoolToVis}}"/>
+                                        <TextBlock Grid.Row="0"
+                                                   Grid.Column="1"
+                                                   Text="{Binding SubtotalDisplay}"
+                                                   HorizontalAlignment="Right"
+                                                   Visibility="{Binding SupplierIsVatPayer, Converter={StaticResource BoolToVis}}"/>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Grid.Column="0"
+                                                   Text="DPH celkem:"
+                                                   Visibility="{Binding SupplierIsVatPayer, Converter={StaticResource BoolToVis}}"/>
+                                        <TextBlock Grid.Row="1"
+                                                   Grid.Column="1"
+                                                   Text="{Binding VatTotalDisplay}"
+                                                   HorizontalAlignment="Right"
+                                                   Visibility="{Binding SupplierIsVatPayer, Converter={StaticResource BoolToVis}}"/>
+
+                                        <Rectangle Grid.Row="2"
+                                                   Grid.ColumnSpan="2"
+                                                   Height="1"
+                                                   Fill="#33000000"
+                                                   Visibility="{Binding SupplierIsVatPayer, Converter={StaticResource BoolToVis}}"/>
+
+                                        <!-- Celkem (vždy) -->
+                                        <TextBlock Grid.Row="3"
+                                                   Grid.Column="0"
+                                                   Text="Celkem:"
+                                                   FontWeight="Bold"/>
+                                        <TextBlock Grid.Row="3"
+                                                   Grid.Column="1"
+                                                   Text="{Binding GrandTotalDisplay}"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Right"/>
+                                </Grid>
                         </Grid>
-                    </GroupBox>
-
-                    <!-- Dodavatel -->
-                    <GroupBox Header="Dodavatel">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0"
-                                       Grid.Column="0"
-                                       Text="Název:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="0"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.Name}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="1"
-                                       Grid.Column="0"
-                                       Text="Ulice a č.p.:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="1"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.Address}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="2"
-                                       Grid.Column="0"
-                                       Text="PSČ a obec:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="2"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.City}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="3"
-                                       Grid.Column="0"
-                                       Text="IČO:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="3"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.ICO, UpdateSourceTrigger=PropertyChanged}"
-                                       Style="{StaticResource FormInput}"
-                                       MinWidth="160"/>
-                            <Button    Grid.Row="3"
-                                       Grid.Column="2"
-                                       Style="{StaticResource AresButtonStyle}"
-                                       Command="{Binding LoadSupplierFromIcoCommand}"/>
-
-                            <TextBlock Grid.Row="4"
-                                       Grid.Column="0"
-                                       Text="DIČ:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="4"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.DIC}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="5"
-                                       Grid.Column="0"
-                                       Text="Banka:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="5"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.Bank}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="6"
-                                       Grid.Column="0"
-                                       Text="IBAN:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="6"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.IBAN}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="7"
-                                       Grid.Column="0"
-                                       Text="E-mail:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="7"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.Email}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="8"
-                                       Grid.Column="0"
-                                       Text="Telefon:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="8"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Supplier.Phone}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="9"
-                                       Grid.Column="0"
-                                       Text="Plátce DPH:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <CheckBox  Grid.Row="9"
-                                       Grid.Column="1"
-                                       IsChecked="{Binding SupplierIsVatPayer}"
-                                       VerticalAlignment="Center"/>
-                        </Grid>
-                    </GroupBox>
-
-                    <!-- Odběratel -->
-                    <GroupBox Header="Odběratel">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0"
-                                       Grid.Column="0"
-                                       Text="Název:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="0"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Customer.Name}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="1"
-                                       Grid.Column="0"
-                                       Text="Ulice a č.p.:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="1"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Customer.Address}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="2"
-                                       Grid.Column="0"
-                                       Text="PSČ a obec:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="2"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Customer.City}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-
-                            <TextBlock Grid.Row="3"
-                                       Grid.Column="0"
-                                       Text="IČO:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="3"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Customer.ICO, UpdateSourceTrigger=PropertyChanged}"
-                                       Style="{StaticResource FormInput}"
-                                       MinWidth="160"/>
-                            <Button    Grid.Row="3"
-                                       Grid.Column="2"
-                                       Style="{StaticResource AresButtonStyle}"
-                                       Command="{Binding LoadCustomerFromIcoCommand}"/>
-
-                            <TextBlock Grid.Row="4"
-                                       Grid.Column="0"
-                                       Text="DIČ:"
-                                       Style="{StaticResource FormLabel}"/>
-                            <TextBox   Grid.Row="4"
-                                       Grid.Column="1"
-                                       Text="{Binding Current.Customer.DIC}"
-                                       Style="{StaticResource FormInput}"
-                                       Grid.ColumnSpan="2"/>
-                        </Grid>
-                    </GroupBox>
-
-                    <!-- Platební údaje – jen pro Fakturu -->
-                    <GroupBox Header="Platební údaje">
-                        <GroupBox.Style>
-                            <Style TargetType="GroupBox">
-                                <Setter Property="Visibility"
-                                        Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Current.Type}"
-                                                 Value="{x:Static models:DocType.Order}">
-                                        <Setter Property="Visibility"
-                                                Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </GroupBox.Style>
-
-                        <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="120"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="VS:"
-                                           Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Column="1"
-                                           Text="{Binding Current.VariableSymbol}"
-                                           Style="{StaticResource FormInput}"
-                                           Width="160"/>
-                            </Grid>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="120"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="Měna:"
-                                           Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Column="1"
-                                           Text="{Binding Current.Currency}"
-                                           Style="{StaticResource FormInput}"
-                                           Width="90"/>
-                            </Grid>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="120"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="Poznámka:"
-                                           Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Column="1"
-                                           Text="{Binding Current.Notes}"
-                                           Style="{StaticResource FormInput}"
-                                           Height="70"
-                                           AcceptsReturn="True"
-                                           TextWrapping="Wrap"/>
-                            </Grid>
-                        </StackPanel>
-                    </GroupBox>
-
-                </StackPanel>
-            </ScrollViewer>
-
-            <!-- PRAVÝ SLOUPEC -->
-            <DockPanel Grid.Column="1">
-                <DataGrid ItemsSource="{Binding Items}"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          DockPanel.Dock="Top"
-                          Margin="0,0,0,8">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Položka"
-                                            Binding="{Binding Name}"
-                                            Width="*"/>
-                        <DataGridTextColumn Header="Mj"
-                                            Binding="{Binding Unit}"
-                                            Width="60"/>
-                        <DataGridTextColumn Header="Množství"
-                                            Binding="{Binding Quantity}"
-                                            Width="100"/>
-                        <DataGridTextColumn Header="Cena/ks"
-                                            Binding="{Binding UnitPrice}"
-                                            Width="110"/>
-                        <!-- DPH sloupec jen pro plátce -->
-                        <DataGridTextColumn Header="DPH (%)"
-                                            Binding="{Binding VatRate}"
-                                            Width="100"
-                                            Visibility="{Binding DataContext.SupplierIsVatPayer, RelativeSource={RelativeSource AncestorType=DockPanel}, Converter={StaticResource BoolToVis}}"/>
-                        <DataGridTemplateColumn Header=""
-                                                Width="60">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="✕"
-                                            Command="{Binding DataContext.RemoveSelectedCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                            CommandParameter="{Binding}"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-
-                <StackPanel Orientation="Horizontal"
-                            HorizontalAlignment="Right">
-                    <TextBlock Text="Celkem:"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"
-                               Margin="0,0,6,0"/>
-                    <TextBlock Text="{Binding TotalDisplay}"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"
-                               Margin="0,0,6,0"/>
-                    <TextBlock Text="{Binding Current.Currency}"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-            </DockPanel>
-        </Grid>
-    </DockPanel>
+                </Grid>
+        </DockPanel>
 </Window>

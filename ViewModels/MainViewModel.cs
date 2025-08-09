@@ -24,16 +24,18 @@ namespace InvoiceApp.ViewModels
         [ObservableProperty] private Invoice current = new();
         public ObservableCollection<InvoiceItem> Items { get; } = new();
 
-        // Plátce DPH – vazba na CheckBox v UI + na DPH sloupec a přepočet celkové částky
-        [ObservableProperty]
-        private bool supplierIsVatPayer;
+        // Plátce DPH – řídí výpočet i zobrazení v UI (a QR částku)
+        [ObservableProperty] private bool supplierIsVatPayer;
 
-        // Zobrazení součtu vpravo dole
-        public string TotalDisplay => FormatMoney(ComputeTotal(), Current?.Currency ?? "CZK");
+        // Souhrny pro UI
+        public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
+        public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
+        public string GrandTotalDisplay => FormatMoney(ComputeBaseTotal() + ComputeVatTotal(), Current?.Currency ?? "CZK");
+        public string TotalDisplay => GrandTotalDisplay; // zpětná kompatibilita (pokud je někde ještě použité)
 
         public MainViewModel()
         {
-            // výchozí dodavatel – můžeš přepsat
+            // výchozí hodnoty – jen pro pohodlné testování
             Current.Supplier.Name = "Vaše firma s.r.o.";
             Current.Supplier.Address = "Ulice 1";
             Current.Supplier.City = "123 45 Město";
@@ -47,16 +49,48 @@ namespace InvoiceApp.ViewModels
             Current.VariableSymbol = DateTime.Now.ToString("yyyyMMdd");
             Current.Currency = "CZK";
 
-            // Vazby na změny položek – přepočítáme Celkem při každé editaci
             Items.CollectionChanged += Items_CollectionChanged;
         }
 
-        // Reaguj, když uživatel přepne plátce DPH
+        // ======= přepínač plátce DPH =======
         partial void OnSupplierIsVatPayerChanged(bool value)
         {
+            RaiseTotalsChanged();
+        }
+
+        // ======= přepočty =======
+        private decimal ComputeBaseTotal()
+        {
+            decimal total = 0m;
+            foreach (var it in Items)
+                total += it.Quantity * it.UnitPrice;
+            return total;
+        }
+
+        private decimal ComputeVatTotal()
+        {
+            if (!SupplierIsVatPayer) return 0m;
+            decimal vat = 0m;
+            foreach (var it in Items)
+                vat += it.Quantity * it.UnitPrice * it.VatRate;
+            return vat;
+        }
+
+        private static string FormatMoney(decimal value, string currency)
+        {
+            var ci = new CultureInfo("cs-CZ");
+            return $"{string.Format(ci, "{0:N2}", value)} {currency}";
+        }
+
+        private void RaiseTotalsChanged()
+        {
+            OnPropertyChanged(nameof(SubtotalDisplay));
+            OnPropertyChanged(nameof(VatTotalDisplay));
+            OnPropertyChanged(nameof(GrandTotalDisplay));
             OnPropertyChanged(nameof(TotalDisplay));
         }
 
+        // ======= reakce na změny položek =======
         private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.OldItems != null)
@@ -67,8 +101,7 @@ namespace InvoiceApp.ViewModels
                 foreach (InvoiceItem it in e.NewItems)
                     it.PropertyChanged += Item_PropertyChanged;
 
-            // přepočet celku při přidání/odebrání
-            OnPropertyChanged(nameof(TotalDisplay));
+            RaiseTotalsChanged();
         }
 
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -78,31 +111,11 @@ namespace InvoiceApp.ViewModels
                 or nameof(InvoiceItem.VatRate)
                 or nameof(InvoiceItem.Name))
             {
-                OnPropertyChanged(nameof(TotalDisplay));
+                RaiseTotalsChanged();
             }
         }
 
-        private decimal ComputeTotal()
-        {
-            if (Current == null) return 0m;
-            decimal total = 0m;
-            foreach (var it in Items)
-            {
-                var line = it.Quantity * it.UnitPrice;
-                if (SupplierIsVatPayer)
-                    line *= (1 + it.VatRate);
-                total += line;
-            }
-            return total;
-        }
-
-        private static string FormatMoney(decimal value, string currency)
-        {
-            var ci = new CultureInfo("cs-CZ");
-            return $"{string.Format(ci, "{0:N2}", value)} {currency}";
-        }
-
-        // ===== Položky =====
+        // ======= příkazy (Commands) =======
         [RelayCommand]
         private void AddItem()
         {
@@ -115,7 +128,7 @@ namespace InvoiceApp.ViewModels
             };
             Items.Add(item);
             Current.Items.Add(item);
-            OnPropertyChanged(nameof(TotalDisplay));
+            RaiseTotalsChanged();
         }
 
         [RelayCommand]
@@ -125,11 +138,10 @@ namespace InvoiceApp.ViewModels
             {
                 Items.Remove(it);
                 Current.Items.Remove(it);
-                OnPropertyChanged(nameof(TotalDisplay));
+                RaiseTotalsChanged();
             }
         }
 
-        // ===== Nový doklad =====
         [RelayCommand]
         private void NewInvoice()
         {
@@ -140,8 +152,8 @@ namespace InvoiceApp.ViewModels
                 Currency = "CZK"
             };
             Items.Clear();
-            SupplierIsVatPayer = false;    // výchozí
-            OnPropertyChanged(nameof(TotalDisplay));
+            SupplierIsVatPayer = false;
+            RaiseTotalsChanged();
         }
 
         [RelayCommand]
@@ -154,23 +166,23 @@ namespace InvoiceApp.ViewModels
                 Currency = "CZK"
             };
             Items.Clear();
-            SupplierIsVatPayer = false;    // objednávka = spíš bez DPH zobrazení
-            OnPropertyChanged(nameof(TotalDisplay));
+            SupplierIsVatPayer = false;
+            RaiseTotalsChanged();
         }
 
-        // ===== Export PDF =====
         [RelayCommand]
         private void ExportPdf()
         {
             try
             {
-                // QR platba generujeme jen pro Fakturu
+                // QR platba jen pro Fakturu – ať sedí částka s UI
                 byte[]? png = null;
                 if (Current.Type == DocType.Invoice)
                 {
+                    var amount = ComputeBaseTotal() + ComputeVatTotal();
                     string payload = _qr.BuildCzechQrPaymentPayload(
                         Current.PaymentIban,
-                        ComputeTotal(),                // vezmeme částku stejně jako v UI
+                        amount,
                         Current.Currency,
                         Current.VariableSymbol,
                         $"{Current.Type} {Current.Number}"
@@ -195,7 +207,7 @@ namespace InvoiceApp.ViewModels
             }
         }
 
-        // ===== ARES: Načtení podle IČO (Odběratel) =====
+        // ======= ARES: Odběratel =======
         [RelayCommand]
         private async Task LoadCustomerFromIco()
         {
@@ -235,7 +247,7 @@ namespace InvoiceApp.ViewModels
             }
         }
 
-        // ===== ARES: Načtení podle IČO (Dodavatel) =====
+        // ======= ARES: Dodavatel =======
         [RelayCommand]
         private async Task LoadSupplierFromIco()
         {
@@ -260,11 +272,11 @@ namespace InvoiceApp.ViewModels
                 if (!string.IsNullOrWhiteSpace(city)) Current.Supplier.City = city!;
                 Current.Supplier.DIC = dic ?? string.Empty;
 
-                // Automaticky zaškrtni plátce, když má DIČ
+                // Automaticky označ plátce, pokud ARES vrátil DIČ
                 SupplierIsVatPayer = !string.IsNullOrWhiteSpace(dic);
 
                 OnPropertyChanged(nameof(Current));
-                OnPropertyChanged(nameof(TotalDisplay));
+                RaiseTotalsChanged();
             }
             catch (TaskCanceledException)
             {
