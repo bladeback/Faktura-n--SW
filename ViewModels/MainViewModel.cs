@@ -4,6 +4,7 @@ using InvoiceApp.Models;
 using InvoiceApp.Services;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -28,6 +29,8 @@ namespace InvoiceApp.ViewModels
         // Plátce DPH – řídí výpočet i zobrazení v UI (a QR částku)
         [ObservableProperty] private bool supplierIsVatPayer;
 
+        public List<string> PaymentMethods { get; } = new() { "Převodem", "Hotově", "Kartou" };
+
         // Souhrny pro UI
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
@@ -49,6 +52,9 @@ namespace InvoiceApp.ViewModels
             Current.Number = _num.NextInvoiceNumber();
             Current.VariableSymbol = DateTime.Now.ToString("yyyyMMdd");
             Current.Currency = "CZK";
+
+            Current.PaymentMethod = "Převodem";
+            Current.TaxableSupplyDate = DateTime.Today;
 
             // watcher položek
             Items.CollectionChanged += Items_CollectionChanged;
@@ -230,7 +236,9 @@ namespace InvoiceApp.ViewModels
             {
                 Type = DocType.Invoice,
                 Number = _num.NextInvoiceNumber(),
-                Currency = "CZK"
+                Currency = "CZK",
+                PaymentMethod = "Převodem",
+                TaxableSupplyDate = DateTime.Today
             };
             Items.Clear();
             SupplierIsVatPayer = false;
@@ -245,7 +253,9 @@ namespace InvoiceApp.ViewModels
             {
                 Type = DocType.Order,
                 Number = _num.NextOrderNumber(),
-                Currency = "CZK"
+                Currency = "CZK",
+                PaymentMethod = "Převodem",
+                TaxableSupplyDate = DateTime.Today
             };
             Items.Clear();
             SupplierIsVatPayer = false;
@@ -326,6 +336,10 @@ namespace InvoiceApp.ViewModels
                 if (!string.IsNullOrWhiteSpace(address)) Current.Customer.Address = address!;
                 if (!string.IsNullOrWhiteSpace(city)) Current.Customer.City = city!;
                 if (!string.IsNullOrWhiteSpace(dic)) Current.Customer.DIC = dic!;
+
+                // --- PŘIDÁNO ZDE ---
+                Current.Customer.Country = "Česká republika";
+
                 OnPropertyChanged(nameof(Current));
             }
             catch (TaskCanceledException)
@@ -366,6 +380,9 @@ namespace InvoiceApp.ViewModels
                 if (!string.IsNullOrWhiteSpace(address)) Current.Supplier.Address = address!;
                 if (!string.IsNullOrWhiteSpace(city)) Current.Supplier.City = city!;
                 Current.Supplier.DIC = dic ?? string.Empty;
+
+                // --- PŘIDÁNO ZDE ---
+                Current.Supplier.Country = "Česká republika";
 
                 // Automaticky označ plátce, pokud ARES vrátil DIČ
                 SupplierIsVatPayer = !string.IsNullOrWhiteSpace(dic);

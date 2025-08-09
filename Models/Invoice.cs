@@ -27,6 +27,10 @@ namespace InvoiceApp.Models
 
         [ObservableProperty] private string email = string.Empty;
         [ObservableProperty] private string phone = string.Empty;
+
+        // --- PŘIDÁNO ZDE (na správné místo) ---
+        [ObservableProperty] private string? country;
+        [ObservableProperty] private string? swift;
     }
 
     public partial class Invoice : ObservableObject
@@ -47,6 +51,10 @@ namespace InvoiceApp.Models
         [ObservableProperty] private string variableSymbol = string.Empty;
         [ObservableProperty] private string currency = "CZK";
         [ObservableProperty] private string notes = string.Empty;
+
+        [ObservableProperty] private string? paymentMethod;
+        [ObservableProperty] private string? constantSymbol;
+        [ObservableProperty] private DateTime? taxableSupplyDate;
 
         // IBAN pro platbu:
         // 1) pokud je vyplněn u dodavatele, použijeme ho,
@@ -87,7 +95,7 @@ namespace InvoiceApp.Models
             var m = Regex.Match(account, @"^\s*(?:(\d{0,6})-)?(\d{1,10})/(\d{4})\s*$");
             if (!m.Success) return null;
 
-            var prefix = m.Groups[1].Value;           // může být prázdné
+            var prefix = m.Groups[1].Value;          // může být prázdné
             var number = m.Groups[2].Value;
             var bank = m.Groups[3].Value;
 
