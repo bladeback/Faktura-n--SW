@@ -134,32 +134,31 @@ namespace InvoiceApp.Services
                     txt.Span(party?.DIC ?? "");
                 });
 
+                // --- ZMĚNA ZDE: Telefon se nyní zobrazí vždy, když existuje ---
+                if (!string.IsNullOrWhiteSpace(party?.Email))
+                {
+                    col.Item().PaddingTop(2).Text(txt =>
+                    {
+                        txt.Span("E-mail: ").SemiBold();
+                        txt.Span(party.Email);
+                    });
+                }
+                if (!string.IsNullOrWhiteSpace(party?.Phone))
+                {
+                    col.Item().PaddingTop(2).Text(txt =>
+                    {
+                        txt.Span("Telefon: ").SemiBold();
+                        txt.Span(party.Phone);
+                    });
+                }
+                // --- KONEC ZMĚNY ---
+
                 // Informace o plátcovství DPH chceme pouze tady (u Dodavatele)
                 if (isSupplier && supplierIsVatPayer.HasValue)
                 {
                     col.Item().PaddingTop(4).Text(supplierIsVatPayer.Value
                         ? "Dodavatel je plátce DPH."
                         : "Dodavatel není plátce DPH.").FontColor(Colors.Grey.Darken1);
-                }
-
-                // POŽADAVEK: v rámečku „Dodavatel“ už NEzobrazovat bankovní údaje,
-                // ty patří jen do rámečku „Platební údaje“. Takže blok Banka/Účet/IBAN zde vynecháváme.
-
-                if (!string.IsNullOrWhiteSpace(party?.Email) || !string.IsNullOrWhiteSpace(party?.Phone))
-                {
-                    col.Item().PaddingTop(2).Text(txt =>
-                    {
-                        if (!string.IsNullOrWhiteSpace(party?.Email))
-                        {
-                            txt.Span("E-mail: ").SemiBold();
-                            txt.Span($"{party!.Email}   ");
-                        }
-                        if (!string.IsNullOrWhiteSpace(party?.Phone))
-                        {
-                            txt.Span("Telefon: ").SemiBold();
-                            txt.Span(party!.Phone);
-                        }
-                    });
                 }
             });
         }
@@ -329,9 +328,9 @@ namespace InvoiceApp.Services
             var compact = iban.Replace(" ", "").ToUpperInvariant();
             // CZxx + 20 číslic → skupiny po 4 znacích
             return string.Join(" ", Enumerable.Range(0, (compact.Length + 3) / 4)
-                                              .Select(i => i * 4)
-                                              .TakeWhile(i => i < compact.Length)
-                                              .Select(i => compact.Substring(i, Math.Min(4, compact.Length - i))));
+                                             .Select(i => i * 4)
+                                             .TakeWhile(i => i < compact.Length)
+                                             .Select(i => compact.Substring(i, Math.Min(4, compact.Length - i))));
         }
     }
 }
