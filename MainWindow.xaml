@@ -115,6 +115,7 @@
                                                                 <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
@@ -192,11 +193,15 @@
                                                                         Text="Banka:"
                                                                         Margin="0,0,8,4"
                                                                         VerticalAlignment="Center"/>
-                                                        <TextBox   Grid.Row="6"
+                                                        <ComboBox  Grid.Row="6"
                                                                         Grid.Column="1"
                                                                         Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Bank}"
-                                                                        Margin="0,0,0,4"/>
+                                                                        Margin="0,0,0,4"
+                                                                   ItemsSource="{Binding Banks}"
+                                                                   SelectedItem="{Binding SelectedBank, Mode=TwoWay}"
+                                                                   DisplayMemberPath="Name"
+                                                                   IsEditable="True"
+                                                                   IsTextSearchEnabled="True"/>
 
                                                         <TextBlock Grid.Row="7"
                                                                         Grid.Column="0"
@@ -222,32 +227,43 @@
 
                                                         <TextBlock Grid.Row="9"
                                                                         Grid.Column="0"
-                                                                        Text="E-mail:"
+                                                                        Text="SWIFT:"
                                                                         Margin="0,0,8,4"
                                                                         VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="9"
                                                                         Grid.Column="1"
                                                                         Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Email}"
+                                                                        Text="{Binding Current.Supplier.SWIFT}"
                                                                         Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="10"
                                                                         Grid.Column="0"
-                                                                        Text="Telefon:"
+                                                                        Text="E-mail:"
                                                                         Margin="0,0,8,4"
                                                                         VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="10"
                                                                         Grid.Column="1"
                                                                         Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Phone}"
+                                                                        Text="{Binding Current.Supplier.Email}"
                                                                         Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="11"
                                                                         Grid.Column="0"
+                                                                        Text="Telefon:"
+                                                                        Margin="0,0,8,4"
+                                                                        VerticalAlignment="Center"/>
+                                                        <TextBox   Grid.Row="11"
+                                                                        Grid.Column="1"
+                                                                        Grid.ColumnSpan="2"
+                                                                        Text="{Binding Current.Supplier.Phone}"
+                                                                        Margin="0,0,0,4"/>
+
+                                                        <TextBlock Grid.Row="12"
+                                                                        Grid.Column="0"
                                                                         Text="Plátce DPH:"
                                                                         Margin="0,0,8,0"
                                                                         VerticalAlignment="Center"/>
-                                                        <CheckBox  Grid.Row="11"
+                                                        <CheckBox  Grid.Row="12"
                                                                         Grid.Column="1"
                                                                         IsChecked="{Binding SupplierIsVatPayer}"
                                                                         VerticalAlignment="Center"/>
@@ -309,7 +325,7 @@
                                                                         Grid.Column="0"
                                                                         Text="Země:"
                                                                         Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                        VerticalAlignment="center"/>
                                                         <TextBox   Grid.Row="3"
                                                                         Grid.Column="1"
                                                                         Grid.ColumnSpan="2"

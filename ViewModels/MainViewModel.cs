@@ -22,28 +22,31 @@ namespace InvoiceApp.ViewModels
         private readonly QrService _qr = new();
         private readonly InvoiceNumberService _num = new();
         private readonly AresService _ares = new();
+        private readonly BankService _bankService = new();
 
         [ObservableProperty] private Invoice current = new();
         public ObservableCollection<InvoiceItem> Items { get; } = new();
 
-        // Plátce DPH – řídí výpočet i zobrazení v UI (a QR částku)
         [ObservableProperty] private bool supplierIsVatPayer;
 
         public List<string> PaymentMethods { get; } = new() { "Převodem", "Hotově", "Kartou" };
 
-        // Souhrny pro UI
+        public ObservableCollection<Bank> Banks { get; } = new();
+
+        [ObservableProperty]
+        private Bank? _selectedBank;
+
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
         public string GrandTotalDisplay => FormatMoney(ComputeBaseTotal() + ComputeVatTotal(), Current?.Currency ?? "CZK");
-        public string TotalDisplay => GrandTotalDisplay; // zpětná kompatibilita
+        public string TotalDisplay => GrandTotalDisplay;
 
         public MainViewModel()
         {
-            // výchozí hodnoty – jen pro pohodlné testování
             Current.Supplier.Name = "Vaše firma s.r.o.";
             Current.Supplier.Address = "Ulice 1";
             Current.Supplier.City = "123 45 Město";
-            Current.Supplier.IBAN = ""; // klidně prázdné – doplní se z Účtu
+            Current.Supplier.IBAN = "";
             Current.Supplier.Bank = "ČSOB";
             Current.Supplier.Email = "info@firma.cz";
             Current.Supplier.Phone = "+420123456789";
@@ -56,20 +59,37 @@ namespace InvoiceApp.ViewModels
             Current.PaymentMethod = "Převodem";
             Current.TaxableSupplyDate = DateTime.Today;
 
-            // watcher položek
             Items.CollectionChanged += Items_CollectionChanged;
 
-            // watcher dodavatele (kvůli automatickému IBAN z účtu)
             HookSupplierWatcher(Current.Supplier);
+
+            LoadBanks();
         }
 
-        // ======= přepínač plátce DPH =======
+        private void LoadBanks()
+        {
+            var banksList = _bankService.GetBanks();
+            Banks.Clear();
+            foreach (var bank in banksList)
+            {
+                Banks.Add(bank);
+            }
+        }
+
+        partial void OnSelectedBankChanged(Bank? value)
+        {
+            if (value != null && Current.Supplier != null)
+            {
+                Current.Supplier.Bank = value.Name;
+                Current.Supplier.SWIFT = value.Swift;
+            }
+        }
+
         partial void OnSupplierIsVatPayerChanged(bool value)
         {
             RaiseTotalsChanged();
         }
 
-        // ======= přepočty =======
         private decimal ComputeBaseTotal()
         {
             decimal total = 0m;
@@ -101,7 +121,6 @@ namespace InvoiceApp.ViewModels
             OnPropertyChanged(nameof(TotalDisplay));
         }
 
-        // ======= reakce na změny položek =======
         private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.OldItems != null)
@@ -126,7 +145,6 @@ namespace InvoiceApp.ViewModels
             }
         }
 
-        // ======= watcher dodavatele – IBAN z čísla účtu =======
         private void HookSupplierWatcher(Party? supplier)
         {
             if (supplier == null) return;
@@ -143,18 +161,14 @@ namespace InvoiceApp.ViewModels
                 var acc = sup.AccountNumber;
                 var iban = TryBuildCzIbanFromAccount(acc);
 
-                // Jednoduché chování: když umíme IBAN spočítat, nastavíme ho do UI
                 if (!string.IsNullOrWhiteSpace(iban))
                 {
-                    // nastavíme bez mezer (SPD/QR chce bez mezer; v PDF ho formátujeme s mezerami)
                     sup.IBAN = iban.Replace(" ", "").ToUpperInvariant();
                     OnPropertyChanged(nameof(Current));
                 }
             }
         }
 
-
-        // převod domácího účtu → IBAN CZ (zkrácená kopie logiky z Modelu)
         private static string? TryBuildCzIbanFromAccount(string? account)
         {
             if (string.IsNullOrWhiteSpace(account))
@@ -202,7 +216,6 @@ namespace InvoiceApp.ViewModels
             return rem;
         }
 
-        // ======= příkazy (Commands) =======
         [RelayCommand]
         private void AddItem()
         {
@@ -268,14 +281,9 @@ namespace InvoiceApp.ViewModels
         {
             try
             {
-                // Částka do QR = to, co vidíš jako Celkem (na 2 desetiny)
                 var amountToPay = Math.Round(ComputeBaseTotal() + ComputeVatTotal(), 2, MidpointRounding.AwayFromZero);
-
-                // Zpráva do QR – krátká a užitečná
                 var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
                 var msg = $"{label} {Current.Number}".Trim();
-
-                // použijeme PaymentIban (vyplněný nebo dopočtený z "Účet")
                 var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
 
                 byte[]? qrPng = null;
@@ -312,7 +320,6 @@ namespace InvoiceApp.ViewModels
             }
         }
 
-        // ======= ARES: Odběratel =======
         [RelayCommand]
         private async Task LoadCustomerFromIco()
         {
@@ -337,7 +344,6 @@ namespace InvoiceApp.ViewModels
                 if (!string.IsNullOrWhiteSpace(city)) Current.Customer.City = city!;
                 if (!string.IsNullOrWhiteSpace(dic)) Current.Customer.DIC = dic!;
 
-                // --- PŘIDÁNO ZDE ---
                 Current.Customer.Country = "Česká republika";
 
                 OnPropertyChanged(nameof(Current));
@@ -356,7 +362,6 @@ namespace InvoiceApp.ViewModels
             }
         }
 
-        // ======= ARES: Dodavatel =======
         [RelayCommand]
         private async Task LoadSupplierFromIco()
         {
@@ -381,10 +386,8 @@ namespace InvoiceApp.ViewModels
                 if (!string.IsNullOrWhiteSpace(city)) Current.Supplier.City = city!;
                 Current.Supplier.DIC = dic ?? string.Empty;
 
-                // --- PŘIDÁNO ZDE ---
                 Current.Supplier.Country = "Česká republika";
 
-                // Automaticky označ plátce, pokud ARES vrátil DIČ
                 SupplierIsVatPayer = !string.IsNullOrWhiteSpace(dic);
 
                 OnPropertyChanged(nameof(Current));

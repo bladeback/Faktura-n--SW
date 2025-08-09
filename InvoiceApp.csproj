@@ -11,4 +11,11 @@
     <PackageReference Include="QRCoder" Version="1.4.3" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="banks.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

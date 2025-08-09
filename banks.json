@@ -1,0 +1,102 @@
+[
+    {
+        "Name": "Air Bank a.s.",
+        "Code": "3030",
+        "Swift": "AIRACZPP"
+    },
+    {
+        "Name": "Banka CREDITAS a.s.",
+        "Code": "2250",
+        "Swift": "CTASCZ22"
+    },
+    {
+        "Name": "Česká národní banka",
+        "Code": "0710",
+        "Swift": "CNBACZPP"
+    },
+    {
+        "Name": "Česká spořitelna, a.s.",
+        "Code": "0800",
+        "Swift": "GIBACZPX"
+    },
+    {
+        "Name": "Československá obchodní banka, a. s.",
+        "Code": "0300",
+        "Swift": "CEKOCZPP"
+    },
+    {
+        "Name": "Fio banka, a.s.",
+        "Code": "2010",
+        "Swift": "FIOBCZPP"
+    },
+    {
+        "Name": "J&T BANKA, a.s.",
+        "Code": "5800",
+        "Swift": "JTBPCZPP"
+    },
+    {
+        "Name": "Komerční banka, a.s.",
+        "Code": "0100",
+        "Swift": "KOMBCZPP"
+    },
+    {
+        "Name": "Max banka a.s.",
+        "Code": "4000",
+        "Swift": "EXPNCZPP"
+    },
+    {
+        "Name": "mBank S.A., organizační složka",
+        "Code": "6210",
+        "Swift": "BREXCZPP"
+    },
+    {
+        "Name": "MONETA Money Bank, a.s.",
+        "Code": "0600",
+        "Swift": "AGBACZPP"
+    },
+    {
+        "Name": "MONETA Stavební Spořitelna, a.s.",
+        "Code": "4400",
+        "Swift": ""
+    },
+    {
+        "Name": "Modrá pyramida stavební spořitelna, a.s.",
+        "Code": "7960",
+        "Swift": ""
+    },
+    {
+        "Name": "Národní rozvojová banka, a.s.",
+        "Code": "4300",
+        "Swift": "CMRBCZPP"
+    },
+    {
+        "Name": "Partners Banka, a.s.",
+        "Code": "6100",
+        "Swift": "PAERCZPP"
+    },
+    {
+        "Name": "Raiffeisenbank a.s.",
+        "Code": "5500",
+        "Swift": "RZBCCZPP"
+    },
+    {
+        "Name": "Raiffeisen stavební spořitelna a.s.",
+        "Code": "7950",
+        "Swift": ""
+    },
+    {
+        "Name": "Stavební spořitelna České spořitelny, a.s.",
+        "Code": "8060",
+        "Swift": ""
+    },
+    {
+        "Name": "TRINITY BANK a.s.",
+        "Code": "2070",
+        "Swift": "MPUBCZPP"
+    },
+    {
+        "Name": "UniCredit Bank Czech Republic and Slovakia, a.s.",
+        "Code": "2700",
+        "Swift": "BACXCZPP"
+    }
+]
