@@ -31,7 +31,7 @@ namespace InvoiceApp.ViewModels
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
         public string GrandTotalDisplay => FormatMoney(ComputeBaseTotal() + ComputeVatTotal(), Current?.Currency ?? "CZK");
-        public string TotalDisplay => GrandTotalDisplay; // zpětná kompatibilita (pokud je někde ještě použité)
+        public string TotalDisplay => GrandTotalDisplay; // zpětná kompatibilita
 
         public MainViewModel()
         {
@@ -39,7 +39,7 @@ namespace InvoiceApp.ViewModels
             Current.Supplier.Name = "Vaše firma s.r.o.";
             Current.Supplier.Address = "Ulice 1";
             Current.Supplier.City = "123 45 Město";
-            Current.Supplier.IBAN = "CZ6508000000001234567899";
+            Current.Supplier.IBAN = ""; // můžeme nechat prázdné – dopočte se z Účtu
             Current.Supplier.Bank = "ČSOB";
             Current.Supplier.Email = "info@firma.cz";
             Current.Supplier.Phone = "+420123456789";
@@ -175,22 +175,23 @@ namespace InvoiceApp.ViewModels
         {
             try
             {
-                // Částka do QR = to, co vidíš jako Celkem (na 2 desetiny, tečka)
-                var amountToPay = Math.Round(Current.Total, 2, MidpointRounding.AwayFromZero);
+                // Částka do QR = to, co vidíš jako Celkem (na 2 desetiny)
+                var amountToPay = Math.Round(ComputeBaseTotal() + ComputeVatTotal(), 2, MidpointRounding.AwayFromZero);
 
                 // Zpráva do QR – krátká a užitečná
                 var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
                 var msg = $"{label} {Current.Number}".Trim();
 
-                // QR generujeme JEN u faktury a jen když je IBAN + částka > 0
+                // **DŮLEŽITÉ**: použijeme PaymentIban (může být vyplněný, nebo dopočtený z "Účet")
+                var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
+
                 byte[]? qrPng = null;
-                var iban = Current.Supplier?.IBAN?.Trim();
                 if (Current.Type == DocType.Invoice &&
-                    !string.IsNullOrWhiteSpace(iban) &&
+                    !string.IsNullOrWhiteSpace(paymentIban) &&
                     amountToPay > 0m)
                 {
                     var payload = _qr.BuildCzechQrPaymentPayload(
-                        iban: iban,
+                        iban: paymentIban,
                         amount: amountToPay,
                         currency: string.IsNullOrWhiteSpace(Current.Currency) ? "CZK" : Current.Currency,
                         variableSymbol: Current.VariableSymbol,
@@ -200,7 +201,7 @@ namespace InvoiceApp.ViewModels
                     qrPng = _qr.GenerateQrPng(payload);
                 }
 
-                var dialog = new Microsoft.Win32.SaveFileDialog
+                var dialog = new SaveFileDialog
                 {
                     Filter = "PDF (*.pdf)|*.pdf",
                     FileName = $"{Current.Number}.pdf"
@@ -209,15 +210,14 @@ namespace InvoiceApp.ViewModels
                 if (dialog.ShowDialog() == true)
                 {
                     var path = _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName);
-                    System.Windows.MessageBox.Show($"Uloženo: {path}");
+                    MessageBox.Show($"Uloženo: {path}");
                 }
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Chyba při exportu PDF: {ex.Message}");
+                MessageBox.Show($"Chyba při exportu PDF: {ex.Message}");
             }
         }
-
 
         // ======= ARES: Odběratel =======
         [RelayCommand]

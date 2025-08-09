@@ -6,20 +6,11 @@ namespace InvoiceApp.Services
 {
     /// <summary>
     /// Generuje payload pro český standard QR Platba (SPD*1.0).
-    /// Specifikace: ACC (IBAN), AM (částka s desetinnou tečkou), CC (měna),
-    /// X-VS (variabilní symbol), X-SS (specifický), X-KS (konstantní), MSG (zpráva).
+    /// ACC (IBAN bez mezer), AM (částka s tečkou), CC (měna),
+    /// X-VS (variabilní symbol), MSG (zpráva).
     /// </summary>
     public class QrService
     {
-        /// <summary>
-        /// Vytvoří payload pro QR Platba (SPD 1.0).
-        /// Minimální sada: ACC, AM, CC; doporučené: X-VS, MSG.
-        /// </summary>
-        /// <param name="iban">IBAN příjemce (bez mezer)</param>
-        /// <param name="amount">Částka k úhradě – doporučuji už předat po zaokrouhlení</param>
-        /// <param name="currency">Měna, např. "CZK"</param>
-        /// <param name="variableSymbol">Variabilní symbol (jen číslice, max 10)</param>
-        /// <param name="message">Krátká zpráva pro příjemce (např. "Faktura INV-...")</param>
         public string BuildCzechQrPaymentPayload(
             string? iban,
             decimal amount,
@@ -30,16 +21,11 @@ namespace InvoiceApp.Services
             if (string.IsNullOrWhiteSpace(iban))
                 throw new ArgumentException("Pro QR Platbu je vyžadován IBAN příjemce.", nameof(iban));
 
-            // IBAN: bez mezer, velká písmena
+            // IBAN pro QR BEZ mezer (SPD tak chce)
             iban = iban.Replace(" ", string.Empty).ToUpperInvariant();
 
-            // Částka musí mít tečku jako desetinný oddělovač (max 2 desetinná místa)
             string am = amount.ToString("0.##", CultureInfo.InvariantCulture);
-
-            // Variabilní symbol – jen číslice (norma)
             string vs = SanitizeVs(variableSymbol);
-
-            // Krátká zpráva (doporučení: max ~60 znaků)
             string msg = SanitizeMsg(message);
 
             var sb = new StringBuilder();
@@ -58,40 +44,32 @@ namespace InvoiceApp.Services
         }
 
         /// <summary>
-        /// Vrátí PNG bajty QR kódu pro dodaný payload (používáme QRCoder).
+        /// PNG bajty QR – varianta bez GDI (PngByteQRCode), spolehlivá i v headless prostředí.
         /// </summary>
         public byte[] GenerateQrPng(string payload)
         {
-            // Pozn.: projekt už obsahuje QRCoder.
-            using var qrGen = new QRCoder.QRCodeGenerator();
-            var data = qrGen.CreateQrCode(payload, QRCoder.QRCodeGenerator.ECCLevel.M, true);
-            using var qr = new QRCoder.QRCode(data);
-            using var bmp = qr.GetGraphic(pixelsPerModule: 6);
-            using var ms = new System.IO.MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            return ms.ToArray();
+            var gen = new QRCoder.QRCodeGenerator();
+            var data = gen.CreateQrCode(payload, QRCoder.QRCodeGenerator.ECCLevel.M, forceUtf8: true);
+            var png = new QRCoder.PngByteQRCode(data);
+            // scale = velikost modulů; 6–8 je rozumné
+            return png.GetGraphic(pixelsPerModule: 7);
         }
 
         private static string SanitizeVs(string? vs)
         {
             if (string.IsNullOrWhiteSpace(vs)) return string.Empty;
-            var digits = new StringBuilder();
+            var sb = new StringBuilder();
             foreach (var ch in vs)
-                if (char.IsDigit(ch)) digits.Append(ch);
-            // VS bývá do 10 číslic, nebudeme ale striktně ořezávat – banky většinou tolerují delší.
-            return digits.ToString();
+                if (char.IsDigit(ch)) sb.Append(ch);
+            return sb.ToString();
         }
 
         private static string SanitizeMsg(string? msg)
         {
             if (string.IsNullOrWhiteSpace(msg)) return string.Empty;
-
-            // odebereme CR/LF a přebytečné mezery
             msg = msg.Replace("\r", " ").Replace("\n", " ");
             msg = System.Text.RegularExpressions.Regex.Replace(msg, @"\s+", " ").Trim();
-
-            // prakticky stačí kolem 60 znaků (některé banky omezují), ale není to tvrdá povinnost
-            if (msg.Length > 60) msg = msg.Substring(0, 60);
+            if (msg.Length > 60) msg = msg[..60];
             return msg;
         }
     }
