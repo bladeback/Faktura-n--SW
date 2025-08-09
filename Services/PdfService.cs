@@ -141,7 +141,7 @@ namespace InvoiceApp.Services
                         : "Dodavatel není plátce DPH.").FontColor(Colors.Grey.Darken1);
                 }
 
-                // Bankovní údaje – Banka, Účet (domácí číslo účtu) a IBAN
+                // Bankovní údaje – Banka, Účet a IBAN (IBAN hezky s mezerami)
                 if (!string.IsNullOrWhiteSpace(party?.Bank) ||
                     !string.IsNullOrWhiteSpace(party?.AccountNumber) ||
                     !string.IsNullOrWhiteSpace(party?.IBAN))
@@ -161,7 +161,7 @@ namespace InvoiceApp.Services
                         if (!string.IsNullOrWhiteSpace(party?.IBAN))
                         {
                             txt.Span("IBAN: ").SemiBold();
-                            txt.Span(party!.IBAN);
+                            txt.Span(FormatIbanDisplay(party!.IBAN));
                         }
                     });
                 }
@@ -191,7 +191,6 @@ namespace InvoiceApp.Services
             {
                 col.Item().Text("Platební údaje").SemiBold().FontSize(11);
 
-                // Účet (domácí číslo účtu) – pokud je vyplněn u dodavatele
                 if (!string.IsNullOrWhiteSpace(inv?.Supplier?.AccountNumber))
                 {
                     col.Item().PaddingTop(2).Text(txt =>
@@ -201,11 +200,13 @@ namespace InvoiceApp.Services
                     });
                 }
 
+                var displayIban = FormatIbanDisplay(inv.PaymentIban ?? inv.Supplier?.IBAN ?? "");
                 col.Item().PaddingTop(2).Text(txt =>
                 {
                     txt.Span("IBAN: ").SemiBold();
-                    txt.Span(inv.PaymentIban ?? inv.Supplier?.IBAN ?? "");
+                    txt.Span(displayIban);
                 });
+
                 col.Item().Text(txt =>
                 {
                     txt.Span("Variabilní symbol: ").SemiBold();
@@ -343,6 +344,17 @@ namespace InvoiceApp.Services
             decimal pct = rate * 100m;
             var ci = new CultureInfo("cs-CZ");
             return string.Format(ci, "{0:N0} %", pct);
+        }
+
+        private static string FormatIbanDisplay(string? iban)
+        {
+            if (string.IsNullOrWhiteSpace(iban)) return string.Empty;
+            var compact = iban.Replace(" ", "").ToUpperInvariant();
+            // CZxx + 20 číslic -> skupiny po 4 znacích
+            return string.Join(" ", Enumerable.Range(0, (compact.Length + 3) / 4)
+                                              .Select(i => i * 4)
+                                              .TakeWhile(i => i < compact.Length)
+                                              .Select(i => compact.Substring(i, Math.Min(4, compact.Length - i))));
         }
     }
 }

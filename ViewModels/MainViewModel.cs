@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -39,7 +40,7 @@ namespace InvoiceApp.ViewModels
             Current.Supplier.Name = "Vaše firma s.r.o.";
             Current.Supplier.Address = "Ulice 1";
             Current.Supplier.City = "123 45 Město";
-            Current.Supplier.IBAN = ""; // můžeme nechat prázdné – dopočte se z Účtu
+            Current.Supplier.IBAN = ""; // klidně prázdné – doplní se z Účtu
             Current.Supplier.Bank = "ČSOB";
             Current.Supplier.Email = "info@firma.cz";
             Current.Supplier.Phone = "+420123456789";
@@ -49,7 +50,11 @@ namespace InvoiceApp.ViewModels
             Current.VariableSymbol = DateTime.Now.ToString("yyyyMMdd");
             Current.Currency = "CZK";
 
+            // watcher položek
             Items.CollectionChanged += Items_CollectionChanged;
+
+            // watcher dodavatele (kvůli automatickému IBAN z účtu)
+            HookSupplierWatcher(Current.Supplier);
         }
 
         // ======= přepínač plátce DPH =======
@@ -115,6 +120,82 @@ namespace InvoiceApp.ViewModels
             }
         }
 
+        // ======= watcher dodavatele – IBAN z čísla účtu =======
+        private void HookSupplierWatcher(Party? supplier)
+        {
+            if (supplier == null) return;
+            supplier.PropertyChanged -= Supplier_PropertyChanged;
+            supplier.PropertyChanged += Supplier_PropertyChanged;
+        }
+
+        private void Supplier_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is not Party sup) return;
+
+            if (e.PropertyName == nameof(Party.AccountNumber))
+            {
+                var acc = sup.AccountNumber;
+                var iban = TryBuildCzIbanFromAccount(acc);
+
+                // Jednoduché chování: když umíme IBAN spočítat, nastavíme ho do UI
+                if (!string.IsNullOrWhiteSpace(iban))
+                {
+                    // nastavíme bez mezer (SPD/QR chce bez mezer; v PDF ho formátujeme s mezerami)
+                    sup.IBAN = iban.Replace(" ", "").ToUpperInvariant();
+                    OnPropertyChanged(nameof(Current));
+                }
+            }
+        }
+
+
+        // převod domácího účtu → IBAN CZ (zkrácená kopie logiky z Modelu)
+        private static string? TryBuildCzIbanFromAccount(string? account)
+        {
+            if (string.IsNullOrWhiteSpace(account))
+                return null;
+
+            var m = Regex.Match(account.Trim(), @"^\s*(?:(\d{0,6})-)?(\d{1,10})/(\d{4})\s*$");
+            if (!m.Success) return null;
+
+            var prefix = m.Groups[1].Value;
+            var number = m.Groups[2].Value;
+            var bank = m.Groups[3].Value;
+
+            var prefixPadded = (string.IsNullOrEmpty(prefix) ? "" : prefix).PadLeft(6, '0');
+            var numberPadded = number.PadLeft(10, '0');
+            var bban = bank + prefixPadded + numberPadded;
+
+            var rearranged = bban + "CZ00";
+            var converted = ConvertIbanCharsToDigits(rearranged);
+            var remainder = Mod97(converted);
+            var check = (98 - remainder).ToString("00");
+
+            return "CZ" + check + bban;
+        }
+
+        private static string ConvertIbanCharsToDigits(string input)
+        {
+            var sb = new System.Text.StringBuilder(input.Length * 2);
+            foreach (var ch in input)
+            {
+                if (char.IsLetter(ch))
+                {
+                    int val = char.ToUpperInvariant(ch) - 'A' + 10;
+                    sb.Append(val.ToString());
+                }
+                else sb.Append(ch);
+            }
+            return sb.ToString();
+        }
+
+        private static int Mod97(string digits)
+        {
+            int rem = 0;
+            foreach (var ch in digits)
+                rem = (rem * 10 + (ch - '0')) % 97;
+            return rem;
+        }
+
         // ======= příkazy (Commands) =======
         [RelayCommand]
         private void AddItem()
@@ -153,6 +234,7 @@ namespace InvoiceApp.ViewModels
             };
             Items.Clear();
             SupplierIsVatPayer = false;
+            HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
         }
 
@@ -167,6 +249,7 @@ namespace InvoiceApp.ViewModels
             };
             Items.Clear();
             SupplierIsVatPayer = false;
+            HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
         }
 
@@ -182,7 +265,7 @@ namespace InvoiceApp.ViewModels
                 var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
                 var msg = $"{label} {Current.Number}".Trim();
 
-                // **DŮLEŽITÉ**: použijeme PaymentIban (může být vyplněný, nebo dopočtený z "Účet")
+                // použijeme PaymentIban (vyplněný nebo dopočtený z "Účet")
                 var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
 
                 byte[]? qrPng = null;

@@ -199,10 +199,6 @@
                                                                    Grid.Column="0"
                                                                    Text="Účet:"
                                                                    VerticalAlignment="Center"/>
-                                                        <TextBox   Grid.Row="6"
-                                                                   Grid.Column="1"
-                                                                   Text="{Binding Current.Supplier.AccountNumber}"
-                                                                   Margin="6,0,0,4"/>
 
                                                         <!-- IBAN -->
                                                         <TextBlock Grid.Row="7"
