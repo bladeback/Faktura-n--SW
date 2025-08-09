@@ -1,8 +1,18 @@
 <Application x:Class="InvoiceApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+             xmlns:local="clr-namespace:InvoiceApp"
+             xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
+             xmlns:models="clr-namespace:InvoiceApp.Models"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             StartupUri="Views/MainWindow.xaml">
   <Application.Resources>
-    <!-- globální zdroje můžeš dát sem -->
+    <ObjectDataProvider MethodName="GetValues"
+        ObjectType="{x:Type sys:Enum}"
+        x:Key="DocTypes">
+      <ObjectDataProvider.MethodParameters>
+        <x:Type TypeName="models:DocType"/>
+      </ObjectDataProvider.MethodParameters>
+    </ObjectDataProvider>
   </Application.Resources>
 </Application>

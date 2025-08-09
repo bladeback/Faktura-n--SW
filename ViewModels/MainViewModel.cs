@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,17 +25,14 @@ namespace InvoiceApp.ViewModels
         private readonly AresService _ares = new();
         private readonly BankService _bankService = new();
 
-        [ObservableProperty] private Invoice current = new();
-        public ObservableCollection<InvoiceItem> Items { get; } = new();
-
-        [ObservableProperty] private bool supplierIsVatPayer;
-
-        public List<string> PaymentMethods { get; } = new() { "Převodem", "Hotově", "Kartou" };
-
-        public ObservableCollection<Bank> Banks { get; } = new();
-
         [ObservableProperty]
-        private Bank? _selectedBank;
+        private Invoice _current = new();
+
+        public ObservableCollection<InvoiceItem> Items { get; } = new();
+        [ObservableProperty] private bool supplierIsVatPayer;
+        public List<string> PaymentMethods { get; } = new() { "Převodem", "Hotově", "Kartou" };
+        public ObservableCollection<Bank> Banks { get; } = new();
+        [ObservableProperty] private Bank? _selectedBank;
 
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
@@ -43,27 +41,19 @@ namespace InvoiceApp.ViewModels
 
         public MainViewModel()
         {
-            Current.Supplier.Name = "Vaše firma s.r.o.";
-            Current.Supplier.Address = "Ulice 1";
-            Current.Supplier.City = "123 45 Město";
-            Current.Supplier.IBAN = "";
-            Current.Supplier.Bank = "ČSOB";
-            Current.Supplier.Email = "info@firma.cz";
-            Current.Supplier.Phone = "+420123456789";
-
-            Current.Customer.Name = "Zákazník a.s.";
-            Current.Number = _num.NextInvoiceNumber();
-            Current.VariableSymbol = DateTime.Now.ToString("yyyyMMdd");
-            Current.Currency = "CZK";
-
-            Current.PaymentMethod = "Převodem";
-            Current.TaxableSupplyDate = DateTime.Today;
-
+            Current.PropertyChanged += Current_PropertyChanged;
+            NewInvoice();
             Items.CollectionChanged += Items_CollectionChanged;
-
             HookSupplierWatcher(Current.Supplier);
-
             LoadBanks();
+        }
+
+        private void Current_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Invoice.Number))
+            {
+                Current.VariableSymbol = new string(Current.Number.Where(char.IsDigit).ToArray());
+            }
         }
 
         private void LoadBanks()
@@ -126,11 +116,9 @@ namespace InvoiceApp.ViewModels
             if (e.OldItems != null)
                 foreach (InvoiceItem it in e.OldItems)
                     it.PropertyChanged -= Item_PropertyChanged;
-
             if (e.NewItems != null)
                 foreach (InvoiceItem it in e.NewItems)
                     it.PropertyChanged += Item_PropertyChanged;
-
             RaiseTotalsChanged();
         }
 
@@ -155,12 +143,10 @@ namespace InvoiceApp.ViewModels
         private void Supplier_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not Party sup) return;
-
             if (e.PropertyName == nameof(Party.AccountNumber))
             {
                 var acc = sup.AccountNumber;
                 var iban = TryBuildCzIbanFromAccount(acc);
-
                 if (!string.IsNullOrWhiteSpace(iban))
                 {
                     sup.IBAN = iban.Replace(" ", "").ToUpperInvariant();
@@ -171,25 +157,19 @@ namespace InvoiceApp.ViewModels
 
         private static string? TryBuildCzIbanFromAccount(string? account)
         {
-            if (string.IsNullOrWhiteSpace(account))
-                return null;
-
+            if (string.IsNullOrWhiteSpace(account)) return null;
             var m = Regex.Match(account.Trim(), @"^\s*(?:(\d{0,6})-)?(\d{1,10})/(\d{4})\s*$");
             if (!m.Success) return null;
-
             var prefix = m.Groups[1].Value;
             var number = m.Groups[2].Value;
             var bank = m.Groups[3].Value;
-
             var prefixPadded = (string.IsNullOrEmpty(prefix) ? "" : prefix).PadLeft(6, '0');
             var numberPadded = number.PadLeft(10, '0');
             var bban = bank + prefixPadded + numberPadded;
-
             var rearranged = bban + "CZ00";
             var converted = ConvertIbanCharsToDigits(rearranged);
             var remainder = Mod97(converted);
             var check = (98 - remainder).ToString("00");
-
             return "CZ" + check + bban;
         }
 
@@ -198,11 +178,7 @@ namespace InvoiceApp.ViewModels
             var sb = new System.Text.StringBuilder(input.Length * 2);
             foreach (var ch in input)
             {
-                if (char.IsLetter(ch))
-                {
-                    int val = char.ToUpperInvariant(ch) - 'A' + 10;
-                    sb.Append(val.ToString());
-                }
+                if (char.IsLetter(ch)) { sb.Append((int)char.ToUpperInvariant(ch) - 'A' + 10); }
                 else sb.Append(ch);
             }
             return sb.ToString();
@@ -219,13 +195,7 @@ namespace InvoiceApp.ViewModels
         [RelayCommand]
         private void AddItem()
         {
-            var item = new InvoiceItem
-            {
-                Name = "Nová položka",
-                Quantity = 1,
-                UnitPrice = 1000m,
-                VatRate = 0.21m
-            };
+            var item = new InvoiceItem { Name = "Nová položka", Quantity = 1, UnitPrice = 1000m, VatRate = 0.21m };
             Items.Add(item);
             Current.Items.Add(item);
             RaiseTotalsChanged();
@@ -245,14 +215,18 @@ namespace InvoiceApp.ViewModels
         [RelayCommand]
         private void NewInvoice()
         {
+            var newNumber = _num.NextInvoiceNumber();
+            Current.PropertyChanged -= Current_PropertyChanged; // Odpojíme starý handler
             Current = new Invoice
             {
                 Type = DocType.Invoice,
-                Number = _num.NextInvoiceNumber(),
+                Number = newNumber,
+                VariableSymbol = new string(newNumber.Where(char.IsDigit).ToArray()),
                 Currency = "CZK",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
             };
+            Current.PropertyChanged += Current_PropertyChanged; // Připojíme nový
             Items.Clear();
             SupplierIsVatPayer = false;
             HookSupplierWatcher(Current.Supplier);
@@ -262,14 +236,18 @@ namespace InvoiceApp.ViewModels
         [RelayCommand]
         private void NewOrder()
         {
+            var newNumber = _num.NextOrderNumber();
+            Current.PropertyChanged -= Current_PropertyChanged; // Odpojíme starý handler
             Current = new Invoice
             {
                 Type = DocType.Order,
-                Number = _num.NextOrderNumber(),
+                Number = newNumber,
+                VariableSymbol = new string(newNumber.Where(char.IsDigit).ToArray()),
                 Currency = "CZK",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
             };
+            Current.PropertyChanged += Current_PropertyChanged; // Připojíme nový
             Items.Clear();
             SupplierIsVatPayer = false;
             HookSupplierWatcher(Current.Supplier);
@@ -287,27 +265,13 @@ namespace InvoiceApp.ViewModels
                 var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
 
                 byte[]? qrPng = null;
-                if (Current.Type == DocType.Invoice &&
-                    !string.IsNullOrWhiteSpace(paymentIban) &&
-                    amountToPay > 0m)
+                if (Current.Type == DocType.Invoice && !string.IsNullOrWhiteSpace(paymentIban) && amountToPay > 0m)
                 {
-                    var payload = _qr.BuildCzechQrPaymentPayload(
-                        iban: paymentIban,
-                        amount: amountToPay,
-                        currency: string.IsNullOrWhiteSpace(Current.Currency) ? "CZK" : Current.Currency,
-                        variableSymbol: Current.VariableSymbol,
-                        message: msg
-                    );
-
+                    var payload = _qr.BuildCzechQrPaymentPayload(iban: paymentIban, amount: amountToPay, currency: string.IsNullOrWhiteSpace(Current.Currency) ? "CZK" : Current.Currency, variableSymbol: Current.VariableSymbol, message: msg);
                     qrPng = _qr.GenerateQrPng(payload);
                 }
 
-                var dialog = new SaveFileDialog
-                {
-                    Filter = "PDF (*.pdf)|*.pdf",
-                    FileName = $"{Current.Number}.pdf"
-                };
-
+                var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{Current.Number}.pdf" };
                 if (dialog.ShowDialog() == true)
                 {
                     var path = _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName);
@@ -331,35 +295,20 @@ namespace InvoiceApp.ViewModels
                     MessageBox.Show("Zadejte prosím IČO odběratele.");
                     return;
                 }
-
                 var (name, address, city, dic) = await _ares.GetByIcoAsync(ico);
                 if (name == null && address == null && city == null)
                 {
                     MessageBox.Show("Subjekt s tímto IČO se v ARES nenašel.");
                     return;
                 }
-
                 if (!string.IsNullOrWhiteSpace(name)) Current.Customer.Name = name!;
                 if (!string.IsNullOrWhiteSpace(address)) Current.Customer.Address = address!;
                 if (!string.IsNullOrWhiteSpace(city)) Current.Customer.City = city!;
                 if (!string.IsNullOrWhiteSpace(dic)) Current.Customer.DIC = dic!;
-
                 Current.Customer.Country = "Česká republika";
-
                 OnPropertyChanged(nameof(Current));
             }
-            catch (TaskCanceledException)
-            {
-                MessageBox.Show("Časový limit pro dotaz na ARES vypršel.");
-            }
-            catch (HttpRequestException ex)
-            {
-                MessageBox.Show($"Nepodařilo se kontaktovat ARES: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Chyba při načítání z ARES: {ex.Message}");
-            }
+            catch (Exception ex) { MessageBox.Show($"Chyba při načítání z ARES: {ex.Message}"); }
         }
 
         [RelayCommand]
@@ -373,38 +322,22 @@ namespace InvoiceApp.ViewModels
                     MessageBox.Show("Zadejte prosím IČO dodavatele.");
                     return;
                 }
-
                 var (name, address, city, dic) = await _ares.GetByIcoAsync(ico);
                 if (name == null && address == null && city == null)
                 {
                     MessageBox.Show("Subjekt s tímto IČO se v ARES nenašel.");
                     return;
                 }
-
                 if (!string.IsNullOrWhiteSpace(name)) Current.Supplier.Name = name!;
                 if (!string.IsNullOrWhiteSpace(address)) Current.Supplier.Address = address!;
                 if (!string.IsNullOrWhiteSpace(city)) Current.Supplier.City = city!;
                 Current.Supplier.DIC = dic ?? string.Empty;
-
                 Current.Supplier.Country = "Česká republika";
-
                 SupplierIsVatPayer = !string.IsNullOrWhiteSpace(dic);
-
                 OnPropertyChanged(nameof(Current));
                 RaiseTotalsChanged();
             }
-            catch (TaskCanceledException)
-            {
-                MessageBox.Show("Časový limit pro dotaz na ARES vypršel.");
-            }
-            catch (HttpRequestException ex)
-            {
-                MessageBox.Show($"Nepodařilo se kontaktovat ARES: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Chyba při načítání z ARES: {ex.Message}");
-            }
+            catch (Exception ex) { MessageBox.Show($"Chyba při načítání z ARES: {ex.Message}"); }
         }
     }
 }
