@@ -1,15 +1,25 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace InvoiceApp.Models
 {
-    public class Company
+    public partial class Company : ObservableObject
     {
-        public string Name { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string ICO { get; set; } = string.Empty; // Company ID
-        public string DIC { get; set; } = string.Empty; // VAT ID
-        public string IBAN { get; set; } = string.Empty;
-        public string Bank { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
+        [ObservableProperty] private string? name;
+        [ObservableProperty] private string? address;
+        [ObservableProperty] private string? city;
+        [ObservableProperty] private string? postalCode;
+        [ObservableProperty] private string? iCO;
+        [ObservableProperty] private string? dIC;
+        [ObservableProperty] private string? bank;
+
+        /// <summary>
+        /// Domácí číslo účtu (např. 12-3456789012/0100)
+        /// </summary>
+        [ObservableProperty] private string? accountNumber;
+
+        [ObservableProperty] private string? iBAN;
+        [ObservableProperty] private string? email;
+        [ObservableProperty] private string? phone;
+        [ObservableProperty] private bool isVatPayer;
     }
 }
