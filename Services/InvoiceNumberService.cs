@@ -4,8 +4,16 @@ namespace InvoiceApp.Services
 {
     public class InvoiceNumberService
     {
-        // Very simple example: INV-YYYY-XXXX
-        public string NextInvoiceNumber() => $"INV-{DateTime.Now:yyyy}-{DateTime.Now:MMddHHmm}";
-        public string NextOrderNumber() => $"ORD-{DateTime.Now:yyyy}-{DateTime.Now:MMddHHmm}";
+        public string NextInvoiceNumber()
+        {
+            // FA-RRRRMMDDHHmm
+            return $"FA-{DateTime.Now:yyyyMMddHHmm}";
+        }
+
+        public string NextOrderNumber()
+        {
+            // OBJ-RRRRMMDDHHmm
+            return $"OBJ-{DateTime.Now:yyyyMMddHHmm}";
+        }
     }
 }
