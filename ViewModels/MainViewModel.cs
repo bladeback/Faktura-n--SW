@@ -10,7 +10,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -34,6 +33,10 @@ namespace InvoiceApp.ViewModels
         public ObservableCollection<Bank> Banks { get; } = new();
         [ObservableProperty] private Bank? _selectedBank;
 
+        // Prefixované číslo pro zobrazení v UI (FA-xxxx / OBJ-xxxx)
+        public string DisplayNumber =>
+            $"{(Current.Type == DocType.Invoice ? "FA" : "OBJ")}-{Current.Number}";
+
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
         public string GrandTotalDisplay => FormatMoney(ComputeBaseTotal() + ComputeVatTotal(), Current?.Currency ?? "CZK");
@@ -52,9 +55,14 @@ namespace InvoiceApp.ViewModels
         {
             if (e.PropertyName == nameof(Invoice.Number))
             {
-                // VS = číslice z Number, max 10 (zprava – banky tak očekávají)
+                // VS = číslice z Number, max 10 (zprava)
                 var digits = new string(Current.Number.Where(char.IsDigit).ToArray());
                 Current.VariableSymbol = digits.Length > 10 ? digits[^10..] : digits;
+                OnPropertyChanged(nameof(DisplayNumber));
+            }
+            else if (e.PropertyName == nameof(Invoice.Type))
+            {
+                OnPropertyChanged(nameof(DisplayNumber));
             }
         }
 
@@ -192,7 +200,7 @@ namespace InvoiceApp.ViewModels
         [RelayCommand]
         private void AddItem()
         {
-            var item = new InvoiceItem { Name = "Nová položka", Quantity = 1, UnitPrice = 1000m, VatRate = 0.21m };
+            var item = new InvoiceItem { Name = "Nová položka", Quantity = 1m, UnitPrice = 1000m, VatRate = 0.21m };
             Items.Add(item);
             Current.Items.Add(item);
             RaiseTotalsChanged();
@@ -212,55 +220,56 @@ namespace InvoiceApp.ViewModels
         [RelayCommand]
         private void NewInvoice()
         {
-            // rezervace 10místného čísla yyyy###### (bez prefixu)
-            var num = _num.ReserveInvoiceNumber();
-
+            var newNumber = _num.ReserveInvoiceNumber();
             Current.PropertyChanged -= Current_PropertyChanged;
             Current = new Invoice
             {
                 Type = DocType.Invoice,
-                Number = num,                 // např. 2025000001
+                Number = newNumber,
                 Currency = "CZK",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
             };
             Current.PropertyChanged += Current_PropertyChanged;
 
-            // VS = přesně rezervované číslo (bez prefixu)
-            Current.VariableSymbol = num;
+            // VS z Number (max 10 z prava)
+            Current.VariableSymbol = new string(newNumber.Where(char.IsDigit).ToArray());
+            if (Current.VariableSymbol.Length > 10)
+                Current.VariableSymbol = Current.VariableSymbol[^10..];
 
             Items.Clear();
             SupplierIsVatPayer = false;
             SelectedBank = null;
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
+            OnPropertyChanged(nameof(DisplayNumber));
         }
 
         [RelayCommand]
         private void NewOrder()
         {
-            // rezervace 10místného čísla yyyy###### (bez prefixu)
-            var num = _num.ReserveOrderNumber();
-
+            var newNumber = _num.ReserveOrderNumber();
             Current.PropertyChanged -= Current_PropertyChanged;
             Current = new Invoice
             {
                 Type = DocType.Order,
-                Number = num,                 // např. 2025000001
+                Number = newNumber,
                 Currency = "CZK",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
             };
             Current.PropertyChanged += Current_PropertyChanged;
 
-            // VS = přesně rezervované číslo (bez prefixu)
-            Current.VariableSymbol = num;
+            Current.VariableSymbol = new string(newNumber.Where(char.IsDigit).ToArray());
+            if (Current.VariableSymbol.Length > 10)
+                Current.VariableSymbol = Current.VariableSymbol[^10..];
 
             Items.Clear();
             SupplierIsVatPayer = false;
             SelectedBank = null;
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
+            OnPropertyChanged(nameof(DisplayNumber));
         }
 
         [RelayCommand]
@@ -270,7 +279,7 @@ namespace InvoiceApp.ViewModels
             {
                 var amountToPay = Math.Round(ComputeBaseTotal() + ComputeVatTotal(), 2, MidpointRounding.AwayFromZero);
                 var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
-                var msg = $"{label} {Current.Number}".Trim();
+                var msg = $"{label} {DisplayNumber}".Trim();
                 var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
 
                 byte[]? qrPng = null;
@@ -287,18 +296,14 @@ namespace InvoiceApp.ViewModels
                     qrPng = _qr.GenerateQrPng(payload);
                 }
 
-                var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{Current.Number}.pdf" };
+                var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{DisplayNumber}.pdf" };
                 if (dialog.ShowDialog() == true)
                 {
                     var path = _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName);
-
-                    // číslo potvrď až po úspěšném uložení
-                    if (Current.Type == DocType.Invoice)
-                        _num.CommitInvoice();
-                    else
-                        _num.CommitOrder();
-
                     MessageBox.Show($"Uloženo: {path}");
+                    // potvrzení rezervace čísla
+                    if (Current.Type == DocType.Invoice) _num.CommitInvoice();
+                    else _num.CommitOrder();
                 }
             }
             catch (Exception ex)
@@ -329,7 +334,7 @@ namespace InvoiceApp.ViewModels
                 if (!string.IsNullOrWhiteSpace(city)) Current.Customer.City = city!;
                 if (!string.IsNullOrWhiteSpace(dic)) Current.Customer.DIC = dic!;
                 Current.Customer.Country = "Česká republika";
-                OnPropertyChanged(nameof(Current.Customer)); // explicitně refresh
+                OnPropertyChanged(nameof(Current.Customer));
             }
             catch (Exception ex) { MessageBox.Show($"Chyba při načítání z ARES: {ex.Message}"); }
         }
@@ -358,7 +363,6 @@ namespace InvoiceApp.ViewModels
                 Current.Supplier.Country = "Česká republika";
                 SupplierIsVatPayer = !string.IsNullOrWhiteSpace(dic);
 
-                // explicitně refreshneme Supplier, aby se „Země“ jistě propsala
                 OnPropertyChanged(nameof(Current.Supplier));
                 RaiseTotalsChanged();
             }
