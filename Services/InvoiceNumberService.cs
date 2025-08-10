@@ -95,7 +95,7 @@ namespace InvoiceApp.Services
 
             long next = kind == "FA" ? y.FaNext : y.ObjNext;
             if (next < 1) next = 1;                 // začínáme od 000001
-            if (next > 999999) throw new InvalidOperationException($"Dosažen limit 999999 pro {kind} v roce {year}.");
+            if (next > 9999) throw new InvalidOperationException($"Dosažen limit 9999 pro {kind} v roce {year}.");
 
             // Vracíme neprefixované číslo yyyy + 6 číslic
             return $"{year}{next:0000}";
