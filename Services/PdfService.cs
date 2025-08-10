@@ -121,39 +121,55 @@ namespace InvoiceApp.Services
         // ======================================================
         private void ComposeBody(IContainer container, Invoice inv)
         {
-            bool isVatPayer = !string.IsNullOrWhiteSpace(inv.Supplier?.DIC);
-
             container.PaddingTop(20).Column(col =>
             {
+                // 1) horní řádek: Dodavatel | Odběratel
                 col.Item().Row(row =>
                 {
-                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Dodavatel", inv.Supplier, showNonVatNote: true));
+                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Dodavatel", inv.Supplier));
                     row.ConstantItem(20);
-                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Odběratel", inv.Customer, showNonVatNote: true));
+                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Odběratel", inv.Customer));
                 });
 
-                // Platební údaje jen u FAKTURY, u OBJ jen kontakty
+                // 2) pod tím: vlevo (pod Dodavatelem) platební + kontaktní údaje
                 if (inv.Type == DocType.Invoice)
                 {
                     col.Item().PaddingTop(10).Row(row =>
                     {
-                        row.RelativeItem().Element(c => ComposePaymentDetails(c, inv));
+                        // VLEVO: platební údaje + pod nimi kontaktní
+                        row.RelativeItem().Column(left =>
+                        {
+                            left.Item().Element(c => ComposePaymentDetails(c, inv));
+                            left.Item().PaddingTop(10).Element(c => ComposeContactDetails(c, inv.Supplier));
+                        });
+
+                        // mezera a prázdná pravá strana (pod Odběratelem už nic)
                         row.ConstantItem(20);
-                        row.RelativeItem().Element(c => ComposeContactDetails(c, inv.Supplier));
+                        row.RelativeItem(); // záměrně prázdné, drží layout
                     });
                 }
                 else
                 {
-                    col.Item().PaddingTop(10).Element(c => ComposeContactDetails(c, inv.Supplier));
+                    // OBJ: jen kontaktní údaje vlevo pod Dodavatelem
+                    col.Item().PaddingTop(10).Row(row =>
+                    {
+                        row.RelativeItem().Element(c => ComposeContactDetails(c, inv.Supplier));
+                        row.ConstantItem(20);
+                        row.RelativeItem(); // prázdné pod Odběratelem
+                    });
                 }
 
-                col.Item().PaddingTop(20).Element(c => ItemsTable(c, inv, isVatPayer));
+                // 3) tabulka položek
+                var isVatPayer = !string.IsNullOrWhiteSpace(inv.Supplier?.DIC);
 
-                // Souhrn / Totals
+                col.Item()
+                   .PaddingTop(20)
+                   .Element(c => ItemsTable(c, inv, isVatPayer));
+
+                // 4) souhrn DPH (jen pokud je dodavatel plátce)
                 if (isVatPayer)
                     col.Item().PaddingTop(10).Element(c => ComposeVatSummary(c, inv));
-                else
-                    col.Item().PaddingTop(10).Element(c => ComposeTotalsOnly(c, inv));
+
             });
         }
 
