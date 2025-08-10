@@ -98,7 +98,7 @@ namespace InvoiceApp.Services
             if (next > 999999) throw new InvalidOperationException($"Dosažen limit 999999 pro {kind} v roce {year}.");
 
             // Vracíme neprefixované číslo yyyy + 6 číslic
-            return $"{year}{next:000000}";
+            return $"{year}{next:0000}";
         }
 
         private void Commit(string kind, string number)
