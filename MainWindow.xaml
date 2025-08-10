@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
         xmlns:conv="clr-namespace:InvoiceApp.Converters"
+        xmlns:models="clr-namespace:InvoiceApp.Models"
         Title="InvoiceApp"
         Height="720"
         Width="1200">
@@ -60,7 +61,7 @@
                                                                    Text="Typ:"
                                                                    VerticalAlignment="Center"
                                                                    Margin="0,0,8,0"/>
-                                                        <!-- OPRAVA: enum přímo z App.xaml Resources + hezký český popisek -->
+                                                        <!-- enum přímo z App.xaml Resources + hezký český popisek -->
                                                         <ComboBox Grid.Row="0"
                                                                   Grid.Column="1"
                                                                   ItemsSource="{Binding Source={StaticResource DocTypes}}"
@@ -93,15 +94,44 @@
                                                                     SelectedDate="{Binding Current.IssueDate}"
                                                                     Margin="0,2,0,4"/>
 
+                                                        <!-- SPLATNOST: skrýt při OBJ -->
                                                         <TextBlock Grid.Row="3"
                                                                    Grid.Column="0"
                                                                    Text="Splatnost:"
                                                                    VerticalAlignment="Center"
-                                                                   Margin="0,0,8,0"/>
+                                                                   Margin="0,0,8,0">
+                                                                <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                                     Value="{x:Static models:DocType.Order}">
+                                                                                                <Setter Property="Visibility"
+                                                                                                                Value="Collapsed"/>
+                                                                                        </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                        </Style>
+                                                                </TextBlock.Style>
+                                                        </TextBlock>
                                                         <DatePicker Grid.Row="3"
                                                                     Grid.Column="1"
                                                                     SelectedDate="{Binding Current.DueDate}"
-                                                                    Margin="0,2,0,0"/>
+                                                                    Margin="0,2,0,0">
+                                                                <DatePicker.Style>
+                                                                        <Style TargetType="DatePicker">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                                     Value="{x:Static models:DocType.Order}">
+                                                                                                <Setter Property="Visibility"
+                                                                                                                Value="Collapsed"/>
+                                                                                        </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                        </Style>
+                                                                </DatePicker.Style>
+                                                        </DatePicker>
                                                 </Grid>
                                         </GroupBox>
 
@@ -371,7 +401,22 @@
                                                 </Grid>
                                         </GroupBox>
 
+                                        <!-- PLATEBNÍ ÚDAJE: skrýt při OBJ -->
                                         <GroupBox Header="Platební údaje">
+                                                <GroupBox.Style>
+                                                        <Style TargetType="GroupBox">
+                                                                <Setter Property="Visibility"
+                                                                                Value="Visible"/>
+                                                                <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                     Value="{x:Static models:DocType.Order}">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                </Style.Triggers>
+                                                        </Style>
+                                                </GroupBox.Style>
+
                                                 <Grid Margin="8">
                                                         <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto"/>
