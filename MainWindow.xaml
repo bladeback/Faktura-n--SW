@@ -8,10 +8,14 @@
         Height="720"
         Width="1200"
         Language="cs-CZ">
+
         <Window.Resources>
                 <!-- Konvertory -->
                 <conv:DecimalCommaConverter x:Key="DecimalComma"/>
                 <conv:WholeNumberConverter x:Key="WholeNumber"/>
+
+                <!-- Pro triggery na viditelnost -->
+                <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         </Window.Resources>
 
         <Window.DataContext>
@@ -39,6 +43,7 @@
                                 <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
+                        <!-- LEVÝ PANEL -->
                         <ScrollViewer Grid.Column="0"
                                         VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="0,0,10,0">
@@ -61,8 +66,8 @@
                                                         <TextBlock Grid.Row="0"
                                                                         Grid.Column="0"
                                                                         Text="Typ:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0"/>
+                                                                        Margin="0,0,8,0"
+                                                                        VerticalAlignment="Center"/>
                                                         <ComboBox Grid.Row="0"
                                                                         Grid.Column="1"
                                                                   SelectedValue="{Binding Current.Type, Mode=TwoWay}"
@@ -77,9 +82,9 @@
                                                         <TextBlock Grid.Row="1"
                                                                         Grid.Column="0"
                                                                         Text="Číslo:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0"/>
-                                                        <!-- Jen zobrazení s prefixem FA-/OBJ- -->
+                                                                        Margin="0,0,8,0"
+                                                                        VerticalAlignment="Center"/>
+                                                        <!-- Jen zobrazení, číslo si spravuje ViewModel (FA-/OBJ- + číslo) -->
                                                         <TextBox Grid.Row="1"
                                                                         Grid.Column="1"
                                                                  Text="{Binding DisplayNumber, Mode=OneWay}"
@@ -89,22 +94,52 @@
                                                         <TextBlock Grid.Row="2"
                                                                         Grid.Column="0"
                                                                         Text="Vystaveno:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0"/>
+                                                                        Margin="0,0,8,0"
+                                                                        VerticalAlignment="Center"/>
                                                         <DatePicker Grid.Row="2"
                                                                         Grid.Column="1"
                                                                         SelectedDate="{Binding Current.IssueDate}"
                                                                         Margin="0,2,0,4"/>
 
+                                                        <!-- Splatnost – schovat u OBJ -->
                                                         <TextBlock Grid.Row="3"
                                                                         Grid.Column="0"
                                                                         Text="Splatnost:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0"/>
+                                                                        Margin="0,0,8,0"
+                                                                        VerticalAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                <Setter Property="Visibility"
+                                                                                                                Value="Collapsed"/>
+                                                                                        </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                        </Style>
+                                                                </TextBlock.Style>
+                                                        </TextBlock>
+
                                                         <DatePicker Grid.Row="3"
                                                                         Grid.Column="1"
                                                                         SelectedDate="{Binding Current.DueDate}"
-                                                                        Margin="0,2,0,0"/>
+                                                                        Margin="0,2,0,0">
+                                                                <DatePicker.Style>
+                                                                        <Style TargetType="DatePicker">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                <Setter Property="Visibility"
+                                                                                                                Value="Collapsed"/>
+                                                                                        </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                        </Style>
+                                                                </DatePicker.Style>
+                                                        </DatePicker>
                                                 </Grid>
                                         </GroupBox>
 
@@ -215,8 +250,8 @@
                                                                    ItemsSource="{Binding Banks}"
                                                                    SelectedItem="{Binding SelectedBank, Mode=TwoWay}"
                                                                    DisplayMemberPath="Name"
-                                                                   IsEditable="True"
-                                                                   IsTextSearchEnabled="True"/>
+                                                                        IsEditable="True"
+                                                                        IsTextSearchEnabled="True"/>
 
                                                         <TextBlock Grid.Row="7"
                                                                         Grid.Column="0"
@@ -340,7 +375,7 @@
                                                                         Grid.Column="0"
                                                                         Text="Země:"
                                                                         Margin="0,0,8,4"
-                                                                        VerticalAlignment="center"/>
+                                                                        VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="3"
                                                                         Grid.Column="1"
                                                                         Grid.ColumnSpan="2"
@@ -374,8 +409,22 @@
                                                 </Grid>
                                         </GroupBox>
 
-                                        <!-- Platební údaje -->
+                                        <!-- Platební údaje (u OBJ skryto) -->
                                         <GroupBox Header="Platební údaje">
+                                                <GroupBox.Style>
+                                                        <Style TargetType="GroupBox">
+                                                                <Setter Property="Visibility"
+                                                                                Value="Visible"/>
+                                                                <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                </Style.Triggers>
+                                                        </Style>
+                                                </GroupBox.Style>
+
                                                 <Grid Margin="8">
                                                         <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto"/>
@@ -417,9 +466,9 @@
                                                                         VerticalAlignment="Center"/>
                                                         <ComboBox  Grid.Row="2"
                                                                         Grid.Column="1"
-                                                                   ItemsSource="{Binding PaymentMethods}"
-                                                                   SelectedItem="{Binding Current.PaymentMethod, Mode=TwoWay}"
-                                                                   Margin="0,0,0,4"/>
+                                                                        ItemsSource="{Binding PaymentMethods}"
+                                                                        SelectedItem="{Binding Current.PaymentMethod, Mode=TwoWay}"
+                                                                        Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="3"
                                                                         Grid.Column="0"
@@ -457,7 +506,7 @@
                                 </StackPanel>
                         </ScrollViewer>
 
-                        <!-- pravá strana -->
+                        <!-- PRAVÁ STRANA -->
                         <Grid Grid.Column="1">
                                 <Grid.RowDefinitions>
                                         <RowDefinition Height="*"/>
@@ -498,78 +547,73 @@
                                         </DataGrid.Columns>
                                 </DataGrid>
 
+                                <!-- Souhrny -->
                                 <StackPanel Grid.Row="1"
-                                            Orientation="Vertical"
-                                            HorizontalAlignment="Right"
-                                            Margin="0,6,6,0">
+                                                Orientation="Vertical"
+                                                HorizontalAlignment="Right"
+                                                Margin="0,6,6,0">
+
+                                        <!-- Základ bez DPH (jen pro plátce) -->
                                         <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Základ bez DPH:"
-                                                                Margin="0,0,6,0">
-                                                        <TextBlock.Style>
-                                                                <Style TargetType="TextBlock">
-                                                                        <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
-                                                                        <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
-                                                                                        <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
-                                                                                </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                </Style>
-                                                        </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBlock Text="{Binding SubtotalDisplay}">
-                                                        <TextBlock.Style>
-                                                                <Style TargetType="TextBlock">
-                                                                        <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
-                                                                        <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
-                                                                                        <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
-                                                                                </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                </Style>
-                                                        </TextBlock.Style>
-                                                </TextBlock>
+                                                                Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding SubtotalDisplay}"/>
+                                                <StackPanel.Style>
+                                                        <Style TargetType="StackPanel">
+                                                                <Setter Property="Visibility"
+                                                                                Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding SupplierIsVatPayer}"
+                                                                                        Value="True">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                </Style.Triggers>
+                                                        </Style>
+                                                </StackPanel.Style>
                                         </StackPanel>
 
+                                        <!-- DPH celkem (jen pro plátce) -->
                                         <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="DPH celkem:"
-                                                                Margin="0,0,6,0">
-                                                        <TextBlock.Style>
-                                                                <Style TargetType="TextBlock">
-                                                                        <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
-                                                                        <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
-                                                                                        <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
-                                                                                </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                </Style>
-                                                        </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBlock Text="{Binding VatTotalDisplay}">
-                                                        <TextBlock.Style>
-                                                                <Style TargetType="TextBlock">
-                                                                        <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
-                                                                        <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
-                                                                                        <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
-                                                                                </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                </Style>
-                                                        </TextBlock.Style>
-                                                </TextBlock>
+                                                                Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding VatTotalDisplay}"/>
+                                                <StackPanel.Style>
+                                                        <Style TargetType="StackPanel">
+                                                                <Setter Property="Visibility"
+                                                                                Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding SupplierIsVatPayer}"
+                                                                                        Value="True">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                </Style.Triggers>
+                                                        </Style>
+                                                </StackPanel.Style>
                                         </StackPanel>
 
+                                        <!-- Zaokrouhlení (jen když nenulové) -->
+                                        <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Zaokrouhlení:"
+                                                                Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding RoundingDisplay}"/>
+                                                <StackPanel.Style>
+                                                        <Style TargetType="StackPanel">
+                                                                <Setter Property="Visibility"
+                                                                                Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding ShowRounding}"
+                                                                                        Value="True">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                </Style.Triggers>
+                                                        </Style>
+                                                </StackPanel.Style>
+                                        </StackPanel>
+
+                                        <!-- Celkem k úhradě (po zaokrouhlení) -->
                                         <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Celkem:"
                                                                 FontWeight="Bold"

@@ -33,14 +33,26 @@ namespace InvoiceApp.ViewModels
         public ObservableCollection<Bank> Banks { get; } = new();
         [ObservableProperty] private Bank? _selectedBank;
 
-        // Prefixované číslo pro zobrazení v UI (FA-xxxx / OBJ-xxxx)
-        public string DisplayNumber =>
-            $"{(Current.Type == DocType.Invoice ? "FA" : "OBJ")}-{Current.Number}";
-
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
+
+        // Součet bez zaokrouhlení
         public string GrandTotalDisplay => FormatMoney(ComputeBaseTotal() + ComputeVatTotal(), Current?.Currency ?? "CZK");
-        public string TotalDisplay => GrandTotalDisplay;
+
+        // Zaokrouhlení (může být + nebo −)
+        public string RoundingDisplay => FormatSignedMoney(ComputeRounding(), Current?.Currency ?? "CZK");
+
+        // Částka k úhradě po zaokrouhlení
+        public string PayableDisplay => FormatMoney(ComputeRoundedTotal(), Current?.Currency ?? "CZK");
+
+        // Pro UI necháme TotalDisplay směřovat na „k úhradě“
+        public string TotalDisplay => PayableDisplay;
+
+        // Viditelnost řádku „Zaokrouhlení“
+        public bool ShowRounding => Math.Round(ComputeRounding(), 2) != 0m;
+
+        // Zobrazení čísla dokladu pro UI – vrací to, co je v Current.Number
+        public string DisplayNumber => Current?.Number ?? string.Empty;
 
         public MainViewModel()
         {
@@ -55,7 +67,7 @@ namespace InvoiceApp.ViewModels
         {
             if (e.PropertyName == nameof(Invoice.Number))
             {
-                // VS = číslice z Number, max 10 (zprava)
+                // VS = posledních 10 číslic
                 var digits = new string(Current.Number.Where(char.IsDigit).ToArray());
                 Current.VariableSymbol = digits.Length > 10 ? digits[^10..] : digits;
                 OnPropertyChanged(nameof(DisplayNumber));
@@ -102,10 +114,26 @@ namespace InvoiceApp.ViewModels
             return vat;
         }
 
+        private decimal ComputeGrossTotal() => ComputeBaseTotal() + ComputeVatTotal();
+
+        private decimal ComputeRoundedTotal() =>
+            Math.Round(ComputeGrossTotal(), 0, MidpointRounding.AwayFromZero);
+
+        private decimal ComputeRounding() => ComputeRoundedTotal() - ComputeGrossTotal();
+
         private static string FormatMoney(decimal value, string currency)
         {
             var ci = new CultureInfo("cs-CZ");
             return $"{string.Format(ci, "{0:N2}", value)} {currency}";
+        }
+
+        private static string FormatSignedMoney(decimal value, string currency)
+        {
+            if (value == 0m) return FormatMoney(0m, currency);
+            var sign = value > 0 ? "+" : "-";
+            var ci = new CultureInfo("cs-CZ");
+            var abs = Math.Abs(value);
+            return $"{sign}{string.Format(ci, "{0:N2}", abs)} {currency}";
         }
 
         private void RaiseTotalsChanged()
@@ -113,7 +141,10 @@ namespace InvoiceApp.ViewModels
             OnPropertyChanged(nameof(SubtotalDisplay));
             OnPropertyChanged(nameof(VatTotalDisplay));
             OnPropertyChanged(nameof(GrandTotalDisplay));
+            OnPropertyChanged(nameof(RoundingDisplay));
+            OnPropertyChanged(nameof(PayableDisplay));
             OnPropertyChanged(nameof(TotalDisplay));
+            OnPropertyChanged(nameof(ShowRounding));
         }
 
         private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -225,14 +256,13 @@ namespace InvoiceApp.ViewModels
             Current = new Invoice
             {
                 Type = DocType.Invoice,
-                Number = newNumber,
+                Number = $"FA-{newNumber}",
                 Currency = "CZK",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
             };
             Current.PropertyChanged += Current_PropertyChanged;
 
-            // VS z Number (max 10 z prava)
             Current.VariableSymbol = new string(newNumber.Where(char.IsDigit).ToArray());
             if (Current.VariableSymbol.Length > 10)
                 Current.VariableSymbol = Current.VariableSymbol[^10..];
@@ -253,7 +283,7 @@ namespace InvoiceApp.ViewModels
             Current = new Invoice
             {
                 Type = DocType.Order,
-                Number = newNumber,
+                Number = $"OBJ-{newNumber}",
                 Currency = "CZK",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
@@ -277,9 +307,11 @@ namespace InvoiceApp.ViewModels
         {
             try
             {
-                var amountToPay = Math.Round(ComputeBaseTotal() + ComputeVatTotal(), 2, MidpointRounding.AwayFromZero);
+                // QR i PDF používají částku po ZAOKROUHLENÍ
+                var amountToPay = ComputeRoundedTotal();
+
                 var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
-                var msg = $"{label} {DisplayNumber}".Trim();
+                var msg = $"{label} {Current.Number}".Trim();
                 var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
 
                 byte[]? qrPng = null;
@@ -296,14 +328,16 @@ namespace InvoiceApp.ViewModels
                     qrPng = _qr.GenerateQrPng(payload);
                 }
 
-                var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{DisplayNumber}.pdf" };
+                var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{Current.Number}.pdf" };
                 if (dialog.ShowDialog() == true)
                 {
                     var path = _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName);
-                    MessageBox.Show($"Uloženo: {path}");
-                    // potvrzení rezervace čísla
+
+                    // úspěšný export -> potvrdit číslo
                     if (Current.Type == DocType.Invoice) _num.CommitInvoice();
                     else _num.CommitOrder();
+
+                    MessageBox.Show($"Uloženo: {path}");
                 }
             }
             catch (Exception ex)

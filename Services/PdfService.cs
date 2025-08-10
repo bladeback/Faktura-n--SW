@@ -48,6 +48,12 @@ namespace InvoiceApp.Services
                 ? (isVatPayer ? "Faktura - daňový doklad" : "Faktura")
                 : "Objednávka";
 
+            // Výpočty pro box "K úhradě"
+            var subtotal = inv.Items.Sum(i => i.Quantity * i.UnitPrice);
+            var vat = isVatPayer ? inv.Items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate) : 0m;
+            var gross = subtotal + vat;
+            var payable = Math.Round(gross, 0, MidpointRounding.AwayFromZero);
+
             container.Row(row =>
             {
                 row.RelativeItem().Column(col =>
@@ -64,10 +70,10 @@ namespace InvoiceApp.Services
                         if (inv.TaxableSupplyDate.HasValue)
                         {
                             col.Item().Text(text =>
-                           {
-                               text.Span("Datum zdan. plnění: ").SemiBold();
-                               text.Span(FormatDate(inv.TaxableSupplyDate.Value));
-                           });
+                            {
+                                text.Span("Datum zdan. plnění: ").SemiBold();
+                                text.Span(FormatDate(inv.TaxableSupplyDate.Value));
+                            });
                         }
                         col.Item().Text(text =>
                         {
@@ -88,11 +94,10 @@ namespace InvoiceApp.Services
                     if (inv.Type == DocType.Invoice)
                     {
                         col.Item().PaddingTop(10).Background(GreyColor).Padding(8).Column(summaryCol =>
-                       {
-                           summaryCol.Item().AlignCenter().Text("K úhradě").FontSize(10);
-                           decimal total = inv.Items.Sum(i => i.Quantity * i.UnitPrice * (1 + (isVatPayer ? i.VatRate : 0)));
-                           summaryCol.Item().AlignCenter().Text(text => text.Span(FormatMoney(total, inv.Currency)).Bold().FontSize(14));
-                       });
+                        {
+                            summaryCol.Item().AlignCenter().Text("K úhradě").FontSize(10);
+                            summaryCol.Item().AlignCenter().Text(text => text.Span(FormatMoney(payable, inv.Currency)).Bold().FontSize(14));
+                        });
                     }
                 });
             });
@@ -119,9 +124,14 @@ namespace InvoiceApp.Services
                 col.Item().PaddingTop(20).Element(c => ItemsTable(c, inv));
 
                 var isVatPayer = !string.IsNullOrWhiteSpace(inv.Supplier?.DIC);
-                if (isVatPayer && inv.Type == DocType.Invoice)
+
+                if (inv.Type == DocType.Invoice && isVatPayer)
                 {
                     col.Item().PaddingTop(10).Element(c => ComposeVatSummary(c, inv));
+                }
+                else
+                {
+                    col.Item().PaddingTop(10).Element(c => ComposeNoVatOrOrderSummary(c, inv));
                 }
             });
         }
@@ -132,7 +142,6 @@ namespace InvoiceApp.Services
             {
                 if (inv.Type == DocType.Invoice)
                 {
-                    // OPRAVA ZDE: Styly přesunuty na textový span
                     col.Item().PaddingBottom(5).Text(text =>
                     {
                         text.Span("Dovolujeme si Vás upozornit, že v případě nedodržení data splatnosti uvedeného na faktuře Vám můžeme účtovat zákonný úrok z prodlení.")
@@ -147,7 +156,6 @@ namespace InvoiceApp.Services
                         text.Span("Vystaveno v aplikaci InvoiceApp").FontSize(8).FontColor(Colors.Grey.Medium);
                     });
 
-                    // OPRAVA ZDE: Styly aplikovány na celý textový blok
                     row.RelativeItem().AlignRight().Text(text =>
                     {
                         text.DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium));
@@ -350,7 +358,8 @@ namespace InvoiceApp.Services
                         VatRate = g.Key,
                         BaseTotal = g.Sum(i => i.Quantity * i.UnitPrice),
                         VatTotal = g.Sum(i => i.Quantity * i.UnitPrice * i.VatRate)
-                    }).OrderBy(g => g.VatRate);
+                    }).OrderBy(g => g.VatRate)
+                    .ToList();
 
                 foreach (var summary in vatSummary)
                 {
@@ -362,14 +371,34 @@ namespace InvoiceApp.Services
 
                 var totalBase = vatSummary.Sum(s => s.BaseTotal);
                 var totalVat = vatSummary.Sum(s => s.VatTotal);
-                var grandTotal = totalBase + totalVat;
+                var gross = totalBase + totalVat;
+                var rounding = Math.Round(gross, 0, MidpointRounding.AwayFromZero) - gross;
+                var payable = gross + rounding;
 
                 table.Footer(footer =>
                 {
+                    // mezisoučet
                     footer.Cell().ColumnSpan(4).BorderTop(1).BorderColor(Colors.Grey.Medium).PaddingTop(5).Row(row =>
                     {
+                        row.RelativeItem().Text(text => text.Span("Celkem (bez zaokrouhlení)").Bold());
+                        row.RelativeItem().AlignRight().Text(text => text.Span(FormatMoney(gross, inv.Currency)).Bold());
+                    });
+
+                    // zaokrouhlení – jen když je nenulové
+                    if (rounding != 0m)
+                    {
+                        footer.Cell().ColumnSpan(4).PaddingTop(2).Row(row =>
+                        {
+                            row.RelativeItem().Text("Zaokrouhlení");
+                            row.RelativeItem().AlignRight().Text(FormatSignedMoney(rounding, inv.Currency));
+                        });
+                    }
+
+                    // k úhradě
+                    footer.Cell().ColumnSpan(4).PaddingTop(4).Row(row =>
+                    {
                         row.RelativeItem().Text(text => text.Span("Celkem k úhradě").Bold().FontSize(12));
-                        row.RelativeItem().AlignRight().Text(text => text.Span(FormatMoney(grandTotal, inv.Currency)).Bold().FontSize(12));
+                        row.RelativeItem().AlignRight().Text(text => text.Span(FormatMoney(payable, inv.Currency)).Bold().FontSize(12));
                     });
                 });
 
@@ -377,7 +406,40 @@ namespace InvoiceApp.Services
             });
         }
 
-        #region Původní pomocné metody
+        // Pro objednávky a neplátce DPH – jen souhrn + zaokrouhlení
+        private void ComposeNoVatOrOrderSummary(IContainer container, Invoice inv)
+        {
+            var baseTotal = inv.Items.Sum(i => i.Quantity * i.UnitPrice);
+            var gross = baseTotal; // bez DPH
+            var rounding = Math.Round(gross, 0, MidpointRounding.AwayFromZero) - gross;
+            var payable = gross + rounding;
+
+            container.AlignRight().Width(350).Column(col =>
+            {
+                col.Item().Row(row =>
+                {
+                    row.RelativeItem().Text(text => text.Span("Celkem (bez zaokrouhlení)").Bold());
+                    row.RelativeItem().AlignRight().Text(text => text.Span(FormatMoney(gross, inv.Currency)).Bold());
+                });
+
+                if (rounding != 0m)
+                {
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text("Zaokrouhlení");
+                        row.RelativeItem().AlignRight().Text(FormatSignedMoney(rounding, inv.Currency));
+                    });
+                }
+
+                col.Item().Row(row =>
+                {
+                    row.RelativeItem().Text(text => text.Span("Celkem k úhradě").Bold().FontSize(12));
+                    row.RelativeItem().AlignRight().Text(text => text.Span(FormatMoney(payable, inv.Currency)).Bold().FontSize(12));
+                });
+            });
+        }
+
+        #region Pomocné formátovací metody
         private static string FormatDate(DateTime dt) => dt.ToString("dd.MM.yyyy", new CultureInfo("cs-CZ"));
 
         private static string FormatMoney(decimal value, string? currency)
@@ -385,6 +447,16 @@ namespace InvoiceApp.Services
             var ci = new CultureInfo("cs-CZ");
             var formatted = string.Format(ci, "{0:N2}", value);
             return string.IsNullOrWhiteSpace(currency) ? formatted : $"{formatted} {currency}";
+        }
+
+        private static string FormatSignedMoney(decimal value, string? currency)
+        {
+            if (value == 0m) return FormatMoney(0m, currency);
+            var ci = new CultureInfo("cs-CZ");
+            var abs = Math.Abs(value);
+            var formatted = string.Format(ci, "{0:N2}", abs);
+            var sign = value > 0 ? "+" : "-";
+            return string.IsNullOrWhiteSpace(currency) ? $"{sign}{formatted}" : $"{sign}{formatted} {currency}";
         }
 
         private static string FormatNumber(decimal value)
