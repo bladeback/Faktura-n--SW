@@ -1,4 +1,8 @@
+using System.ComponentModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using InvoiceApp.ViewModels;
 
 namespace InvoiceApp
 {
@@ -7,6 +11,49 @@ namespace InvoiceApp
         public MainWindow()
         {
             InitializeComponent();
+
+            // Po načtení okna nastavíme viditelnost sloupce DPH
+            Loaded += (_, __) => UpdateVatColumnVisibility();
+
+            // Když se vymění DataContext (VM), znovu se navážeme
+            DataContextChanged += MainWindow_DataContextChanged;
+        }
+
+        private MainViewModel? VM => DataContext as MainViewModel;
+
+        private void MainWindow_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is INotifyPropertyChanged oldVm)
+                oldVm.PropertyChanged -= Vm_PropertyChanged;
+
+            if (e.NewValue is INotifyPropertyChanged newVm)
+                newVm.PropertyChanged += Vm_PropertyChanged;
+
+            UpdateVatColumnVisibility();
+        }
+
+        private void Vm_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // Reagujeme na změnu plátcovství i výměnu Current
+            if (e.PropertyName == nameof(MainViewModel.SupplierIsVatPayer) ||
+                e.PropertyName == nameof(MainViewModel.Current))
+            {
+                UpdateVatColumnVisibility();
+            }
+        }
+
+        private void UpdateVatColumnVisibility()
+        {
+            if (ItemsGrid == null || VM == null) return;
+
+            // najdeme sloupec podle textu hlavičky
+            DataGridColumn? vatCol = ItemsGrid.Columns
+                .FirstOrDefault(c => (c.Header?.ToString() ?? "").Trim().Equals("DPH (%)"));
+
+            if (vatCol == null) return;
+
+            bool show = VM.SupplierIsVatPayer;   // u plátce zobrazit, u neplátce skrýt
+            vatCol.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }
