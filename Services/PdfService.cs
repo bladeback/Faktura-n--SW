@@ -129,7 +129,7 @@ namespace InvoiceApp.Services
                 {
                     row.RelativeItem().Element(c => ComposePartyAddress(c, "Dodavatel", inv.Supplier, showNonVatNote: true));
                     row.ConstantItem(20);
-                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Odběratel", inv.Customer, showNonVatNote: false));
+                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Odběratel", inv.Customer, showNonVatNote: true));
                 });
 
                 // Platební údaje jen u FAKTURY, u OBJ jen kontakty
@@ -195,9 +195,14 @@ namespace InvoiceApp.Services
         // ======================================================
         // Blocks
         // ======================================================
-        private void ComposePartyAddress(IContainer container, string title, Party? party, bool showNonVatNote)
+        private void ComposePartyAddress(
+    IContainer container,
+    string title,
+    Party? party,
+    bool showNonVatNote = true)
         {
             if (party is null) return;
+
             bool isVatPayer = !string.IsNullOrWhiteSpace(party.DIC);
 
             container.Column(col =>
@@ -208,7 +213,6 @@ namespace InvoiceApp.Services
                 col.Item().PaddingTop(5).Text(t => t.Span(party.Name ?? "").Bold());
                 col.Item().Text(party.Address ?? "");
                 col.Item().Text(party.City ?? "");
-
                 if (!string.IsNullOrWhiteSpace(party.Country))
                     col.Item().Text(party.Country);
 
@@ -216,15 +220,17 @@ namespace InvoiceApp.Services
 
                 if (isVatPayer)
                 {
-                    col.Item().Text($"DIČ: {party.DIC ?? ""}");
+                    col.Item().Text($"DIČ: {party.DIC}");
                 }
                 else if (showNonVatNote)
                 {
-                    // požadavek: "Není plátce DPH" přímo pod IČ (v bloku Dodavatel)
-                    col.Item().Text(t => t.Span("Není plátce DPH").FontColor(Colors.Grey.Darken2));
+                    // sjednocený text pod IČO
+                    col.Item().Text("Není plátcem DPH");
                 }
             });
         }
+
+
 
         private void ComposePaymentDetails(IContainer container, Invoice inv)
         {
