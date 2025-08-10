@@ -171,7 +171,7 @@ namespace InvoiceApp.Services
                 {
                     col.Item().PaddingBottom(5).Text(t =>
                     {
-                        t.Span("Faktura bude vystavena v den vydání. Splatnost faktur 14 dní ode dne doručení. Objednatel souhlasí se zněním objednávky a potvrzením vzniká závazná objednávka služby.")
+                        t.Span("Faktura bude vystavena v den vydání. Splatnost faktur 14 dní ode dne doručení. Objednatel souhlasí se zněním objednávky a potvrzením vzniká závazná objednávka služby.").Bold()
                          .FontSize(11)          // větší
                          .FontColor(Colors.Black);
                     });
