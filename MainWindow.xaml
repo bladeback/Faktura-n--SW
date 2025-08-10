@@ -2,9 +2,16 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
+        xmlns:conv="clr-namespace:InvoiceApp.Converters"
         Title="InvoiceApp"
         Height="720"
         Width="1200">
+
+        <Window.Resources>
+                <!-- Překlad enumu DocType -> český text -->
+                <conv:DocTypeToTextConverter x:Key="DocTypeToTextConverter"/>
+        </Window.Resources>
+
         <Window.DataContext>
                 <vm:MainViewModel/>
         </Window.DataContext>
@@ -53,12 +60,17 @@
                                                                    Text="Typ:"
                                                                    VerticalAlignment="Center"
                                                                    Margin="0,0,8,0"/>
+                                                        <!-- OPRAVA: enum přímo z App.xaml Resources + hezký český popisek -->
                                                         <ComboBox Grid.Row="0"
                                                                   Grid.Column="1"
-                                                                  SelectedValue="{Binding Current.Type}"
+                                                                  ItemsSource="{Binding Source={StaticResource DocTypes}}"
+                                                                  SelectedItem="{Binding Current.Type, Mode=TwoWay}"
                                                                   Margin="0,2,0,4">
-                                                                <ComboBoxItem Content="Faktura"/>
-                                                                <ComboBoxItem Content="Objednávka"/>
+                                                                <ComboBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                                <TextBlock Text="{Binding Converter={StaticResource DocTypeToTextConverter}}"/>
+                                                                        </DataTemplate>
+                                                                </ComboBox.ItemTemplate>
                                                         </ComboBox>
 
                                                         <TextBlock Grid.Row="1"
@@ -68,7 +80,7 @@
                                                                    Margin="0,0,8,0"/>
                                                         <TextBox   Grid.Row="1"
                                                                    Grid.Column="1"
-                                                                   Text="{Binding Current.Number}"
+                                                                   Text="{Binding Current.Number, UpdateSourceTrigger=PropertyChanged}"
                                                                    Margin="0,2,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
@@ -119,84 +131,84 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Název:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Název:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="0"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Name}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Name, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Ulice a č.p.:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Ulice a č.p.:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Address}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Address, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="PSČ a obec:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="PSČ a obec:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.City}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.City, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="Země:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Země:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Country}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Country, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="IČO:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="IČO:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="4"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.ICO}"
-                                                                        Margin="0,0,6,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.ICO, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,6,4"/>
                                                         <Button    Grid.Row="4"
-                                                                        Grid.Column="2"
-                                                                        Content="Načíst z ARES"
-                                                                        Command="{Binding LoadSupplierFromIcoCommand}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="2"
+                                                                   Content="Načíst z ARES"
+                                                                   Command="{Binding LoadSupplierFromIcoCommand}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="5"
-                                                                        Grid.Column="0"
-                                                                        Text="DIČ:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="DIČ:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="5"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.DIC}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.DIC, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="6"
-                                                                        Grid.Column="0"
-                                                                        Text="Banka:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Banka:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <ComboBox  Grid.Row="6"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Margin="0,0,0,4"
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Margin="0,0,0,4"
                                                                    ItemsSource="{Binding Banks}"
                                                                    SelectedItem="{Binding SelectedBank, Mode=TwoWay}"
                                                                    DisplayMemberPath="Name"
@@ -204,69 +216,69 @@
                                                                    IsTextSearchEnabled="True"/>
 
                                                         <TextBlock Grid.Row="7"
-                                                                        Grid.Column="0"
-                                                                        Text="Účet:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Účet:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="7"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="8"
-                                                                        Grid.Column="0"
-                                                                        Text="IBAN:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="IBAN:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="8"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.IBAN, UpdateSourceTrigger=PropertyChanged}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.IBAN, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="9"
-                                                                        Grid.Column="0"
-                                                                        Text="SWIFT:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="SWIFT:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="9"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.SWIFT}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.SWIFT, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="10"
-                                                                        Grid.Column="0"
-                                                                        Text="E-mail:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="E-mail:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="10"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Email}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Email, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="11"
-                                                                        Grid.Column="0"
-                                                                        Text="Telefon:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Telefon:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="11"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Phone}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Phone, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="12"
-                                                                        Grid.Column="0"
-                                                                        Text="Plátce DPH:"
-                                                                        Margin="0,0,8,0"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Plátce DPH:"
+                                                                   Margin="0,0,8,0"
+                                                                   VerticalAlignment="Center"/>
                                                         <CheckBox  Grid.Row="12"
-                                                                        Grid.Column="1"
-                                                                        IsChecked="{Binding SupplierIsVatPayer}"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="1"
+                                                                   IsChecked="{Binding SupplierIsVatPayer, Mode=TwoWay}"
+                                                                   VerticalAlignment="Center"/>
                                                 </Grid>
                                         </GroupBox>
 
@@ -289,73 +301,73 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Název:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Název:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="0"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.Name}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.Name, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Ulice a č.p.:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Ulice a č.p.:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.Address}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.Address, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="PSČ a obec:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="PSČ a obec:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.City}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.City, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="Země:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Země:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.Country}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.Country, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="IČO:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="IČO:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="4"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Customer.ICO}"
-                                                                        Margin="0,0,6,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Customer.ICO, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,6,4"/>
                                                         <Button    Grid.Row="4"
-                                                                        Grid.Column="2"
-                                                                        Content="Načíst z ARES"
-                                                                        Command="{Binding LoadCustomerFromIcoCommand}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="2"
+                                                                   Content="Načíst z ARES"
+                                                                   Command="{Binding LoadCustomerFromIcoCommand}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="5"
-                                                                        Grid.Column="0"
-                                                                        Text="DIČ:"
-                                                                        Margin="0,0,8,0"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="DIČ:"
+                                                                   Margin="0,0,8,0"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="5"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.DIC}"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.DIC, UpdateSourceTrigger=PropertyChanged}"/>
                                                 </Grid>
                                         </GroupBox>
 
@@ -375,66 +387,66 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Variabilní symbol:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Variabilní symbol:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="0"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.VariableSymbol}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.VariableSymbol, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Konstantní symbol:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Konstantní symbol:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.ConstantSymbol}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.ConstantSymbol, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="Způsob úhrady:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Způsob úhrady:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <ComboBox  Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        ItemsSource="{Binding PaymentMethods}"
-                                                                        SelectedItem="{Binding Current.PaymentMethod, Mode=TwoWay}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   ItemsSource="{Binding PaymentMethods}"
+                                                                   SelectedItem="{Binding Current.PaymentMethod, Mode=TwoWay}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="Datum zd. plnění:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Datum zd. plnění:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <DatePicker Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        SelectedDate="{Binding Current.TaxableSupplyDate}"
-                                                                        Margin="0,0,0,4"/>
+                                                                    Grid.Column="1"
+                                                                    SelectedDate="{Binding Current.TaxableSupplyDate}"
+                                                                    Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="Měna:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Měna:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="4"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Currency}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Currency, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="5"
-                                                                        Grid.Column="0"
-                                                                        Text="Poznámka:"
-                                                                        Margin="0,0,8,0"
-                                                                        VerticalAlignment="Top"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Poznámka:"
+                                                                   Margin="0,0,8,0"
+                                                                   VerticalAlignment="Top"/>
                                                         <TextBox   Grid.Row="5"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Notes}"
-                                                                        AcceptsReturn="True"
-                                                                        Height="70"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Notes, UpdateSourceTrigger=PropertyChanged}"
+                                                                   AcceptsReturn="True"
+                                                                   Height="70"/>
                                                 </Grid>
                                         </GroupBox>
 
@@ -454,19 +466,19 @@
                                           Margin="0,0,0,4">
                                         <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Položka"
-                                                                    Binding="{Binding Name}"
+                                                                    Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="*"/>
                                                 <DataGridTextColumn Header="Mj"
-                                                                    Binding="{Binding Unit}"
+                                                                    Binding="{Binding Unit, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="60"/>
                                                 <DataGridTextColumn Header="Množství"
-                                                                    Binding="{Binding Quantity}"
+                                                                    Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="100"/>
                                                 <DataGridTextColumn Header="Cena/ks"
-                                                                    Binding="{Binding UnitPrice}"
+                                                                    Binding="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="100"/>
                                                 <DataGridTextColumn Header="DPH (%)"
-                                                                    Binding="{Binding VatRate}"
+                                                                    Binding="{Binding VatRate, UpdateSourceTrigger=PropertyChanged}"
                                                                     Width="100"/>
                                                 <DataGridTemplateColumn Header=""
                                                                         Width="50">
