@@ -68,11 +68,22 @@ namespace InvoiceApp.ViewModels
 
         partial void OnSelectedBankChanged(Bank? value)
         {
-            if (value != null && Current.Supplier != null)
+            if (Current?.Supplier == null) return;
+
+            if (value != null)
             {
+                // Při výběru banky doplníme název a SWIFT
                 Current.Supplier.Bank = value.Name;
                 Current.Supplier.SWIFT = value.Swift;
             }
+            else
+            {
+                // Při nulování výběru banku v modelu vymažeme
+                Current.Supplier.Bank = string.Empty;
+                Current.Supplier.SWIFT = string.Empty;
+            }
+
+            OnPropertyChanged(nameof(Current));
         }
 
         partial void OnSupplierIsVatPayerChanged(bool value)
@@ -229,6 +240,10 @@ namespace InvoiceApp.ViewModels
             Current.PropertyChanged += Current_PropertyChanged; // Připojíme nový
             Items.Clear();
             SupplierIsVatPayer = false;
+
+            // 🚿 Reset vybrané banky i polí v modelu
+            SelectedBank = null;
+
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
         }
@@ -250,6 +265,10 @@ namespace InvoiceApp.ViewModels
             Current.PropertyChanged += Current_PropertyChanged; // Připojíme nový
             Items.Clear();
             SupplierIsVatPayer = false;
+
+            // 🚿 Reset vybrané banky i polí v modelu
+            SelectedBank = null;
+
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
         }
