@@ -30,9 +30,11 @@ namespace InvoiceApp.Services
                     page.DefaultTextStyle(x => x.FontSize(9).FontFamily(Fonts.Calibri));
                     page.PageColor(Colors.White);
 
-                    page.Header().Element(c => ComposeHeader(c, invoice));
-                    page.Content().Element(c => ComposeBody(c, invoice, qrPng));
-                    page.Footer().Element(c => ComposeFooter(c));
+                    page.Header().Element(c => ComposeHeader(c, invoice));        // 2 argy
+                    page.Content().Element(c => ComposeBody(c, invoice, qrPng));   // 3 argy (qr je v Body)
+                    page.Footer().Element(c => ComposeFooter(c, invoice));         // 2 argy
+
+
                 });
             });
 
@@ -160,19 +162,39 @@ namespace InvoiceApp.Services
 
 
         // =================== FOOTER ===================
-        private void ComposeFooter(IContainer container)
+        private void ComposeFooter(IContainer container, Invoice inv)
         {
             container.Column(col =>
             {
-                col.Item().PaddingTop(10).Text(text =>
+                // OBJ: výrazný černý text
+                if (inv.Type == DocType.Order)
                 {
-                    text.Span("Dovolujeme si Vás upozornit, že v případě nedodržení data splatnosti uvedeného na faktuře Vám můžeme účtovat zákonný úrok z prodlení.")
-                        .FontSize(8).FontColor(Colors.Grey.Medium);
-                });
+                    col.Item().PaddingBottom(5).Text(t =>
+                    {
+                        t.Span("Faktura bude vystavena v den vydání. Splatnost faktur 14 dní ode dne doručení. Objednatel souhlasí se zněním objednávky a potvrzením vzniká závazná objednávka služby.")
+                         .FontSize(11)          // větší
+                         .FontColor(Colors.Black);
+                    });
+                }
+                // FA: necháme původní decentní šedý text
+                else
+                {
+                    col.Item().PaddingBottom(5).Text(t =>
+                    {
+                        t.Span("Dovolujeme si Vás upozornit, že v případě nedodržení data splatnosti uvedeného na faktuře Vám můžeme účtovat zákonný úrok z prodlení.")
+                         .FontSize(8)
+                         .FontColor(Colors.Grey.Medium);
+                    });
+                }
 
+                // řádek s číslem stránky beze změny
                 col.Item().Row(row =>
                 {
-                    row.RelativeItem().Text(t => t.Span("Vystaveno v aplikaci InvoiceApp").FontSize(8).FontColor(Colors.Grey.Medium));
+                    row.RelativeItem().Text(t =>
+                    {
+                        t.Span("Vystaveno v aplikaci InvoiceApp").FontSize(8).FontColor(Colors.Grey.Medium);
+                    });
+
                     row.RelativeItem().AlignRight().Text(t =>
                     {
                         t.DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium));
@@ -185,6 +207,8 @@ namespace InvoiceApp.Services
             });
         }
 
+
+
         // =================== BLOKY ADRES A DOPLŇKŮ ===================
         private void ComposePartyAddress(IContainer container, string title, Party? party)
         {
@@ -194,7 +218,6 @@ namespace InvoiceApp.Services
             {
                 col.Item().Text(t => t.Span(title).SemiBold().FontColor(ThemeColor).FontSize(10));
                 col.Item().PaddingBottom(5).BorderBottom(1).BorderColor(ThemeColor);
-
                 col.Item().PaddingTop(5).Text(t => t.Span(party.Name ?? "").Bold());
                 if (!string.IsNullOrWhiteSpace(party.Address))
                     col.Item().Text(party.Address);
