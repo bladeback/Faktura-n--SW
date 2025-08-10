@@ -52,3 +52,4 @@ C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.genruntimeconfig.cache
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\ref\InvoiceApp.dll
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\bin\Debug\net8.0-windows\banks.json
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\App.baml

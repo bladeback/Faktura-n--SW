@@ -4,12 +4,11 @@
              xmlns:local="clr-namespace:InvoiceApp"
              xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
              xmlns:models="clr-namespace:InvoiceApp.Models"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             StartupUri="Views/MainWindow.xaml">
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime">
   <Application.Resources>
     <ObjectDataProvider MethodName="GetValues"
-        ObjectType="{x:Type sys:Enum}"
-        x:Key="DocTypes">
+                        ObjectType="{x:Type sys:Enum}"
+                        x:Key="DocTypes">
       <ObjectDataProvider.MethodParameters>
         <x:Type TypeName="models:DocType"/>
       </ObjectDataProvider.MethodParameters>

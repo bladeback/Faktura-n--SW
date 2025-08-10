@@ -1,23 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
+using InvoiceApp.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using InvoiceApp.Models;
+using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace InvoiceApp.Services
 {
     public class PdfService
     {
+        private static readonly string ThemeColor = "#009A8D";
+        private static readonly string GreyColor = "#F0F0F0";
+
         public string SaveInvoicePdf(Invoice invoice, byte[]? qrPng, string filePath)
         {
             if (invoice == null)
                 throw new ArgumentNullException(nameof(invoice));
-
-            bool supplierIsVatPayer = !string.IsNullOrWhiteSpace(invoice.Supplier?.DIC);
 
             QuestPDF.Settings.License = LicenseType.Community;
 
@@ -26,17 +26,13 @@ namespace InvoiceApp.Services
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(32);
-                    page.DefaultTextStyle(x => x.FontSize(10));
+                    page.Margin(40);
+                    page.DefaultTextStyle(x => x.FontSize(9).FontFamily(Fonts.Calibri));
                     page.PageColor(Colors.White);
 
-                    page.Header().Element(c => ComposeHeader(c, invoice));
-                    page.Content().Element(c => ComposeBody(c, invoice, supplierIsVatPayer, qrPng));
-                    page.Footer().AlignRight().Text(txt =>
-                    {
-                        txt.Span("Vygenerováno aplikací InvoiceApp • ").FontColor(Colors.Grey.Darken1);
-                        txt.Span(DateTime.Now.ToString("dd.MM.yyyy HH:mm")).FontColor(Colors.Grey.Darken1);
-                    });
+                    page.Header().Element(c => ComposeHeader(c, invoice, qrPng));
+                    page.Content().Element(c => ComposeBody(c, invoice));
+                    page.Footer().Element(c => ComposeFooter(c, invoice));
                 });
             });
 
@@ -45,275 +41,343 @@ namespace InvoiceApp.Services
             return filePath;
         }
 
-        private void ComposeHeader(IContainer container, Invoice inv)
+        private void ComposeHeader(IContainer container, Invoice inv, byte[]? qrPng)
         {
-            var title = inv.Type == DocType.Invoice ? "FAKTURA (daňový doklad)" : "OBJEDNÁVKA";
+            var isVatPayer = !string.IsNullOrWhiteSpace(inv.Supplier?.DIC);
+            var title = inv.Type == DocType.Invoice
+                ? (isVatPayer ? "Faktura - daňový doklad" : "Faktura")
+                : "Objednávka";
 
             container.Row(row =>
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text(title).FontSize(18).SemiBold().FontColor(Colors.Black);
-                    col.Item().Text($"Číslo: {inv.Number}").FontSize(11);
-                    col.Item().Text($"Vystaveno: {FormatDate(inv.IssueDate)}").FontSize(11);
+                    col.Item().Text(text => text.Span(title).FontSize(16).SemiBold());
+                    col.Item().Text(text => text.Span(inv.Number).FontSize(16).SemiBold());
+                    col.Item().PaddingTop(15).Text(text =>
+                    {
+                        text.Span("Datum vystavení: ").SemiBold();
+                        text.Span(FormatDate(inv.IssueDate));
+                    });
                     if (inv.Type == DocType.Invoice)
                     {
-                        col.Item().Text($"Splatnost: {FormatDate(inv.DueDate)}").FontSize(11);
                         if (inv.TaxableSupplyDate.HasValue)
                         {
-                            col.Item().Text($"Datum zd. plnění: {FormatDate(inv.TaxableSupplyDate.Value)}").FontSize(11);
+                            col.Item().Text(text =>
+                           {
+                               text.Span("Datum zdan. plnění: ").SemiBold();
+                               text.Span(FormatDate(inv.TaxableSupplyDate.Value));
+                           });
                         }
+                        col.Item().Text(text =>
+                        {
+                            text.Span("Datum splatnosti: ").SemiBold();
+                            text.Span(FormatDate(inv.DueDate));
+                        });
                     }
                 });
 
-                row.ConstantItem(160).AlignRight().Column(col =>
+                row.ConstantItem(150).Column(col =>
                 {
-                    col.Item().Border(0.5f).Padding(6).AlignCenter().Text("LOGO").FontSize(12).FontColor(Colors.Grey.Darken1);
+                    if (inv.Type == DocType.Invoice && qrPng is { Length: > 0 })
+                    {
+                        col.Item().AlignRight().Text("QR Platba+F").FontSize(8);
+                        col.Item().Image(qrPng);
+                    }
+
+                    if (inv.Type == DocType.Invoice)
+                    {
+                        col.Item().PaddingTop(10).Background(GreyColor).Padding(8).Column(summaryCol =>
+                       {
+                           summaryCol.Item().AlignCenter().Text("K úhradě").FontSize(10);
+                           decimal total = inv.Items.Sum(i => i.Quantity * i.UnitPrice * (1 + (isVatPayer ? i.VatRate : 0)));
+                           summaryCol.Item().AlignCenter().Text(text => text.Span(FormatMoney(total, inv.Currency)).Bold().FontSize(14));
+                       });
+                    }
                 });
             });
         }
 
-        private void ComposeBody(IContainer container, Invoice inv, bool supplierIsVatPayer, byte[]? qrPng)
+        private void ComposeBody(IContainer container, Invoice inv)
         {
-            container.PaddingTop(10).Column(col =>
+            container.PaddingTop(20).Column(col =>
             {
                 col.Item().Row(row =>
                 {
-                    row.RelativeItem().Element(c => PartyBox(c, inv, isSupplier: true, supplierIsVatPayer));
-                    row.ConstantItem(18);
-                    row.RelativeItem().Element(c => PartyBox(c, inv, isSupplier: false, supplierIsVatPayer: null));
+                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Dodavatel", inv.Supplier));
+                    row.ConstantItem(20);
+                    row.RelativeItem().Element(c => ComposePartyAddress(c, "Odběratel", inv.Customer));
                 });
 
-                if (inv.Type == DocType.Invoice)
+                col.Item().PaddingTop(10).Row(row =>
                 {
-                    col.Item().PaddingTop(10).Row(row =>
-                    {
-                        row.RelativeItem().Element(c => PaymentBox(c, inv));
-                        if (qrPng is { Length: > 0 })
-                        {
-                            row.ConstantItem(150).PaddingLeft(10).Column(q =>
-                            {
-                                q.Item().Text("QR platba").SemiBold().FontSize(10);
-                                q.Item().Height(4);
-                                q.Item().Border(0.5f).Padding(4).AlignCenter().Image(qrPng);
-                            });
-                        }
-                    });
+                    row.RelativeItem().Element(c => ComposePaymentDetails(c, inv));
+                    row.ConstantItem(20);
+                    row.RelativeItem().Element(c => ComposeContactDetails(c, inv.Supplier));
+                });
+
+                col.Item().PaddingTop(20).Element(c => ItemsTable(c, inv));
+
+                var isVatPayer = !string.IsNullOrWhiteSpace(inv.Supplier?.DIC);
+                if (isVatPayer && inv.Type == DocType.Invoice)
+                {
+                    col.Item().PaddingTop(10).Element(c => ComposeVatSummary(c, inv));
                 }
-
-                col.Item().PaddingTop(12).Element(c => ItemsTable(c, inv, supplierIsVatPayer));
-
-                col.Item().PaddingTop(10).Element(c => TotalsBox(c, inv, supplierIsVatPayer));
-
-                if (!string.IsNullOrWhiteSpace(inv.Notes))
-                    col.Item().PaddingTop(8).Text($"Poznámka: {inv.Notes}").FontSize(10);
             });
         }
 
-        private void PartyBox(IContainer container, Invoice inv, bool isSupplier, bool? supplierIsVatPayer)
+        private void ComposeFooter(IContainer container, Invoice inv)
         {
-            var party = isSupplier ? inv.Supplier : inv.Customer;
-            if (party is null) return;
-
-            container.Border(0.5f).Padding(8).Column(col =>
+            container.Column(col =>
             {
-                col.Item().Text(isSupplier ? "Dodavatel" : "Odběratel").SemiBold().FontSize(11);
-                col.Item().PaddingTop(2).Text(party.Name ?? "").SemiBold().FontSize(11);
+                if (inv.Type == DocType.Invoice)
+                {
+                    // OPRAVA ZDE: Styly přesunuty na textový span
+                    col.Item().PaddingBottom(5).Text(text =>
+                    {
+                        text.Span("Dovolujeme si Vás upozornit, že v případě nedodržení data splatnosti uvedeného na faktuře Vám můžeme účtovat zákonný úrok z prodlení.")
+                            .FontSize(8).FontColor(Colors.Grey.Medium);
+                    });
+                }
+
+                col.Item().Row(row =>
+                {
+                    row.RelativeItem().Text(text =>
+                    {
+                        text.Span("Vystaveno v aplikaci InvoiceApp").FontSize(8).FontColor(Colors.Grey.Medium);
+                    });
+
+                    // OPRAVA ZDE: Styly aplikovány na celý textový blok
+                    row.RelativeItem().AlignRight().Text(text =>
+                    {
+                        text.DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium));
+                        text.Span("Strana ");
+                        text.CurrentPageNumber();
+                        text.Span(" / ");
+                        text.TotalPages();
+                    });
+                });
+            });
+        }
+
+        private void ComposePartyAddress(IContainer container, string title, Party? party)
+        {
+            if (party is null) return;
+            var isVatPayer = !string.IsNullOrWhiteSpace(party.DIC);
+
+            container.Column(col =>
+            {
+                col.Item().Text(text => text.Span(title).SemiBold().FontColor(ThemeColor).FontSize(10));
+                col.Item().PaddingBottom(5).BorderBottom(1).BorderColor(ThemeColor);
+
+                col.Item().PaddingTop(5).Text(text => text.Span(party.Name ?? "").Bold());
                 col.Item().Text(party.Address ?? "");
                 col.Item().Text(party.City ?? "");
+
                 if (!string.IsNullOrWhiteSpace(party.Country))
                     col.Item().Text(party.Country);
 
-                col.Item().PaddingTop(2).Text(txt =>
+                col.Item().PaddingTop(8).Text($"IČ: {party.ICO ?? ""}");
+                if (isVatPayer)
                 {
-                    txt.Span("IČO: ").SemiBold();
-                    txt.Span(party.ICO ?? "");
-                });
-                col.Item().Text(txt =>
-                {
-                    txt.Span("DIČ: ").SemiBold();
-                    txt.Span(party.DIC ?? "");
-                });
-
-                if (!string.IsNullOrWhiteSpace(party.Email))
-                {
-                    col.Item().PaddingTop(2).Text(txt =>
-                    {
-                        txt.Span("E-mail: ").SemiBold();
-                        txt.Span(party.Email);
-                    });
-                }
-                if (!string.IsNullOrWhiteSpace(party.Phone))
-                {
-                    col.Item().PaddingTop(2).Text(txt =>
-                    {
-                        txt.Span("Telefon: ").SemiBold();
-                        txt.Span(party.Phone);
-                    });
-                }
-
-                if (isSupplier && supplierIsVatPayer.HasValue)
-                {
-                    col.Item().PaddingTop(4).Text(supplierIsVatPayer.Value
-                        ? "Dodavatel je plátce DPH."
-                        : "Dodavatel není plátce DPH.").FontColor(Colors.Grey.Darken1);
+                    col.Item().Text($"DIČ: {party.DIC ?? ""}");
                 }
             });
         }
 
-        private void PaymentBox(IContainer container, Invoice inv)
+        private void ComposePaymentDetails(IContainer container, Invoice inv)
         {
             var supplier = inv.Supplier;
             if (supplier is null) return;
 
-            container.Border(0.5f).Padding(8).Column(col =>
+            container.Column(col =>
             {
-                col.Item().Text("Platební údaje").SemiBold().FontSize(11);
+                col.Item().Text(text => text.Span("Platební údaje").SemiBold().FontColor(ThemeColor).FontSize(10));
+                col.Item().PaddingBottom(5).BorderBottom(1).BorderColor(ThemeColor);
 
-                if (!string.IsNullOrWhiteSpace(inv.PaymentMethod))
+                col.Item().PaddingTop(5).Row(row =>
                 {
-                    col.Item().PaddingTop(2).Text(txt =>
-                    {
-                        txt.Span("Způsob úhrady: ").SemiBold();
-                        txt.Span(inv.PaymentMethod);
-                    });
-                }
-
-                if (!string.IsNullOrWhiteSpace(supplier.AccountNumber))
-                {
-                    col.Item().PaddingTop(2).Text(txt =>
-                    {
-                        txt.Span("Účet: ").SemiBold();
-                        txt.Span(supplier.AccountNumber);
-                    });
-                }
-
-                var displayIban = FormatIbanDisplay(inv.PaymentIban ?? supplier.IBAN ?? "");
-                col.Item().PaddingTop(2).Text(txt =>
-                {
-                    txt.Span("IBAN: ").SemiBold();
-                    txt.Span(displayIban);
+                    row.ConstantItem(100).Text(text => text.Span("Způsob platby:").SemiBold());
+                    row.RelativeItem().Text(inv.PaymentMethod ?? "Převodem");
                 });
-
-                if (!string.IsNullOrWhiteSpace(supplier.SWIFT))
+                col.Item().Row(row =>
                 {
-                    col.Item().Text(txt =>
-                    {
-                        txt.Span("SWIFT: ").SemiBold();
-                        txt.Span(supplier.SWIFT);
-                    });
-                }
-
-                col.Item().Text(txt =>
-                {
-                    txt.Span("Variabilní symbol: ").SemiBold();
-                    txt.Span(inv.VariableSymbol ?? "");
+                    row.ConstantItem(100).Text(text => text.Span("Bankovní účet:").SemiBold());
+                    row.RelativeItem().Text(supplier.AccountNumber ?? "");
                 });
-
+                col.Item().Row(row =>
+                {
+                    row.ConstantItem(100).Text(text => text.Span("IBAN:").SemiBold());
+                    row.RelativeItem().Text(FormatIbanDisplay(inv.PaymentIban ?? supplier.IBAN ?? ""));
+                });
+                col.Item().Row(row =>
+                {
+                    row.ConstantItem(100).Text(text => text.Span("SWIFT:").SemiBold());
+                    row.RelativeItem().Text(supplier.SWIFT ?? "");
+                });
+                col.Item().Row(row =>
+                {
+                    row.ConstantItem(100).Text(text => text.Span("Variabilní symbol:").SemiBold());
+                    row.RelativeItem().Text(inv.VariableSymbol ?? "");
+                });
                 if (!string.IsNullOrWhiteSpace(inv.ConstantSymbol))
                 {
-                    col.Item().Text(txt =>
+                    col.Item().Row(row =>
                     {
-                        txt.Span("Konstantní symbol: ").SemiBold();
-                        txt.Span(inv.ConstantSymbol);
+                        row.ConstantItem(100).Text(text => text.Span("Konstantní symbol:").SemiBold());
+                        row.RelativeItem().Text(inv.ConstantSymbol);
                     });
                 }
-
-                col.Item().Text(txt =>
-                {
-                    txt.Span("Měna: ").SemiBold();
-                    txt.Span(inv.Currency ?? "CZK");
-                });
             });
         }
 
-        private void ItemsTable(IContainer container, Invoice inv, bool supplierIsVatPayer)
+        private void ComposeContactDetails(IContainer container, Party? supplier)
         {
-            // --- ZDE JE OPRAVA ---
-            var items = inv.Items;
+            if (supplier is null) return;
+
+            container.Column(col =>
+            {
+                col.Item().Text(text => text.Span("Kontaktní údaje").SemiBold().FontColor(ThemeColor).FontSize(10));
+                col.Item().PaddingBottom(5).BorderBottom(1).BorderColor(ThemeColor);
+
+                if (!string.IsNullOrWhiteSpace(supplier.Email))
+                {
+                    col.Item().PaddingTop(5).Row(row =>
+                    {
+                        row.ConstantItem(50).Text(text => text.Span("E-mail:").SemiBold());
+                        row.RelativeItem().Text(supplier.Email);
+                    });
+                }
+                if (!string.IsNullOrWhiteSpace(supplier.Phone))
+                {
+                    col.Item().Row(row =>
+                    {
+                        row.ConstantItem(50).Text(text => text.Span("Telefon:").SemiBold());
+                        row.RelativeItem().Text(supplier.Phone);
+                    });
+                }
+            });
+        }
+
+        private void ItemsTable(IContainer container, Invoice inv)
+        {
+            var isVatPayer = !string.IsNullOrWhiteSpace(inv.Supplier?.DIC);
 
             container.Table(table =>
             {
-                table.ColumnsDefinition(cols =>
+                table.ColumnsDefinition(columns =>
                 {
-                    cols.RelativeColumn(5);
-                    cols.RelativeColumn(2);
-                    cols.RelativeColumn(2);
-                    cols.RelativeColumn(3);
-                    if (supplierIsVatPayer) cols.RelativeColumn(2);
-                    cols.RelativeColumn(3);
+                    columns.RelativeColumn(5);
+                    columns.RelativeColumn(1.5f);
+                    columns.RelativeColumn(2);
+                    if (isVatPayer)
+                    {
+                        columns.RelativeColumn(1.2f);
+                        columns.RelativeColumn(2);
+                        columns.RelativeColumn(2);
+                    }
+                    columns.RelativeColumn(2.5f);
                 });
 
                 table.Header(header =>
                 {
-                    header.Cell().Element(HeaderCell).Text("Položka");
-                    header.Cell().Element(HeaderCell).Text("Mj");
-                    header.Cell().Element(HeaderCell).Text("Množství");
-                    header.Cell().Element(HeaderCell).Text("Cena/ks");
-                    if (supplierIsVatPayer) header.Cell().Element(HeaderCell).Text("DPH (%)");
-                    header.Cell().Element(HeaderCell).Text(supplierIsVatPayer ? "Celkem s DPH" : "Celkem");
+                    header.Cell().Element(HeaderCellStyle).Text("Označení dodávky");
+                    header.Cell().Element(HeaderCellStyle).Text("Počet m.j.");
+                    header.Cell().Element(HeaderCellStyle).Text("Cena za m.j.");
+                    if (isVatPayer)
+                    {
+                        header.Cell().Element(HeaderCellStyle).Text("DPH %");
+                        header.Cell().Element(HeaderCellStyle).Text("Bez DPH");
+                        header.Cell().Element(HeaderCellStyle).Text("DPH");
+                    }
+                    header.Cell().Element(HeaderCellStyle).Text("Celkem");
+
+                    static IContainer HeaderCellStyle(IContainer c) => c.Background(GreyColor).Padding(5).DefaultTextStyle(x => x.SemiBold());
                 });
 
-                foreach (var it in items)
+                foreach (var item in inv.Items)
                 {
-                    table.Cell().Element(BodyCell).Text(it.Name);
-                    table.Cell().Element(BodyCell).Text(it.Unit);
-                    table.Cell().Element(BodyCell).Text(FormatNumber(it.Quantity));
-                    table.Cell().Element(BodyCell).Text(FormatMoney(it.UnitPrice, inv.Currency));
-                    if (supplierIsVatPayer) table.Cell().Element(BodyCell).Text(FormatPercent(it.VatRate));
-                    var lineTotal = supplierIsVatPayer ? it.Quantity * it.UnitPrice * (1 + it.VatRate) : it.Quantity * it.UnitPrice;
-                    table.Cell().Element(BodyCell).Text(FormatMoney(lineTotal, inv.Currency));
-                }
-            });
+                    var basePrice = item.Quantity * item.UnitPrice;
+                    var vatAmount = isVatPayer ? basePrice * item.VatRate : 0;
+                    var totalPrice = basePrice + vatAmount;
 
-            static IContainer HeaderCell(IContainer c) => c.BorderBottom(1).PaddingVertical(4).DefaultTextStyle(x => x.SemiBold());
-            static IContainer BodyCell(IContainer c) => c.PaddingVertical(4);
-        }
+                    table.Cell().Element(BodyCellStyle).Text(item.Name);
+                    table.Cell().Element(BodyCellStyle).AlignRight().Text($"{FormatNumber(item.Quantity)} {item.Unit}");
+                    table.Cell().Element(BodyCellStyle).AlignRight().Text(FormatMoney(item.UnitPrice, null));
 
-        private void TotalsBox(IContainer container, Invoice inv, bool supplierIsVatPayer)
-        {
-            // --- ZDE JE DRUHÁ OPRAVA ---
-            var items = inv.Items;
-
-            decimal baseTotal = items.Sum(i => i.Quantity * i.UnitPrice);
-            decimal vatTotal = supplierIsVatPayer ? items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate) : 0m;
-            decimal grandTotal = baseTotal + vatTotal;
-
-            container.Row(row =>
-            {
-                row.RelativeItem().Text(" ");
-                row.ConstantItem(260).Border(0.5f).Padding(8).Column(stack =>
-                {
-                    if (supplierIsVatPayer)
+                    if (isVatPayer)
                     {
-                        stack.Item().Row(r =>
-                        {
-                            r.RelativeItem().Text("Základ bez DPH:");
-                            r.ConstantItem(120).AlignRight().Text(FormatMoney(baseTotal, inv.Currency));
-                        });
-                        stack.Item().Row(r =>
-                        {
-                            r.RelativeItem().Text("DPH celkem:");
-                            r.ConstantItem(120).AlignRight().Text(FormatMoney(vatTotal, inv.Currency));
-                        });
-                        stack.Item().BorderTop(0.5f).PaddingTop(6).Row(r =>
-                        {
-                            r.RelativeItem().Text("Celkem k úhradě:");
-                            r.ConstantItem(120).AlignRight().Text(FormatMoney(grandTotal, inv.Currency)).SemiBold();
-                        });
+                        table.Cell().Element(BodyCellStyle).AlignRight().Text(FormatPercent(item.VatRate));
+                        table.Cell().Element(BodyCellStyle).AlignRight().Text(FormatMoney(basePrice, null));
+                        table.Cell().Element(BodyCellStyle).AlignRight().Text(FormatMoney(vatAmount, null));
+                        table.Cell().Element(BodyCellStyle).AlignRight().Background(GreyColor).Text(text => text.Span(FormatMoney(totalPrice, inv.Currency)).SemiBold());
                     }
                     else
                     {
-                        stack.Item().Row(r =>
-                        {
-                            r.RelativeItem().Text("Celkem k úhradě:");
-                            r.ConstantItem(120).AlignRight().Text(FormatMoney(baseTotal, inv.Currency)).SemiBold();
-                        });
+                        table.Cell().Element(BodyCellStyle).AlignRight().Background(GreyColor).Text(text => text.Span(FormatMoney(basePrice, inv.Currency)).SemiBold());
                     }
-                });
+                }
+                static IContainer BodyCellStyle(IContainer c) => c.BorderBottom(1).BorderColor(GreyColor).Padding(5);
             });
         }
 
+        private void ComposeVatSummary(IContainer container, Invoice inv)
+        {
+            container.AlignRight().Width(350).Table(table =>
+            {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                });
+
+                table.Header(header =>
+                {
+                    header.Cell().Element(SummaryHeaderStyle).Text("Sazba DPH");
+                    header.Cell().Element(SummaryHeaderStyle).AlignRight().Text("Základ");
+                    header.Cell().Element(SummaryHeaderStyle).AlignRight().Text("Výše DPH");
+                    header.Cell().Element(SummaryHeaderStyle).AlignRight().Text("Celkem");
+
+                    static IContainer SummaryHeaderStyle(IContainer c) => c.BorderBottom(1).BorderColor(Colors.Grey.Medium).Padding(4).DefaultTextStyle(x => x.SemiBold());
+                });
+
+                var vatSummary = inv.Items
+                    .GroupBy(i => i.VatRate)
+                    .Select(g => new
+                    {
+                        VatRate = g.Key,
+                        BaseTotal = g.Sum(i => i.Quantity * i.UnitPrice),
+                        VatTotal = g.Sum(i => i.Quantity * i.UnitPrice * i.VatRate)
+                    }).OrderBy(g => g.VatRate);
+
+                foreach (var summary in vatSummary)
+                {
+                    table.Cell().Element(SummaryBodyStyle).Text(FormatPercent(summary.VatRate));
+                    table.Cell().Element(SummaryBodyStyle).AlignRight().Text(FormatMoney(summary.BaseTotal, inv.Currency));
+                    table.Cell().Element(SummaryBodyStyle).AlignRight().Text(FormatMoney(summary.VatTotal, inv.Currency));
+                    table.Cell().Element(SummaryBodyStyle).AlignRight().Text(FormatMoney(summary.BaseTotal + summary.VatTotal, inv.Currency));
+                }
+
+                var totalBase = vatSummary.Sum(s => s.BaseTotal);
+                var totalVat = vatSummary.Sum(s => s.VatTotal);
+                var grandTotal = totalBase + totalVat;
+
+                table.Footer(footer =>
+                {
+                    footer.Cell().ColumnSpan(4).BorderTop(1).BorderColor(Colors.Grey.Medium).PaddingTop(5).Row(row =>
+                    {
+                        row.RelativeItem().Text(text => text.Span("Celkem k úhradě").Bold().FontSize(12));
+                        row.RelativeItem().AlignRight().Text(text => text.Span(FormatMoney(grandTotal, inv.Currency)).Bold().FontSize(12));
+                    });
+                });
+
+                static IContainer SummaryBodyStyle(IContainer c) => c.Padding(4);
+            });
+        }
+
+        #region Původní pomocné metody
         private static string FormatDate(DateTime dt) => dt.ToString("dd.MM.yyyy", new CultureInfo("cs-CZ"));
 
         private static string FormatMoney(decimal value, string? currency)
@@ -346,5 +410,6 @@ namespace InvoiceApp.Services
                                              .TakeWhile(i => i < compact.Length)
                                              .Select(i => compact.Substring(i, Math.Min(4, compact.Length - i))));
         }
+        #endregion
     }
 }
