@@ -1,13 +1,14 @@
 using System;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace InvoiceApp.Services
 {
     /// <summary>
     /// Generuje payload pro český standard QR Platba (SPD*1.0).
     /// ACC (IBAN bez mezer), AM (částka s tečkou), CC (měna),
-    /// X-VS (variabilní symbol), MSG (zpráva).
+    /// X-VS (variabilní symbol), X-KS (konstantní symbol), MSG (zpráva).
     /// </summary>
     public class QrService
     {
@@ -16,16 +17,18 @@ namespace InvoiceApp.Services
             decimal amount,
             string currency,
             string? variableSymbol,
+            string? constantSymbol,
             string? message)
         {
             if (string.IsNullOrWhiteSpace(iban))
                 throw new ArgumentException("Pro QR Platbu je vyžadován IBAN příjemce.", nameof(iban));
 
-            // IBAN pro QR BEZ mezer (SPD tak chce)
+            // IBAN bez mezer (SPD to vyžaduje)
             iban = iban.Replace(" ", string.Empty).ToUpperInvariant();
 
             string am = amount.ToString("0.##", CultureInfo.InvariantCulture);
-            string vs = SanitizeVs(variableSymbol);
+            string vs = TrimToMax10Digits(variableSymbol);
+            string ks = TrimToMax10Digits(constantSymbol);
             string msg = SanitizeMsg(message);
 
             var sb = new StringBuilder();
@@ -36,6 +39,9 @@ namespace InvoiceApp.Services
 
             if (!string.IsNullOrEmpty(vs))
                 sb.Append("*X-VS:").Append(vs);
+
+            if (!string.IsNullOrEmpty(ks))
+                sb.Append("*X-KS:").Append(ks);
 
             if (!string.IsNullOrEmpty(msg))
                 sb.Append("*MSG:").Append(msg);
@@ -51,24 +57,25 @@ namespace InvoiceApp.Services
             var gen = new QRCoder.QRCodeGenerator();
             var data = gen.CreateQrCode(payload, QRCoder.QRCodeGenerator.ECCLevel.M, forceUtf8: true);
             var png = new QRCoder.PngByteQRCode(data);
-            // scale = velikost modulů; 6–8 je rozumné
             return png.GetGraphic(pixelsPerModule: 7);
         }
 
-        private static string SanitizeVs(string? vs)
+        private static string TrimToMax10Digits(string? input)
         {
-            if (string.IsNullOrWhiteSpace(vs)) return string.Empty;
-            var sb = new StringBuilder();
-            foreach (var ch in vs)
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+            var sb = new StringBuilder(input.Length);
+            foreach (var ch in input)
                 if (char.IsDigit(ch)) sb.Append(ch);
-            return sb.ToString();
+
+            var digits = sb.ToString();
+            return digits.Length > 10 ? digits.Substring(digits.Length - 10, 10) : digits;
         }
 
         private static string SanitizeMsg(string? msg)
         {
             if (string.IsNullOrWhiteSpace(msg)) return string.Empty;
             msg = msg.Replace("\r", " ").Replace("\n", " ");
-            msg = System.Text.RegularExpressions.Regex.Replace(msg, @"\s+", " ").Trim();
+            msg = Regex.Replace(msg, @"\s+", " ").Trim();
             if (msg.Length > 60) msg = msg[..60];
             return msg;
         }
