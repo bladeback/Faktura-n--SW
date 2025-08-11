@@ -56,6 +56,8 @@
                                                                 <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="Auto"/>
+                                                                <!-- nový řádek pro „Doba splatnosti (dny)“ -->
+                                                                <RowDefinition Height="Auto"/>
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
@@ -133,6 +135,45 @@
                                                                         </Style>
                                                                 </DatePicker.Style>
                                                         </DatePicker>
+
+                                                        <!-- Doba splatnosti (dny) – jen pro fakturu -->
+                                                        <TextBlock Grid.Row="4"
+                                                                        Grid.Column="0"
+                                                                        Text="Doba splatnosti (dny):"
+                                                                        VerticalAlignment="Center"
+                                                                        Margin="0,0,8,0">
+                                                                <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                <Setter Property="Visibility"
+                                                                                                                Value="Collapsed"/>
+                                                                                        </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                        </Style>
+                                                                </TextBlock.Style>
+                                                        </TextBlock>
+                                                        <TextBox Grid.Row="4"
+                                                                        Grid.Column="1"
+                                                                 Text="{Binding PaymentTermDays, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Margin="0,2,0,0">
+                                                                <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                                <Setter Property="Visibility"
+                                                                                                Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Current.Type}"
+                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                <Setter Property="Visibility"
+                                                                                                                Value="Collapsed"/>
+                                                                                        </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                        </Style>
+                                                                </TextBox.Style>
+                                                        </TextBox>
                                                 </Grid>
                                         </GroupBox>
 
@@ -640,11 +681,10 @@
                                                 <DataGridTextColumn Header="Cena/ks"
                                                                 Binding="{Binding UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource WholeNumber}}"
                                                                 Width="100"/>
-                                                <!-- JMENOVANÝ sloupec DPH -->
                                                 <DataGridTextColumn x:Name="VatColumn"
-                                                                    Header="DPH (%)"
-                                                                    Binding="{Binding VatRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
-                                                                    Width="100"/>
+                                                                Header="DPH (%)"
+                                                                Binding="{Binding VatRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                                Width="100"/>
                                                 <DataGridTemplateColumn Header=""
                                                                 Width="50">
                                                         <DataGridTemplateColumn.CellTemplate>

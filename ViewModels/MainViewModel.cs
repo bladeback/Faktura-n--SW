@@ -28,10 +28,16 @@ namespace InvoiceApp.ViewModels
         private Invoice _current = new();
 
         public ObservableCollection<InvoiceItem> Items { get; } = new();
+
         [ObservableProperty] private bool supplierIsVatPayer;
+
         public List<string> PaymentMethods { get; } = new() { "Převodem", "Hotově", "Kartou" };
         public ObservableCollection<Bank> Banks { get; } = new();
         [ObservableProperty] private Bank? _selectedBank;
+
+        // Uživatelsky nastavitelná doba splatnosti (dny) – výchozí 14
+        [ObservableProperty]
+        private int paymentTermDays = 14;
 
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
@@ -72,8 +78,9 @@ namespace InvoiceApp.ViewModels
                 Current.VariableSymbol = digits.Length > 10 ? digits[^10..] : digits;
                 OnPropertyChanged(nameof(DisplayNumber));
             }
-            else if (e.PropertyName == nameof(Invoice.Type))
+            else if (e.PropertyName == nameof(Invoice.Type) || e.PropertyName == nameof(Invoice.IssueDate))
             {
+                UpdateDueDate();
                 OnPropertyChanged(nameof(DisplayNumber));
             }
         }
@@ -96,6 +103,36 @@ namespace InvoiceApp.ViewModels
         }
 
         partial void OnSupplierIsVatPayerChanged(bool value) => RaiseTotalsChanged();
+
+        // Změna PaymentTermDays -> přepočítej splatnost (omezíme 0..365)
+        partial void OnPaymentTermDaysChanged(int value)
+        {
+            var clamped = Math.Max(0, Math.Min(365, value));
+            if (clamped != value)
+            {
+                PaymentTermDays = clamped; // jednorázové narovnání, rekurze skončí hned
+                return;
+            }
+            UpdateDueDate();
+        }
+
+        private void UpdateDueDate()
+        {
+            if (Current == null) return;
+
+            var issue = Current.IssueDate == default ? DateTime.Today : Current.IssueDate;
+
+            if (Current.Type == DocType.Invoice)
+            {
+                Current.DueDate = issue.AddDays(PaymentTermDays);
+            }
+            else
+            {
+                // U objednávky pole schováváme, ale vlastnost necháme na rozumné hodnotě.
+                Current.DueDate = issue;
+            }
+        }
+
 
         private decimal ComputeBaseTotal()
         {
@@ -289,6 +326,8 @@ namespace InvoiceApp.ViewModels
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));
+
+            UpdateDueDate(); // použij PaymentTermDays
         }
 
         [RelayCommand]
@@ -316,6 +355,8 @@ namespace InvoiceApp.ViewModels
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));
+
+            UpdateDueDate(); // u OBJ nastaví null
         }
 
         [RelayCommand]
