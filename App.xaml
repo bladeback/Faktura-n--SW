@@ -4,14 +4,24 @@
              xmlns:local="clr-namespace:InvoiceApp"
              xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
              xmlns:models="clr-namespace:InvoiceApp.Models"
-             xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:conv="clr-namespace:InvoiceApp.Converters">
   <Application.Resources>
-    <ObjectDataProvider MethodName="GetValues"
-                        ObjectType="{x:Type sys:Enum}"
-                        x:Key="DocTypes">
+
+    <!-- TVŮJ původní provider pro DocType -->
+    <ObjectDataProvider x:Key="DocTypes"
+                        MethodName="GetValues"
+                        ObjectType="{x:Type sys:Enum}">
       <ObjectDataProvider.MethodParameters>
         <x:Type TypeName="models:DocType"/>
       </ObjectDataProvider.MethodParameters>
     </ObjectDataProvider>
+
+    <!-- Globální konvertory (k dispozici všude ve WPF) -->
+    <conv:DecimalCommaConverter x:Key="DecimalComma"/>
+    <conv:WholeNumberConverter  x:Key="WholeNumber"/>
+    <conv:VatPercentConverter   x:Key="VatPercent"/>
+    <conv:IbanDisplayConverter  x:Key="IbanDisplay"/>
+
   </Application.Resources>
 </Application>
