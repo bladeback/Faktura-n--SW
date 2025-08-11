@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using InvoiceApp.ViewModels;
@@ -14,6 +13,10 @@ namespace InvoiceApp
 
             // Po načtení okna nastavíme viditelnost sloupce DPH
             Loaded += (_, __) => UpdateVatColumnVisibility();
+
+            // Pokud už je DataContext nastavený z XAML, rovnou se napojíme
+            if (DataContext is INotifyPropertyChanged vmNow)
+                vmNow.PropertyChanged += Vm_PropertyChanged;
 
             // Když se vymění DataContext (VM), znovu se navážeme
             DataContextChanged += MainWindow_DataContextChanged;
@@ -44,16 +47,11 @@ namespace InvoiceApp
 
         private void UpdateVatColumnVisibility()
         {
-            if (ItemsGrid == null || VM == null) return;
-
-            // najdeme sloupec podle textu hlavičky
-            DataGridColumn? vatCol = ItemsGrid.Columns
-                .FirstOrDefault(c => (c.Header?.ToString() ?? "").Trim().Equals("DPH (%)"));
-
-            if (vatCol == null) return;
+            // Přepínáme přímo jmenovaný sloupec z XAML
+            if (VM == null || VatColumn == null) return;
 
             bool show = VM.SupplierIsVatPayer;   // u plátce zobrazit, u neplátce skrýt
-            vatCol.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            VatColumn.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

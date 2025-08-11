@@ -228,6 +228,22 @@ namespace InvoiceApp.ViewModels
             return rem;
         }
 
+        private static bool IsValidIban(string? iban)
+        {
+            if (string.IsNullOrWhiteSpace(iban)) return false;
+            iban = iban.Replace(" ", "").ToUpperInvariant();
+
+            // Délka 15–34, alfanumerická
+            if (!Regex.IsMatch(iban, "^[A-Z0-9]{15,34}$")) return false;
+
+            // Přesun prvních 4 znaků na konec a převod písmen na číslice
+            var rearranged = iban[4..] + iban[..4];
+            var converted = ConvertIbanCharsToDigits(rearranged);
+
+            // Modulo 97 musí být 1
+            return Mod97(converted) == 1;
+        }
+
         [RelayCommand]
         private void AddItem()
         {
@@ -303,7 +319,7 @@ namespace InvoiceApp.ViewModels
         }
 
         [RelayCommand]
-        private void ExportPdf()
+        private async Task ExportPdfAsync()
         {
             try
             {
@@ -312,7 +328,16 @@ namespace InvoiceApp.ViewModels
 
                 var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
                 var msg = $"{label} {Current.Number}".Trim();
+
+                // Normalizuj IBAN (odstraň mezery, upper)
                 var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
+
+                // Pokud je IBAN vyplněný, ověř jeho platnost – jinak zastav export
+                if (!string.IsNullOrWhiteSpace(paymentIban) && !IsValidIban(paymentIban))
+                {
+                    MessageBox.Show("Zadaný IBAN není platný. Opravte ho prosím, než budete exportovat PDF.", "Neplatný IBAN", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
                 byte[]? qrPng = null;
                 if (Current.Type == DocType.Invoice && !string.IsNullOrWhiteSpace(paymentIban) && amountToPay > 0m)
@@ -331,7 +356,7 @@ namespace InvoiceApp.ViewModels
                 var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{Current.Number}.pdf" };
                 if (dialog.ShowDialog() == true)
                 {
-                    var path = _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName);
+                    var path = await Task.Run(() => _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName));
 
                     // úspěšný export -> potvrdit číslo
                     if (Current.Type == DocType.Invoice) _num.CommitInvoice();

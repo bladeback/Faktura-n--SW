@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Windows;
 
 namespace InvoiceApp.Services
 {
@@ -27,8 +26,9 @@ namespace InvoiceApp.Services
 
                 if (!File.Exists(filePath))
                 {
-                    MessageBox.Show($"Chybí datový soubor '{FileName}'. Ujistěte se, že je v projektu a má ve vlastnostech nastaveno 'Copy if newer'.", "Chyba souboru", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return new List<Bank>();
+                    // Ve service vrstvě neukazujeme MessageBox – vrátíme prázdný seznam a necháme UI rozhodnout
+                    _cachedBanks = new List<Bank>();
+                    return _cachedBanks;
                 }
 
                 // Přečteme celý obsah souboru
@@ -39,10 +39,11 @@ namespace InvoiceApp.Services
                 _cachedBanks = banks ?? new List<Bank>();
                 return _cachedBanks;
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show($"Nepodařilo se načíst nebo zpracovat seznam bank ze souboru '{FileName}'.\nChyba: {ex.Message}", "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
-                return new List<Bank>();
+                // Bez UI side-effectů; případné logování řeš jinde
+                _cachedBanks = new List<Bank>();
+                return _cachedBanks;
             }
         }
     }
