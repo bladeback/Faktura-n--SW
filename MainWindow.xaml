@@ -2,124 +2,130 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
-        xmlns:conv="clr-namespace:InvoiceApp.Converters"
-        xmlns:views="clr-namespace:InvoiceApp.Views"
         Title="InvoiceApp"
         Height="720"
         Width="1200"
         Language="cs-CZ">
 
-        <!-- Konvertory a barvy necháme tady, InvoicePage je zdědí -->
-        <Window.Resources>
-                <conv:DecimalCommaConverter x:Key="DecimalComma"/>
-                <conv:WholeNumberConverter x:Key="WholeNumber"/>
-                <conv:VatPercentConverter x:Key="VatPercent"/>
-                <conv:IbanDisplayConverter x:Key="IbanDisplay"/>
+    <Window.Resources>
+        <SolidColorBrush x:Key="NavBg"
+                Color="#0F1226"/>
+        <SolidColorBrush x:Key="NavBtn"
+                Color="#1A1F3A"/>
+        <SolidColorBrush x:Key="NavBtnHover"
+                Color="#252C4D"/>
+        <SolidColorBrush x:Key="NavAccent"
+                Color="#4F46E5"/>
+        <SolidColorBrush x:Key="NavText"
+                Color="#E5E7EB"/>
 
-                <SolidColorBrush x:Key="NavBg"
-                                Color="#0F1226"/>
-                <SolidColorBrush x:Key="NavBtn"
-                                Color="#1A1F3A"/>
-                <SolidColorBrush x:Key="NavBtnHover"
-                                Color="#252C4D"/>
-                <SolidColorBrush x:Key="NavAccent"
-                                Color="#4F46E5"/>
-                <SolidColorBrush x:Key="NavText"
-                                Color="#E5E7EB"/>
+        <Style x:Key="NavRadio"
+                TargetType="RadioButton">
+            <Setter Property="Foreground"
+                    Value="{StaticResource NavText}"/>
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="Margin"
+                    Value="8,4"/>
+            <Setter Property="Padding"
+                    Value="12,10"/>
+            <Setter Property="FontSize"
+                    Value="14"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="10">
+                            <Grid>
+                                <ContentPresenter VerticalAlignment="Center"
+                                        Margin="12,0,10,0"/>
+                                <Border x:Name="SelBar"
+                                        Width="4"
+                                        HorizontalAlignment="Left"
+                                        CornerRadius="4"
+                                        Background="{StaticResource NavAccent}"
+                                        Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                    Value="True">
+                                <Setter Property="Background"
+                                        Value="{StaticResource NavBtnHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked"
+                                    Value="True">
+                                <Setter Property="Background"
+                                        Value="{StaticResource NavBtn}"/>
+                                <Setter TargetName="SelBar"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
-                <Style x:Key="NavToggle"
-                                TargetType="ToggleButton">
-                        <Setter Property="Foreground"
-                                        Value="{StaticResource NavText}"/>
-                        <Setter Property="Background"
-                                        Value="Transparent"/>
-                        <Setter Property="Margin"
-                                        Value="8,4"/>
-                        <Setter Property="Padding"
-                                        Value="12,10"/>
-                        <Setter Property="FontSize"
-                                        Value="14"/>
-                        <Setter Property="HorizontalContentAlignment"
-                                        Value="Left"/>
-                        <Setter Property="Template">
-                                <Setter.Value>
-                                        <ControlTemplate TargetType="ToggleButton">
-                                                <Border Background="{TemplateBinding Background}"
-                                                                CornerRadius="10">
-                                                        <Grid>
-                                                                <ContentPresenter VerticalAlignment="Center"
-                                                                                Margin="12,0,10,0"/>
-                                                                <Border x:Name="SelBar"
-                                                                                Width="4"
-                                                                                HorizontalAlignment="Left"
-                                                                                CornerRadius="4"
-                                                                        Background="{StaticResource NavAccent}"
-                                                                                Visibility="Collapsed"/>
-                                                        </Grid>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver"
-                                                                        Value="True">
-                                                                <Setter Property="Background"
-                                                                                Value="{StaticResource NavBtnHover}"/>
-                                                        </Trigger>
-                                                        <Trigger Property="IsChecked"
-                                                                        Value="True">
-                                                                <Setter Property="Background"
-                                                                                Value="{StaticResource NavBtn}"/>
-                                                                <Setter TargetName="SelBar"
-                                                                                Property="Visibility"
-                                                                                Value="Visible"/>
-                                                        </Trigger>
-                                                </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                </Setter.Value>
-                        </Setter>
-                </Style>
-        </Window.Resources>
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
 
-        <Window.DataContext>
-                <vm:MainViewModel/>
-        </Window.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <Grid>
-                <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="220"/>
-                        <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+        <!-- Levé menu -->
+        <Border Grid.Column="0"
+                Background="{StaticResource NavBg}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top"
+                           Text="InvoiceApp"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource NavText}"
+                           Margin="16,16,16,8"/>
+                <StackPanel Margin="8,8,8,16">
+                    <RadioButton x:Name="NavInvoices"
+                                 GroupName="Nav"
+                                 Style="{StaticResource NavRadio}"
+                                 IsChecked="True"
+                                 Content="Fakturace"
+                                 Checked="NavRadio_Checked"/>
+                    <RadioButton x:Name="NavOrders"
+                                 GroupName="Nav"
+                                 Style="{StaticResource NavRadio}"
+                                 Content="Objednávky"
+                                 IsEnabled="False"
+                                 Checked="NavRadio_Checked"/>
+                    <RadioButton x:Name="NavSuppliers"
+                                 GroupName="Nav"
+                                 Style="{StaticResource NavRadio}"
+                                 Content="Dodavatelé"
+                                 Checked="NavRadio_Checked"/>
+                    <RadioButton x:Name="NavCustomers"
+                                 GroupName="Nav"
+                                 Style="{StaticResource NavRadio}"
+                                 Content="Odběratelé"
+                                 IsEnabled="False"
+                                 Checked="NavRadio_Checked"/>
+                    <RadioButton x:Name="NavSettings"
+                                 GroupName="Nav"
+                                 Style="{StaticResource NavRadio}"
+                                 Content="Nastavení"
+                                 IsEnabled="False"
+                                 Checked="NavRadio_Checked"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
-                <!-- Levé menu -->
-                <Border Grid.Column="0"
-                                Background="{StaticResource NavBg}">
-                        <DockPanel>
-                                <TextBlock DockPanel.Dock="Top"
-                                           Text="InvoiceApp"
-                                           FontSize="18"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource NavText}"
-                                           Margin="16,16,16,8"/>
-                                <StackPanel Margin="8,8,8,16">
-                                        <ToggleButton Style="{StaticResource NavToggle}"
-                                                        IsChecked="True"
-                                                        Content="Fakturace"/>
-                                        <ToggleButton Style="{StaticResource NavToggle}"
-                                                        Content="Objednávky"
-                                                        IsEnabled="False"/>
-                                        <ToggleButton Style="{StaticResource NavToggle}"
-                                                        Content="Dodavatelé"
-                                                        IsEnabled="False"/>
-                                        <ToggleButton Style="{StaticResource NavToggle}"
-                                                        Content="Odběratelé"
-                                                        IsEnabled="False"/>
-                                        <ToggleButton Style="{StaticResource NavToggle}"
-                                                        Content="Nastavení"
-                                                        IsEnabled="False"/>
-                                </StackPanel>
-                        </DockPanel>
-                </Border>
-
-                <!-- Pravý obsah: nová stránka s celým UI -->
-                <views:InvoicePage Grid.Column="1"
-                                DataContext="{Binding}"/>
-        </Grid>
+        <!-- Pravý obsah: Tohle MUSÍ mít x:Name="ContentHost" -->
+        <ContentControl x:Name="ContentHost"
+                Grid.Column="1"/>
+    </Grid>
 </Window>
