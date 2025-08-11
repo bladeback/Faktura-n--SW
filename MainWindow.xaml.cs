@@ -1,6 +1,8 @@
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;            // <– přidáno
 using InvoiceApp.ViewModels;
 
 namespace InvoiceApp
@@ -47,11 +49,24 @@ namespace InvoiceApp
 
         private void UpdateVatColumnVisibility()
         {
-            // Přepínáme přímo jmenovaný sloupec z XAML
             if (VM == null || VatColumn == null) return;
 
             bool show = VM.SupplierIsVatPayer;   // u plátce zobrazit, u neplátce skrýt
             VatColumn.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // Enter v editačním combu DPH -> hned potvrdit editaci
+        private void VatCombo_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (ItemsGrid != null)
+                {
+                    ItemsGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                    ItemsGrid.CommitEdit(DataGridEditingUnit.Row, true);
+                }
+                e.Handled = true;
+            }
         }
     }
 }

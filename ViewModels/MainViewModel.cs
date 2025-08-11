@@ -128,11 +128,10 @@ namespace InvoiceApp.ViewModels
             }
             else
             {
-                // U objednávky pole schováváme, ale vlastnost necháme na rozumné hodnotě.
+                // U objednávky pole v UI schováváme, ale hodnotu držíme na rozumném datu
                 Current.DueDate = issue;
             }
         }
-
 
         private decimal ComputeBaseTotal()
         {
@@ -356,7 +355,7 @@ namespace InvoiceApp.ViewModels
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));
 
-            UpdateDueDate(); // u OBJ nastaví null
+            UpdateDueDate(); // u OBJ nastaví na issue date
         }
 
         [RelayCommand]

@@ -699,7 +699,8 @@
                                                                         <ComboBox IsEditable="True"
                                                                                   StaysOpenOnEdit="True"
                                                                                   HorizontalContentAlignment="Left"
-                                                                                  Text="{Binding VatRate, Mode=TwoWay, Converter={StaticResource VatPercent}, UpdateSourceTrigger=LostFocus}">
+                                                                                  Text="{Binding VatRate, Mode=TwoWay, Converter={StaticResource VatPercent}, UpdateSourceTrigger=LostFocus}"
+                                                                                  KeyDown="VatCombo_KeyDown">
                                                                                 <ComboBoxItem Content="0"/>
                                                                                 <ComboBoxItem Content="10"/>
                                                                                 <ComboBoxItem Content="12"/>
