@@ -34,7 +34,6 @@ C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\bin\Debug\net8.
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\bin\Debug\net8.0-windows\runtimes\win-x64\native\QuestPdfSkia.dll
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\bin\Debug\net8.0-windows\runtimes\win-x86\native\QuestPdfSkia.dll
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.csproj.AssemblyReference.cache
-C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SuppliersPage.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\InvoicePage.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SuppliersPage.g.cs
@@ -45,6 +44,7 @@ C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\App.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\MainWindow.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\InvoicePage.baml
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SuppliersPage.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.g.resources
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.AssemblyInfoInputs.cache

@@ -1,0 +1,16 @@
+[
+  {
+    "name": null,
+    "address": null,
+    "city": null,
+    "postalCode": null,
+    "ico": null,
+    "dic": null,
+    "bank": null,
+    "accountNumber": null,
+    "iban": null,
+    "email": null,
+    "phone": null,
+    "isVatPayer": false
+  }
+]
