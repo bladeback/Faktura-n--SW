@@ -301,10 +301,22 @@
                                                                    Margin="0,0,0,4"
                                                                    ItemsSource="{Binding Banks}"
                                                                    SelectedItem="{Binding SelectedBank, Mode=TwoWay}"
-                                                                   DisplayMemberPath="Name"
-                                                                   IsEditable="True"
+                                                                   IsEditable="False"
                                                                    IsTextSearchEnabled="True">
+                                                                <!-- Název + kód banky v nabídce i ve výběru -->
+                                                                <ComboBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                                <TextBlock>
+                                                                                    <Run Text="{Binding Name}"/>
+                                                                                    <Run Text=" ("/>
+                                                                                    <Run Text="{Binding Code}"/>
+                                                                                    <Run Text=")"/>
+                                                                                </TextBlock>
+                                                                        </DataTemplate>
+                                                                </ComboBox.ItemTemplate>
+
                                                                 <ComboBox.Style>
+                                                                        <!-- ponechávám tvé původní skrývání pro OBJ -->
                                                                         <Style TargetType="ComboBox">
                                                                                 <Setter Property="Visibility"
                                                                                         Value="Visible"/>
