@@ -215,15 +215,31 @@ namespace InvoiceApp.ViewModels
         private void Supplier_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not Party sup) return;
+
             if (e.PropertyName == nameof(Party.AccountNumber))
             {
                 var acc = sup.AccountNumber;
                 var iban = TryBuildCzIbanFromAccount(acc);
+
                 if (!string.IsNullOrWhiteSpace(iban))
                 {
-                    sup.IBAN = iban.Replace(" ", "").ToUpperInvariant();
-                    OnPropertyChanged(nameof(Current));
+                    var normalized = iban.Replace(" ", "").ToUpperInvariant();
+                    sup.IBAN = normalized;             // ✅ stačí naplnit Supplier.IBAN
                 }
+                else
+                {
+                    sup.IBAN = string.Empty;            // ✅ QR si to přečte přes PaymentIban (read-only)
+                }
+
+                OnPropertyChanged(nameof(Current));
+            }
+            else if (e.PropertyName == nameof(Party.IBAN))
+            {
+                // Ruční změna IBANu -> normalizovat
+                var normalized = (sup.IBAN ?? string.Empty).Replace(" ", "").ToUpperInvariant();
+                sup.IBAN = normalized;
+
+                OnPropertyChanged(nameof(Current));
             }
         }
 

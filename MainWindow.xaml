@@ -30,8 +30,9 @@
                         <Button Content="Přidat položku"
                                 Command="{Binding AddItemCommand}"/>
                         <Button Content="Export do PDF"
-                                Command="{Binding ExportPdfAsyncCommand}"
+                                Command="{Binding ExportPdfCommand}"
                                 Margin="6,0,0,0"/>
+
                 </ToolBar>
 
                 <Grid Margin="10">
