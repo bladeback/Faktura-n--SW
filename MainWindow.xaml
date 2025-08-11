@@ -13,6 +13,7 @@
                 <conv:DecimalCommaConverter x:Key="DecimalComma"/>
                 <conv:WholeNumberConverter x:Key="WholeNumber"/>
                 <conv:VatPercentConverter x:Key="VatPercent"/>
+                <conv:IbanDisplayConverter x:Key="IbanDisplay"/>
         </Window.Resources>
 
         <Window.DataContext>
@@ -381,8 +382,9 @@
                                                         <TextBox   Grid.Row="8"
                                                                    Grid.Column="1"
                                                                    Grid.ColumnSpan="2"
-                                                                   Text="{Binding Current.Supplier.IBAN, UpdateSourceTrigger=PropertyChanged}"
+                                                                   Text="{Binding Current.Supplier.IBAN, Mode=TwoWay, Converter={StaticResource IbanDisplay}, UpdateSourceTrigger=LostFocus}"
                                                                    Margin="0,0,0,4">
+
                                                                 <TextBox.Style>
                                                                         <Style TargetType="TextBox">
                                                                                 <Setter Property="Visibility"
