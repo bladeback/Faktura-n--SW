@@ -682,30 +682,32 @@
                                                 <DataGridTextColumn Header="Cena/ks"
                                                                     Binding="{Binding UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource WholeNumber}}"
                                                                     Width="100"/>
-                                                <DataGridTextColumn x:Name="VatColumn"
-                                                                    Header="DPH (%)"
-                                                                    Width="80">
-                                                        <!-- Zobrazení (jen text) -->
-                                                        <DataGridTextColumn.ElementStyle>
-                                                                <Style TargetType="TextBlock">
-                                                                        <Setter Property="Text"
-                                                                                Value="{Binding VatRate, Converter={StaticResource VatPercent}, StringFormat=N0}"/>
-                                                                        <Setter Property="HorizontalAlignment"
-                                                                                Value="Left"/>
-                                                                </Style>
-                                                        </DataGridTextColumn.ElementStyle>
+                                                <!-- DPH (%) – combo s předvolbami + ruční zadání -->
+                                                <DataGridTemplateColumn x:Name="VatColumn"
+                                                                        Header="DPH (%)"
+                                                                        Width="80">
+                                                        <!-- zobrazení -->
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                        <TextBlock Text="{Binding VatRate, Converter={StaticResource VatPercent}, StringFormat=N0}"/>
+                                                                </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
 
-                                                        <!-- Editace (text box) – uložit až po opuštění buňky -->
-                                                        <DataGridTextColumn.EditingElementStyle>
-                                                                <Style TargetType="TextBox">
-                                                                        <Setter Property="Text"
-                                                                                Value="{Binding VatRate, Mode=TwoWay, Converter={StaticResource VatPercent}, UpdateSourceTrigger=LostFocus}"/>
-                                                                        <Setter Property="HorizontalContentAlignment"
-                                                                                Value="Left"/>
-                                                                </Style>
-                                                        </DataGridTextColumn.EditingElementStyle>
-                                                </DataGridTextColumn>
-
+                                                        <!-- editace -->
+                                                        <DataGridTemplateColumn.CellEditingTemplate>
+                                                                <DataTemplate>
+                                                                        <ComboBox IsEditable="True"
+                                                                                  StaysOpenOnEdit="True"
+                                                                                  HorizontalContentAlignment="Left"
+                                                                                  Text="{Binding VatRate, Mode=TwoWay, Converter={StaticResource VatPercent}, UpdateSourceTrigger=LostFocus}">
+                                                                                <ComboBoxItem Content="0"/>
+                                                                                <ComboBoxItem Content="10"/>
+                                                                                <ComboBoxItem Content="12"/>
+                                                                                <ComboBoxItem Content="21"/>
+                                                                        </ComboBox>
+                                                                </DataTemplate>
+                                                        </DataGridTemplateColumn.CellEditingTemplate>
+                                                </DataGridTemplateColumn>
                                                 <DataGridTemplateColumn Header=""
                                                                         Width="50">
                                                         <DataGridTemplateColumn.CellTemplate>
