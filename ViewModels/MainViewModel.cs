@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace InvoiceApp.ViewModels
 {
@@ -28,10 +29,17 @@ namespace InvoiceApp.ViewModels
         private Invoice _current = new();
 
         public ObservableCollection<InvoiceItem> Items { get; } = new();
+
         [ObservableProperty] private bool supplierIsVatPayer;
+
         public List<string> PaymentMethods { get; } = new() { "Převodem", "Hotově", "Kartou" };
         public ObservableCollection<Bank> Banks { get; } = new();
         [ObservableProperty] private Bank? _selectedBank;
+
+        // Uživatelsky nastavitelná doba splatnosti (dny) – výchozí 14
+        [ObservableProperty]
+        private int paymentTermDays = 14;
+
 
         public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
         public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
@@ -72,8 +80,9 @@ namespace InvoiceApp.ViewModels
                 Current.VariableSymbol = digits.Length > 10 ? digits[^10..] : digits;
                 OnPropertyChanged(nameof(DisplayNumber));
             }
-            else if (e.PropertyName == nameof(Invoice.Type))
+            else if (e.PropertyName == nameof(Invoice.Type) || e.PropertyName == nameof(Invoice.IssueDate))
             {
+                UpdateDueDate();
                 OnPropertyChanged(nameof(DisplayNumber));
             }
         }
@@ -88,14 +97,74 @@ namespace InvoiceApp.ViewModels
 
         partial void OnSelectedBankChanged(Bank? value)
         {
-            if (value != null && Current.Supplier != null)
+            var sup = Current?.Supplier;
+            if (sup == null) return;
+
+            // 1) nejdřív promítni aktuální výběr (dočasně)
+            if (value != null) { sup.Bank = value.Name; sup.SWIFT = value.Swift; }
+            else { sup.Bank = string.Empty; sup.SWIFT = string.Empty; }
+
+            // 2) zjisti kód banky z účtu
+            var codeFromAcc = GetBankCodeFromAccount(sup.AccountNumber);
+            if (string.IsNullOrEmpty(codeFromAcc)) return;
+
+            var must = Banks.FirstOrDefault(b =>
+                string.Equals((b.Code ?? "").Trim(), codeFromAcc, StringComparison.Ordinal));
+
+            if (must == null) return;
+
+            // 3) pokud neodpovídá, přepiš výběr banky *po* skončení aktuálního UI cyklu
+            if (!ReferenceEquals(SelectedBank, must))
             {
-                Current.Supplier.Bank = value.Name;
-                Current.Supplier.SWIFT = value.Swift;
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(
+                    new Action(() =>
+                    {
+                        SelectedBank = must;
+                        sup.Bank = must.Name;
+                        sup.SWIFT = must.Swift;
+                    }),
+                    DispatcherPriority.ApplicationIdle
+                );
             }
         }
 
+        private static string? GetBankCodeFromAccount(string? acc)
+        {
+            if (string.IsNullOrWhiteSpace(acc)) return null;
+            var m = Regex.Match(acc.Trim(), @"^\s*(?:(\d{0,6})-)?(\d{1,10})/(\d{4})\s*$");
+            return m.Success ? m.Groups[3].Value : null;
+        }
+
         partial void OnSupplierIsVatPayerChanged(bool value) => RaiseTotalsChanged();
+
+        // Změna PaymentTermDays -> přepočítej splatnost (omezíme 0..365)
+        partial void OnPaymentTermDaysChanged(int value)
+        {
+            var clamped = Math.Max(0, Math.Min(365, value));
+            if (clamped != value)
+            {
+                PaymentTermDays = clamped; // jednorázové narovnání, rekurze skončí hned
+                return;
+            }
+            UpdateDueDate();
+        }
+
+        private void UpdateDueDate()
+        {
+            if (Current == null) return;
+
+            var issue = Current.IssueDate == default ? DateTime.Today : Current.IssueDate;
+
+            if (Current.Type == DocType.Invoice)
+            {
+                Current.DueDate = issue.AddDays(PaymentTermDays);
+            }
+            else
+            {
+                // U objednávky pole v UI schováváme, ale hodnotu držíme na rozumném datu
+                Current.DueDate = issue;
+            }
+        }
 
         private decimal ComputeBaseTotal()
         {
@@ -179,17 +248,49 @@ namespace InvoiceApp.ViewModels
         private void Supplier_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not Party sup) return;
+
             if (e.PropertyName == nameof(Party.AccountNumber))
             {
                 var acc = sup.AccountNumber;
+
+                // 1) přepočti/normalizuj IBAN z účtu
                 var iban = TryBuildCzIbanFromAccount(acc);
-                if (!string.IsNullOrWhiteSpace(iban))
+                sup.IBAN = string.IsNullOrWhiteSpace(iban)
+                    ? string.Empty
+                    : iban.Replace(" ", "").ToUpperInvariant();
+
+                // 2) podle kódu banky za lomítkem automaticky vyber banku v combu
+                if (!string.IsNullOrWhiteSpace(acc))
                 {
-                    sup.IBAN = iban.Replace(" ", "").ToUpperInvariant();
-                    OnPropertyChanged(nameof(Current));
+                    var m = Regex.Match(acc.Trim(), @"^\s*(?:(\d{0,6})-)?(\d{1,10})/(\d{4})\s*$");
+                    if (m.Success)
+                    {
+                        var bankCode = m.Groups[3].Value; // poslední 4 číslice
+                        var match = Banks.FirstOrDefault(b =>
+                            string.Equals((b.Code ?? "").Trim(), bankCode, StringComparison.Ordinal));
+
+                        if (match != null && !ReferenceEquals(SelectedBank, match))
+                            SelectedBank = match; // vyvolá OnSelectedBankChanged -> doplní název/SWIFT
+                    }
+                    // když formát neodpovídá, banku neměníme
                 }
+                else
+                {
+                    // prázdný účet -> zruš volbu banky
+                    SelectedBank = null;
+                }
+
+                OnPropertyChanged(nameof(Current));
+            }
+            else if (e.PropertyName == nameof(Party.IBAN))
+            {
+                // ruční změna IBANu -> normalizovat
+                var normalized = (sup.IBAN ?? string.Empty).Replace(" ", "").ToUpperInvariant();
+                sup.IBAN = normalized;
+                OnPropertyChanged(nameof(Current));
             }
         }
+
 
         private static string? TryBuildCzIbanFromAccount(string? account)
         {
@@ -226,6 +327,22 @@ namespace InvoiceApp.ViewModels
             foreach (var ch in digits)
                 rem = (rem * 10 + (ch - '0')) % 97;
             return rem;
+        }
+
+        private static bool IsValidIban(string? iban)
+        {
+            if (string.IsNullOrWhiteSpace(iban)) return false;
+            iban = iban.Replace(" ", "").ToUpperInvariant();
+
+            // Délka 15–34, alfanumerická
+            if (!Regex.IsMatch(iban, "^[A-Z0-9]{15,34}$")) return false;
+
+            // Přesun prvních 4 znaků na konec a převod písmen na číslice
+            var rearranged = iban[4..] + iban[..4];
+            var converted = ConvertIbanCharsToDigits(rearranged);
+
+            // Modulo 97 musí být 1
+            return Mod97(converted) == 1;
         }
 
         [RelayCommand]
@@ -273,6 +390,8 @@ namespace InvoiceApp.ViewModels
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));
+
+            UpdateDueDate(); // použij PaymentTermDays
         }
 
         [RelayCommand]
@@ -300,10 +419,12 @@ namespace InvoiceApp.ViewModels
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));
+
+            UpdateDueDate(); // u OBJ nastaví na issue date
         }
 
         [RelayCommand]
-        private void ExportPdf()
+        private async Task ExportPdfAsync()
         {
             try
             {
@@ -312,7 +433,16 @@ namespace InvoiceApp.ViewModels
 
                 var label = Current.Type == DocType.Invoice ? "Faktura" : "Objednávka";
                 var msg = $"{label} {Current.Number}".Trim();
+
+                // Normalizuj IBAN (odstraň mezery, upper)
                 var paymentIban = (Current.PaymentIban ?? string.Empty).Replace(" ", "").ToUpperInvariant();
+
+                // Pokud je IBAN vyplněný, ověř jeho platnost – jinak zastav export
+                if (!string.IsNullOrWhiteSpace(paymentIban) && !IsValidIban(paymentIban))
+                {
+                    MessageBox.Show("Zadaný IBAN není platný. Opravte ho prosím, než budete exportovat PDF.", "Neplatný IBAN", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
                 byte[]? qrPng = null;
                 if (Current.Type == DocType.Invoice && !string.IsNullOrWhiteSpace(paymentIban) && amountToPay > 0m)
@@ -331,7 +461,7 @@ namespace InvoiceApp.ViewModels
                 var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{Current.Number}.pdf" };
                 if (dialog.ShowDialog() == true)
                 {
-                    var path = _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName);
+                    var path = await Task.Run(() => _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName));
 
                     // úspěšný export -> potvrdit číslo
                     if (Current.Type == DocType.Invoice) _num.CommitInvoice();

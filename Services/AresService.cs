@@ -17,7 +17,7 @@ namespace InvoiceApp.Services
 
         public AresService()
         {
-            _http.DefaultRequestHeaders.UserAgent.ParseAdd("InvoiceApp/1.0");
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("InvoiceApp/1.0 (+https://example)");
             _http.DefaultRequestHeaders.Accept.Clear();
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _http.DefaultRequestHeaders.AcceptLanguage.ParseAdd("cs,en;q=0.8");
@@ -48,8 +48,8 @@ namespace InvoiceApp.Services
                     req.Headers.Accept.Clear();
                     req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    using var resp = await _http.SendAsync(req);
-                    if (!resp.IsSuccessStatusCode) continue;
+                    using var resp = await TrySendAsync(req);
+                    if (resp is null || !resp.IsSuccessStatusCode) continue;
 
                     using var stream = await resp.Content.ReadAsStreamAsync();
                     using var doc = await JsonDocument.ParseAsync(stream);
@@ -68,6 +68,36 @@ namespace InvoiceApp.Services
             if (scraped != null) return scraped.Value;
 
             return (null, null, null, null);
+        }
+
+        // -------- Retry helper -------------------------------------------------
+        private static async Task<HttpResponseMessage?> TrySendAsync(HttpRequestMessage req)
+        {
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    var resp = await _http.SendAsync(req);
+                    if ((int)resp.StatusCode >= 500)
+                    {
+                        if (attempt < 2) await Task.Delay(300 * (attempt + 1));
+                        else return resp;
+                    }
+                    else
+                    {
+                        return resp;
+                    }
+                }
+                catch (TaskCanceledException) when (attempt < 2)
+                {
+                    await Task.Delay(300 * (attempt + 1));
+                }
+                catch (HttpRequestException) when (attempt < 2)
+                {
+                    await Task.Delay(300 * (attempt + 1));
+                }
+            }
+            return null;
         }
 
         // -------- JSON parsing -------------------------------------------------
@@ -163,8 +193,8 @@ namespace InvoiceApp.Services
                 using var req = new HttpRequestMessage(HttpMethod.Get, url);
                 req.Headers.Accept.ParseAdd("text/html");
 
-                using var resp = await _http.SendAsync(req);
-                if (!resp.IsSuccessStatusCode) return null;
+                using var resp = await TrySendAsync(req);
+                if (resp is null || !resp.IsSuccessStatusCode) return null;
 
                 var html = await resp.Content.ReadAsStringAsync();
 
