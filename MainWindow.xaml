@@ -12,6 +12,7 @@
                 <!-- Konvertory -->
                 <conv:DecimalCommaConverter x:Key="DecimalComma"/>
                 <conv:WholeNumberConverter x:Key="WholeNumber"/>
+                <conv:VatPercentConverter x:Key="VatPercent"/>
         </Window.Resources>
 
         <Window.DataContext>
@@ -61,75 +62,75 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Typ:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Typ:"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,8,0"/>
                                                         <ComboBox Grid.Row="0"
-                                                                        Grid.Column="1"
+                                                                  Grid.Column="1"
                                                                   SelectedValue="{Binding Current.Type, Mode=TwoWay}"
                                                                   SelectedValuePath="Tag"
                                                                   Margin="0,2,0,4">
                                                                 <ComboBoxItem Content="Faktura"
-                                                                                Tag="{x:Static models:DocType.Invoice}"/>
+                                                                              Tag="{x:Static models:DocType.Invoice}"/>
                                                                 <ComboBoxItem Content="Objednávka"
-                                                                                Tag="{x:Static models:DocType.Order}"/>
+                                                                              Tag="{x:Static models:DocType.Order}"/>
                                                         </ComboBox>
 
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Číslo:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Číslo:"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,8,0"/>
                                                         <TextBox   Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding DisplayNumber, Mode=OneWay}"
-                                                                        IsReadOnly="True"
-                                                                        Margin="0,2,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding DisplayNumber, Mode=OneWay}"
+                                                                   IsReadOnly="True"
+                                                                   Margin="0,2,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="Vystaveno:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Vystaveno:"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,8,0"/>
                                                         <DatePicker Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        SelectedDate="{Binding Current.IssueDate}"
-                                                                        Margin="0,2,0,4"/>
+                                                                    Grid.Column="1"
+                                                                    SelectedDate="{Binding Current.IssueDate}"
+                                                                    Margin="0,2,0,4"/>
 
                                                         <!-- SPLATNOST: schovat pro OBJ -->
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="Splatnost:"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0">
+                                                                   Grid.Column="0"
+                                                                   Text="Splatnost:"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,8,0">
                                                                 <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
                                                                 </TextBlock.Style>
                                                         </TextBlock>
                                                         <DatePicker Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        SelectedDate="{Binding Current.DueDate}"
-                                                                        Margin="0,2,0,0">
+                                                                    Grid.Column="1"
+                                                                    SelectedDate="{Binding Current.DueDate}"
+                                                                    Margin="0,2,0,0">
                                                                 <DatePicker.Style>
                                                                         <Style TargetType="DatePicker">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
@@ -138,37 +139,37 @@
 
                                                         <!-- Doba splatnosti (dny) – jen pro fakturu -->
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="Doba splatnosti (dny):"
-                                                                        VerticalAlignment="Center"
-                                                                        Margin="0,0,8,0">
+                                                                   Grid.Column="0"
+                                                                   Text="Doba splatnosti (dny):"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="0,0,8,0">
                                                                 <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
                                                                 </TextBlock.Style>
                                                         </TextBlock>
                                                         <TextBox Grid.Row="4"
-                                                                        Grid.Column="1"
+                                                                 Grid.Column="1"
                                                                  Text="{Binding PaymentTermDays, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                  Margin="0,2,0,0">
                                                                 <TextBox.Style>
                                                                         <Style TargetType="TextBox">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
@@ -179,7 +180,7 @@
 
                                         <!-- Dodavatel -->
                                         <GroupBox Header="Dodavatel"
-                                                        Margin="0,0,0,6">
+                                                  Margin="0,0,0,6">
                                                 <Grid Margin="8">
                                                         <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto"/>
@@ -203,99 +204,99 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Název:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Název:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="0"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Name}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Name}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Ulice a č.p.:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Ulice a č.p.:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Address}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Address}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="PSČ a obec:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="PSČ a obec:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.City}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.City}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="Země:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Země:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Country}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Country}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="IČO:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="IČO:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="4"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Supplier.ICO}"
-                                                                        Margin="0,0,6,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Supplier.ICO}"
+                                                                   Margin="0,0,6,4"/>
                                                         <Button    Grid.Row="4"
-                                                                        Grid.Column="2"
-                                                                        Content="Načíst z ARES"
-                                                                        Command="{Binding LoadSupplierFromIcoCommand}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="2"
+                                                                   Content="Načíst z ARES"
+                                                                   Command="{Binding LoadSupplierFromIcoCommand}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="5"
-                                                                        Grid.Column="0"
-                                                                        Text="DIČ:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="DIČ:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="5"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.DIC}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.DIC}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <!-- Banka (schovat u OBJ) -->
                                                         <TextBlock Grid.Row="6"
-                                                                        Grid.Column="0"
-                                                                        Text="Banka:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center">
+                                                                   Grid.Column="0"
+                                                                   Text="Banka:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center">
                                                                 <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
                                                                 </TextBlock.Style>
                                                         </TextBlock>
                                                         <ComboBox  Grid.Row="6"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Margin="0,0,0,4"
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Margin="0,0,0,4"
                                                                    ItemsSource="{Binding Banks}"
                                                                    SelectedItem="{Binding SelectedBank, Mode=TwoWay}"
                                                                    DisplayMemberPath="Name"
@@ -304,12 +305,12 @@
                                                                 <ComboBox.Style>
                                                                         <Style TargetType="ComboBox">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
@@ -318,38 +319,38 @@
 
                                                         <!-- Účet (schovat u OBJ) -->
                                                         <TextBlock Grid.Row="7"
-                                                                        Grid.Column="0"
-                                                                        Text="Účet:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center">
+                                                                   Grid.Column="0"
+                                                                   Text="Účet:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center">
                                                                 <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
                                                                 </TextBlock.Style>
                                                         </TextBlock>
                                                         <TextBox   Grid.Row="7"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
                                                                    Text="{Binding Current.Supplier.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
                                                                    Margin="0,0,0,4">
                                                                 <TextBox.Style>
                                                                         <Style TargetType="TextBox">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
@@ -358,38 +359,38 @@
 
                                                         <!-- IBAN (schovat u OBJ) -->
                                                         <TextBlock Grid.Row="8"
-                                                                        Grid.Column="0"
-                                                                        Text="IBAN:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center">
+                                                                   Grid.Column="0"
+                                                                   Text="IBAN:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center">
                                                                 <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
                                                                 </TextBlock.Style>
                                                         </TextBlock>
                                                         <TextBox   Grid.Row="8"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
                                                                    Text="{Binding Current.Supplier.IBAN, UpdateSourceTrigger=PropertyChanged}"
                                                                    Margin="0,0,0,4">
                                                                 <TextBox.Style>
                                                                         <Style TargetType="TextBox">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
@@ -397,38 +398,38 @@
                                                         </TextBox>
 
                                                         <TextBlock Grid.Row="9"
-                                                                        Grid.Column="0"
-                                                                        Text="SWIFT:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center">
+                                                                   Grid.Column="0"
+                                                                   Text="SWIFT:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center">
                                                                 <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
                                                                 </TextBlock.Style>
                                                         </TextBlock>
                                                         <TextBox   Grid.Row="9"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.SWIFT}"
-                                                                        Margin="0,0,0,4">
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.SWIFT}"
+                                                                   Margin="0,0,0,4">
                                                                 <TextBox.Style>
                                                                         <Style TargetType="TextBox">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Visible"/>
+                                                                                        Value="Visible"/>
                                                                                 <Style.Triggers>
                                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                                 <Setter Property="Visibility"
-                                                                                                                Value="Collapsed"/>
+                                                                                                        Value="Collapsed"/>
                                                                                         </DataTrigger>
                                                                                 </Style.Triggers>
                                                                         </Style>
@@ -436,42 +437,42 @@
                                                         </TextBox>
 
                                                         <TextBlock Grid.Row="10"
-                                                                        Grid.Column="0"
-                                                                        Text="E-mail:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="E-mail:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="10"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Email}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Email}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="11"
-                                                                        Grid.Column="0"
-                                                                        Text="Telefon:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Telefon:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="11"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Supplier.Phone}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Supplier.Phone}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="12"
-                                                                        Grid.Column="0"
-                                                                        Text="Plátce DPH:"
-                                                                        Margin="0,0,8,0"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Plátce DPH:"
+                                                                   Margin="0,0,8,0"
+                                                                   VerticalAlignment="Center"/>
                                                         <CheckBox  Grid.Row="12"
-                                                                        Grid.Column="1"
-                                                                        IsChecked="{Binding SupplierIsVatPayer}"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="1"
+                                                                   IsChecked="{Binding SupplierIsVatPayer}"
+                                                                   VerticalAlignment="Center"/>
                                                 </Grid>
                                         </GroupBox>
 
                                         <!-- Odběratel -->
                                         <GroupBox Header="Odběratel"
-                                                        Margin="0,0,0,6">
+                                                  Margin="0,0,0,6">
                                                 <Grid Margin="8">
                                                         <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto"/>
@@ -488,73 +489,73 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Název:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Název:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="0"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.Name}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.Name}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Ulice a č.p.:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Ulice a č.p.:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.Address}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.Address}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="PSČ a obec:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="PSČ a obec:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.City}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.City}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="Země:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Země:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.Country}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.Country}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="IČO:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="IČO:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="4"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Customer.ICO}"
-                                                                        Margin="0,0,6,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Customer.ICO}"
+                                                                   Margin="0,0,6,4"/>
                                                         <Button    Grid.Row="4"
-                                                                        Grid.Column="2"
-                                                                        Content="Načíst z ARES"
-                                                                        Command="{Binding LoadCustomerFromIcoCommand}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="2"
+                                                                   Content="Načíst z ARES"
+                                                                   Command="{Binding LoadCustomerFromIcoCommand}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="5"
-                                                                        Grid.Column="0"
-                                                                        Text="DIČ:"
-                                                                        Margin="0,0,8,0"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="DIČ:"
+                                                                   Margin="0,0,8,0"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="5"
-                                                                        Grid.Column="1"
-                                                                        Grid.ColumnSpan="2"
-                                                                        Text="{Binding Current.Customer.DIC}"/>
+                                                                   Grid.Column="1"
+                                                                   Grid.ColumnSpan="2"
+                                                                   Text="{Binding Current.Customer.DIC}"/>
                                                 </Grid>
                                         </GroupBox>
 
@@ -563,12 +564,12 @@
                                                 <GroupBox.Style>
                                                         <Style TargetType="GroupBox">
                                                                 <Setter Property="Visibility"
-                                                                                Value="Visible"/>
+                                                                        Value="Visible"/>
                                                                 <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding Current.Type}"
-                                                                                        Value="{x:Static models:DocType.Order}">
+                                                                                     Value="{x:Static models:DocType.Order}">
                                                                                 <Setter Property="Visibility"
-                                                                                                Value="Collapsed"/>
+                                                                                        Value="Collapsed"/>
                                                                         </DataTrigger>
                                                                 </Style.Triggers>
                                                         </Style>
@@ -589,66 +590,66 @@
                                                         </Grid.RowDefinitions>
 
                                                         <TextBlock Grid.Row="0"
-                                                                        Grid.Column="0"
-                                                                        Text="Variabilní symbol:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Variabilní symbol:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="0"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.VariableSymbol}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.VariableSymbol}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="1"
-                                                                        Grid.Column="0"
-                                                                        Text="Konstantní symbol:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Konstantní symbol:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="1"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.ConstantSymbol}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.ConstantSymbol}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="2"
-                                                                        Grid.Column="0"
-                                                                        Text="Způsob úhrady:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Způsob úhrady:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <ComboBox  Grid.Row="2"
-                                                                        Grid.Column="1"
-                                                                        ItemsSource="{Binding PaymentMethods}"
-                                                                        SelectedItem="{Binding Current.PaymentMethod, Mode=TwoWay}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   ItemsSource="{Binding PaymentMethods}"
+                                                                   SelectedItem="{Binding Current.PaymentMethod, Mode=TwoWay}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="3"
-                                                                        Grid.Column="0"
-                                                                        Text="Datum zd. plnění:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Datum zd. plnění:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <DatePicker Grid.Row="3"
-                                                                        Grid.Column="1"
-                                                                        SelectedDate="{Binding Current.TaxableSupplyDate}"
-                                                                        Margin="0,0,0,4"/>
+                                                                    Grid.Column="1"
+                                                                    SelectedDate="{Binding Current.TaxableSupplyDate}"
+                                                                    Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="4"
-                                                                        Grid.Column="0"
-                                                                        Text="Měna:"
-                                                                        Margin="0,0,8,4"
-                                                                        VerticalAlignment="Center"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Měna:"
+                                                                   Margin="0,0,8,4"
+                                                                   VerticalAlignment="Center"/>
                                                         <TextBox   Grid.Row="4"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Currency}"
-                                                                        Margin="0,0,0,4"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Currency}"
+                                                                   Margin="0,0,0,4"/>
 
                                                         <TextBlock Grid.Row="5"
-                                                                        Grid.Column="0"
-                                                                        Text="Poznámka:"
-                                                                        Margin="0,0,8,0"
-                                                                        VerticalAlignment="Top"/>
+                                                                   Grid.Column="0"
+                                                                   Text="Poznámka:"
+                                                                   Margin="0,0,8,0"
+                                                                   VerticalAlignment="Top"/>
                                                         <TextBox   Grid.Row="5"
-                                                                        Grid.Column="1"
-                                                                        Text="{Binding Current.Notes}"
-                                                                        AcceptsReturn="True"
-                                                                        Height="70"/>
+                                                                   Grid.Column="1"
+                                                                   Text="{Binding Current.Notes}"
+                                                                   AcceptsReturn="True"
+                                                                   Height="70"/>
                                                 </Grid>
                                         </GroupBox>
 
@@ -670,23 +671,43 @@
                                           Margin="0,0,0,4">
                                         <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Položka"
-                                                                Binding="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                Width="*"/>
+                                                                    Binding="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                    Width="*"/>
                                                 <DataGridTextColumn Header="Mj"
-                                                                Binding="{Binding Unit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                                Width="60"/>
+                                                                    Binding="{Binding Unit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                    Width="60"/>
                                                 <DataGridTextColumn Header="Množství"
-                                                                Binding="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DecimalComma}}"
-                                                                Width="100"/>
+                                                                    Binding="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource DecimalComma}}"
+                                                                    Width="100"/>
                                                 <DataGridTextColumn Header="Cena/ks"
-                                                                Binding="{Binding UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource WholeNumber}}"
-                                                                Width="100"/>
+                                                                    Binding="{Binding UnitPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource WholeNumber}}"
+                                                                    Width="100"/>
                                                 <DataGridTextColumn x:Name="VatColumn"
-                                                                Header="DPH (%)"
-                                                                Binding="{Binding VatRate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
-                                                                Width="100"/>
+                                                                    Header="DPH (%)"
+                                                                    Width="80">
+                                                        <!-- Zobrazení (jen text) -->
+                                                        <DataGridTextColumn.ElementStyle>
+                                                                <Style TargetType="TextBlock">
+                                                                        <Setter Property="Text"
+                                                                                Value="{Binding VatRate, Converter={StaticResource VatPercent}, StringFormat=N0}"/>
+                                                                        <Setter Property="HorizontalAlignment"
+                                                                                Value="Left"/>
+                                                                </Style>
+                                                        </DataGridTextColumn.ElementStyle>
+
+                                                        <!-- Editace (text box) – uložit až po opuštění buňky -->
+                                                        <DataGridTextColumn.EditingElementStyle>
+                                                                <Style TargetType="TextBox">
+                                                                        <Setter Property="Text"
+                                                                                Value="{Binding VatRate, Mode=TwoWay, Converter={StaticResource VatPercent}, UpdateSourceTrigger=LostFocus}"/>
+                                                                        <Setter Property="HorizontalContentAlignment"
+                                                                                Value="Left"/>
+                                                                </Style>
+                                                        </DataGridTextColumn.EditingElementStyle>
+                                                </DataGridTextColumn>
+
                                                 <DataGridTemplateColumn Header=""
-                                                                Width="50">
+                                                                        Width="50">
                                                         <DataGridTemplateColumn.CellTemplate>
                                                                 <DataTemplate>
                                                                         <Button Content="✕"
@@ -706,16 +727,16 @@
                                         <!-- Základ bez DPH – jen pro plátce -->
                                         <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Základ bez DPH:"
-                                                                Margin="0,0,6,0">
+                                                           Margin="0,0,6,0">
                                                         <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
+                                                                                Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
+                                                                                             Value="True">
                                                                                         <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
+                                                                                                Value="Visible"/>
                                                                                 </DataTrigger>
                                                                         </Style.Triggers>
                                                                 </Style>
@@ -725,12 +746,12 @@
                                                         <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
+                                                                                Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
+                                                                                             Value="True">
                                                                                         <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
+                                                                                                Value="Visible"/>
                                                                                 </DataTrigger>
                                                                         </Style.Triggers>
                                                                 </Style>
@@ -741,16 +762,16 @@
                                         <!-- DPH celkem – jen pro plátce -->
                                         <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="DPH celkem:"
-                                                                Margin="0,0,6,0">
+                                                           Margin="0,0,6,0">
                                                         <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
+                                                                                Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
+                                                                                             Value="True">
                                                                                         <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
+                                                                                                Value="Visible"/>
                                                                                 </DataTrigger>
                                                                         </Style.Triggers>
                                                                 </Style>
@@ -760,12 +781,12 @@
                                                         <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
+                                                                                Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding SupplierIsVatPayer}"
-                                                                                                Value="True">
+                                                                                             Value="True">
                                                                                         <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
+                                                                                                Value="Visible"/>
                                                                                 </DataTrigger>
                                                                         </Style.Triggers>
                                                                 </Style>
@@ -776,16 +797,16 @@
                                         <!-- Zaokrouhlení – zobrazit jen když je nenulové -->
                                         <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Zaokrouhlení:"
-                                                                Margin="0,0,6,0">
+                                                           Margin="0,0,6,0">
                                                         <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
+                                                                                Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding ShowRounding}"
-                                                                                                Value="True">
+                                                                                             Value="True">
                                                                                         <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
+                                                                                                Value="Visible"/>
                                                                                 </DataTrigger>
                                                                         </Style.Triggers>
                                                                 </Style>
@@ -795,12 +816,12 @@
                                                         <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility"
-                                                                                        Value="Collapsed"/>
+                                                                                Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding ShowRounding}"
-                                                                                                Value="True">
+                                                                                             Value="True">
                                                                                         <Setter Property="Visibility"
-                                                                                                        Value="Visible"/>
+                                                                                                Value="Visible"/>
                                                                                 </DataTrigger>
                                                                         </Style.Triggers>
                                                                 </Style>
@@ -811,10 +832,10 @@
                                         <!-- Celkem -->
                                         <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Celkem:"
-                                                                FontWeight="Bold"
-                                                                Margin="0,0,6,0"/>
+                                                           FontWeight="Bold"
+                                                           Margin="0,0,6,0"/>
                                                 <TextBlock Text="{Binding TotalDisplay}"
-                                                                FontWeight="Bold"/>
+                                                           FontWeight="Bold"/>
                                         </StackPanel>
                                 </StackPanel>
                         </Grid>
