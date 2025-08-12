@@ -1,59 +1,40 @@
 <Window x:Class="InvoiceApp.Views.SupplierEditorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:conv="clr-namespace:InvoiceApp.Converters"
         Title="Dodavatel"
         Height="640"
         Width="560"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"
         MinHeight="520"
-        MinWidth="520">
-
-    <Window.Resources>
-        <!-- IBAN zobrazení s mezerami, do modelu se ukládá bez mezer a caps -->
-        <conv:IbanDisplayConverter x:Key="IbanDisplayConverter"/>
-        <!-- Pomocný styl na sekundární tlačítko (světlé) -->
-        <Style x:Key="SecondaryButton"
-                TargetType="Button"
-                BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Background"
-                    Value="#F3F4F6"/>
-            <Setter Property="Foreground"
-                    Value="#374151"/>
-            <Setter Property="BorderBrush"
-                    Value="#E5E7EB"/>
-        </Style>
-    </Window.Resources>
-
+        MinWidth="520"
+        Background="{StaticResource Brush.Surface}">
     <DockPanel>
-        <!-- tlačítka dole -->
+
+        <!-- akční tlačítka dole -->
         <StackPanel DockPanel.Dock="Bottom"
-                Orientation="Horizontal"
-                HorizontalAlignment="Right"
-                Margin="16,8,16,16">
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="16,12">
             <Button Content="OK"
-                    Width="96"
+                    Width="120"
                     Margin="0,0,8,0"
                     IsDefault="True"
-                    Click="Ok_Click"/>
+                    Click="Ok_Click"
+                    Style="{StaticResource PrimaryButton}"/>
             <Button Content="Zrušit"
-                    Width="96"
+                    Width="120"
                     IsCancel="True"
                     Style="{StaticResource SecondaryButton}"/>
         </StackPanel>
 
         <!-- formulář -->
-        <Border Margin="16"
-                Padding="16"
-                Background="{DynamicResource PanelBgBrush}"
-                BorderBrush="{DynamicResource BorderBrushColor}"
-                BorderThickness="1"
-                CornerRadius="12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Border Style="{StaticResource GroupCard}"
+                    Margin="16">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="170"/>
+                        <ColumnDefinition Width="160"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
@@ -72,149 +53,154 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
+                    <!-- Název -->
                     <TextBlock Grid.Row="0"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="Název:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="0"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
-                            Text="{Binding Editable.Name, UpdateSourceTrigger=PropertyChanged}"/>
+                               Style="{StaticResource FormTextBox}"
+                               Text="{Binding Editable.Name, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <!-- Ulice a č.p. -->
                     <TextBlock Grid.Row="1"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="Ulice a č.p.:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="1"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
-                            Text="{Binding Editable.Address, UpdateSourceTrigger=PropertyChanged}"/>
+                               Style="{StaticResource FormTextBox}"
+                               Text="{Binding Editable.Address, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <!-- Město -->
                     <TextBlock Grid.Row="2"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="Město:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="2"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
-                            Text="{Binding Editable.City, UpdateSourceTrigger=PropertyChanged}"/>
+                               Style="{StaticResource FormTextBox}"
+                               Text="{Binding Editable.City, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <!-- PSČ -->
                     <TextBlock Grid.Row="3"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="PSČ:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="3"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
-                            Text="{Binding Editable.PostalCode, UpdateSourceTrigger=PropertyChanged}"/>
+                               Style="{StaticResource FormTextBox}"
+                               Text="{Binding Editable.PostalCode, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <!-- IČO + ARES -->
                     <TextBlock Grid.Row="4"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="IČO:"
-                            VerticalAlignment="Center"/>
-                    <!-- IČO + tlačítko ARES vedle -->
+                            Style="{StaticResource FormLabel}"/>
                     <Grid Grid.Row="4"
-                            Grid.Column="1"
-                            Margin="0,0,0,6">
+                            Grid.Column="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="140"/>
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0"
+                                 Style="{StaticResource FormTextBox}"
                                  Text="{Binding Editable.ICO, UpdateSourceTrigger=PropertyChanged}"/>
                         <Button Grid.Column="1"
                                 Margin="8,0,0,0"
-                                MinWidth="0"
-                                Padding="12,6"
                                 Content="Načíst z ARES"
                                 Click="LoadFromAres_Click"
-                                Style="{StaticResource SecondaryButton}"/>
+                                Style="{StaticResource PrimaryButton}"/>
                     </Grid>
 
+                    <!-- DIČ -->
                     <TextBlock Grid.Row="5"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="DIČ:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="5"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
-                            Text="{Binding Editable.DIC, UpdateSourceTrigger=PropertyChanged}"/>
+                               Style="{StaticResource FormTextBox}"
+                               TextChanged="Dic_TextChanged"
+                               Text="{Binding Editable.DIC, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <!-- Účet -->
                     <TextBlock Grid.Row="6"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="Účet:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="6"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
+                               Style="{StaticResource FormTextBox}"
                                Text="{Binding Editable.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
                                TextChanged="Account_TextChanged"
-                            LostFocus="Account_LostFocus"/>
+                               LostFocus="Account_LostFocus"/>
 
+                    <!-- Banka -->
                     <TextBlock Grid.Row="7"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="Banka:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <ComboBox  Grid.Row="7"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
+                               Style="{StaticResource FormComboBox}"
                                ItemsSource="{Binding Banks}"
                                SelectedItem="{Binding SelectedBank, Mode=TwoWay}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock>
-                  <Run Text="{Binding Name}"/><Run Text=" ("/><Run Text="{Binding Code}"/><Run Text=")"/>
+                  <Run Text="{Binding Name}"/>
+                  <Run Text=" ("/>
+                  <Run Text="{Binding Code}"/>
+                  <Run Text=")"/>
                                 </TextBlock>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
+                    <!-- IBAN (read-only, s konvertorem pro zobrazení po 4) -->
                     <TextBlock Grid.Row="8"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="IBAN:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="8"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
+                               Style="{StaticResource FormTextBox}"
                                IsReadOnly="True"
-                               Text="{Binding Editable.IBAN, Converter={StaticResource IbanDisplayConverter}}"/>
+                               Text="{Binding Editable.IBAN, Converter={StaticResource IbanDisplay}}"/>
 
+                    <!-- E-mail -->
                     <TextBlock Grid.Row="9"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="E-mail:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="9"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
-                            Text="{Binding Editable.Email, UpdateSourceTrigger=PropertyChanged}"/>
+                               Style="{StaticResource FormTextBox}"
+                               Text="{Binding Editable.Email, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <!-- Telefon -->
                     <TextBlock Grid.Row="10"
                             Grid.Column="0"
-                            Margin="0,0,8,6"
                             Text="Telefon:"
-                            VerticalAlignment="Center"/>
+                            Style="{StaticResource FormLabel}"/>
                     <TextBox   Grid.Row="10"
                             Grid.Column="1"
-                            Margin="0,0,0,6"
-                            Text="{Binding Editable.Phone, UpdateSourceTrigger=PropertyChanged}"/>
+                               Style="{StaticResource FormTextBox}"
+                               Text="{Binding Editable.Phone, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <!-- Plátce DPH -->
+                    <TextBlock Grid.Row="11"
+                            Grid.Column="0"
+                            Text=""/>
                     <CheckBox  Grid.Row="11"
                             Grid.Column="1"
-                            Margin="0,6,0,0"
+                               Style="{StaticResource FormCheckBox}"
                                Content="Plátce DPH"
                                IsChecked="{Binding Editable.IsVatPayer}"/>
                 </Grid>
-            </ScrollViewer>
-        </Border>
+            </Border>
+        </ScrollViewer>
     </DockPanel>
 </Window>
