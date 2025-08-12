@@ -15,9 +15,8 @@ using InvoiceApp.Services;
 
 namespace InvoiceApp.Views
 {
-    public partial class SuppliersPage : UserControl, INotifyPropertyChanged
+    public partial class SuppliersPage : UserControl
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         // veřejný bind na DataGrid
         public ObservableCollection<Company> Suppliers { get; } = new();
