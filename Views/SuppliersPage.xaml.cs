@@ -1,40 +1,65 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Threading;
+using System.Windows.Input;
 using InvoiceApp.Models;
 using InvoiceApp.Services;
 
 namespace InvoiceApp.Views
 {
-    public partial class SuppliersPage : UserControl
+    public partial class SuppliersPage : UserControl, INotifyPropertyChanged
     {
-        private readonly SuppliersService _store = new();
-        private readonly AresService _ares = new();
-        private readonly BankService _bankService = new();
+        public event PropertyChangedEventHandler? PropertyChanged;
 
+        // veřejný bind na DataGrid
         public ObservableCollection<Company> Suppliers { get; } = new();
+
+        // služby
+        private readonly SuppliersService _store = new();
+        private readonly List<Bank> _banks;
 
         private ICollectionView? _view;
 
         public SuppliersPage()
         {
             InitializeComponent();
-            DataContext = this;
 
-            Loaded += OnLoaded;
-            PreviewKeyDown += SuppliersPage_PreviewKeyDown; // Delete, Ctrl+S
+            // načti banky z banks.json (kopíruje se do výstupu přes csproj)
+            try
+            {
+                var path = Path.Combine(AppContext.BaseDirectory, "banks.json");
+                using var fs = File.OpenRead(path);
+                _banks = JsonSerializer.Deserialize<List<Bank>>(fs, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new List<Bank>();
+            }
+            catch
+            {
+                _banks = new List<Bank>();
+            }
+
+            // async init po načtení vizuálního stromu
+            Loaded += async (_, __) =>
+            {
+                await LoadAsync();
+            };
+
+            DataContext = this;
         }
 
-        private async void OnLoaded(object? sender, RoutedEventArgs e)
-        {
-            Loaded -= OnLoaded;
+        // --------- Data ---------
 
+        private async Task LoadAsync()
+        {
             var list = await _store.LoadAsync();
             Suppliers.Clear();
             foreach (var c in list) Suppliers.Add(c);
@@ -43,7 +68,8 @@ namespace InvoiceApp.Views
             if (_view != null) _view.Filter = FilterPredicate;
         }
 
-        // ====== Hledání
+        // --------- Hledání ---------
+
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
             => _view?.Refresh();
 
@@ -59,116 +85,91 @@ namespace InvoiceApp.Views
                 || (c.Email?.Contains(q, StringComparison.CurrentCultureIgnoreCase) ?? false);
         }
 
-        // ====== Přidat / Smazat / Uložit
-        private void Add_Click(object sender, RoutedEventArgs e)
-        {
-            var row = new Company { Name = "Nový dodavatel" };
-            Suppliers.Add(row);
+        // --------- Akce: Přidat / Upravit (dvojklik) / Smazat / Uložit ---------
 
-            SuppliersGrid.SelectedItem = row;
-            SuppliersGrid.ScrollIntoView(row);
-            if (SuppliersGrid.Columns.Count > 0)
+        private async void Add_Click(object sender, RoutedEventArgs e)
+        {
+            var model = new Company();
+            var dlg = new SupplierEditorWindow(model, _banks) { Owner = Window.GetWindow(this) };
+            if (dlg.ShowDialog() == true)
             {
-                SuppliersGrid.CurrentCell = new DataGridCellInfo(row, SuppliersGrid.Columns[0]);
-                SuppliersGrid.BeginEdit();
+                Suppliers.Add(model);
+                await _store.SaveAsync(Suppliers.ToList());
             }
         }
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        private async void SuppliersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var selected = SuppliersGrid.SelectedItems.Cast<Company>().ToList();
-            foreach (var c in selected) Suppliers.Remove(c);
+            // Pro jistotu ukonči případné rozpracované editace (kdyby byly)
+            try
+            {
+                SuppliersGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                SuppliersGrid.CommitEdit(DataGridEditingUnit.Row, true);
+            }
+            catch { /* ignore */ }
+
+            if (SuppliersGrid.SelectedItem is not Company selected) return;
+
+            // kopie -> editace -> promítnout zpět
+            var copy = new Company
+            {
+                Name = selected.Name,
+                Address = selected.Address,
+                City = selected.City,
+                PostalCode = selected.PostalCode,
+                ICO = selected.ICO,
+                DIC = selected.DIC,
+                Bank = selected.Bank,
+                AccountNumber = selected.AccountNumber,
+                IBAN = selected.IBAN,
+                Email = selected.Email,
+                Phone = selected.Phone,
+                IsVatPayer = selected.IsVatPayer
+            };
+
+            var dlg = new SupplierEditorWindow(copy, _banks) { Owner = Window.GetWindow(this) };
+            if (dlg.ShowDialog() == true)
+            {
+                selected.Name = copy.Name;
+                selected.Address = copy.Address;
+                selected.City = copy.City;
+                selected.PostalCode = copy.PostalCode;
+                selected.ICO = copy.ICO;
+                selected.DIC = copy.DIC;
+                selected.Bank = copy.Bank;
+                selected.AccountNumber = copy.AccountNumber;
+                selected.IBAN = copy.IBAN;
+                selected.Email = copy.Email;
+                selected.Phone = copy.Phone;
+                selected.IsVatPayer = copy.IsVatPayer;
+
+                // ŽÁDNÝ Items.Refresh() – Company dědí z ObservableObject, takže DataGrid se sám překreslí.
+                await _store.SaveAsync(Suppliers.ToList());
+            }
+        }
+
+
+        private async void Delete_Click(object sender, RoutedEventArgs e)
+        {
+            if (SuppliersGrid.SelectedItems.Count == 0) return;
+
+            var count = SuppliersGrid.SelectedItems.Count;
+            var msg = count == 1
+                ? "Opravdu smazat vybraného dodavatele?"
+                : $"Opravdu smazat {count} vybraných dodavatelů?";
+            if (MessageBox.Show(msg, "Smazat", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                return;
+
+            var toRemove = SuppliersGrid.SelectedItems.Cast<Company>().ToList();
+            foreach (var c in toRemove) Suppliers.Remove(c);
+
+            await _store.SaveAsync(Suppliers.ToList());
         }
 
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
-            SuppliersGrid.CommitEdit(DataGridEditingUnit.Cell, true);
-            SuppliersGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
             await _store.SaveAsync(Suppliers.ToList());
-            MessageBox.Show("Dodavatelé uloženi.", "Uloženo",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // ====== Po editaci řádku – doplnění z ARES + banka z kódu účtu
-        private void SuppliersGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
-        {
-            if (e.EditAction != DataGridEditAction.Commit) return;
-
-            Dispatcher.BeginInvoke(new Action(async () =>
-            {
-                SuppliersGrid.CommitEdit(DataGridEditingUnit.Cell, true);
-                SuppliersGrid.CommitEdit(DataGridEditingUnit.Row, true);
-
-                if (e.Row.Item is Company c)
-                {
-                    await AutofillFromAresAsync(c);
-                    TryAutoSelectBank(c);
-                    _view?.Refresh();
-                }
-            }), DispatcherPriority.Background);
-        }
-
-        private async Task AutofillFromAresAsync(Company row)
-        {
-            var ico = row.ICO?.Trim();
-            if (string.IsNullOrEmpty(ico)) return;
-
-            var data = await _ares.GetByIcoAsync(ico);
-            // GetByIcoAsync vrací tuple (Name, Address, City, Dic); nelze porovnat na null,
-            // ověřme, že nejsou všechna pole prázdná:
-            if (string.IsNullOrWhiteSpace(data.Name)
-             && string.IsNullOrWhiteSpace(data.Address)
-             && string.IsNullOrWhiteSpace(data.City)
-             && string.IsNullOrWhiteSpace(data.Dic))
-                return;
-
-            // doplň jen prázdná pole, uživatelský vstup nepřepisuj
-            row.Name = string.IsNullOrWhiteSpace(row.Name) ? data.Name : row.Name;
-            row.Address = string.IsNullOrWhiteSpace(row.Address) ? data.Address : row.Address;
-            row.City = string.IsNullOrWhiteSpace(row.City) ? data.City : row.City;
-            row.DIC = string.IsNullOrWhiteSpace(row.DIC) ? data.Dic : row.DIC;
-
-            if (!string.IsNullOrWhiteSpace(row.DIC))
-                row.IsVatPayer = true;
-        }
-
-        private void TryAutoSelectBank(Company row)
-        {
-            var code = ExtractBankCode(row.AccountNumber);
-            if (string.IsNullOrEmpty(code)) return;
-
-            // nepotřebujeme speciální FindByCode – vezmeme z načteného seznamu
-            var bank = _bankService.GetBanks().FirstOrDefault(b => b.Code == code);
-            if (bank != null)
-                row.Bank = bank.Name;
-        }
-
-        private static string? ExtractBankCode(string? account)
-        {
-            if (string.IsNullOrWhiteSpace(account)) return null;
-            var slash = account.LastIndexOf('/');
-            if (slash < 0 || slash + 1 >= account.Length) return null;
-            var digits = new string(account[(slash + 1)..].Where(char.IsDigit).ToArray());
-            return string.IsNullOrEmpty(digits) ? null : digits;
-        }
-
-        // ====== Klávesové zkratky (Delete, Ctrl+S)
-        private void SuppliersPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == System.Windows.Input.Key.Delete && SuppliersGrid.IsKeyboardFocusWithin)
-            {
-                Delete_Click(SuppliersGrid, new RoutedEventArgs());
-                e.Handled = true;
-                return;
-            }
-
-            if ((System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) == System.Windows.Input.ModifierKeys.Control
-                && e.Key == System.Windows.Input.Key.S)
-            {
-                Save_Click(SuppliersGrid, new RoutedEventArgs());
-                e.Handled = true;
-            }
+            MessageBox.Show("Dodavatelé uloženi.", "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

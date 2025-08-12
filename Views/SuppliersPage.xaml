@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:InvoiceApp.Models">
     <UserControl.Resources>
-        <!-- Watermark pro TextBox: text se bere z vlastnosti Tag -->
+        <!-- Watermark pro TextBox: placeholder bere text z vlastnosti Tag -->
         <Style x:Key="WatermarkTextBox"
                TargetType="TextBox">
             <Setter Property="Template">
@@ -13,25 +13,27 @@
                             <ScrollViewer x:Name="PART_ContentHost"/>
                             <TextBlock x:Name="Watermark"
                                        Text="{TemplateBinding Tag}"
+                                       Margin="4,0,0,0"
                                        Foreground="#9AA0A6"
-                                       Margin="6,0,0,0"
+                                       IsHitTestVisible="False"
                                        VerticalAlignment="Center"
-                                       Visibility="Collapsed"
-                                       IsHitTestVisible="False"/>
+                                       Opacity="0.8"
+                                       Visibility="Collapsed"/>
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <!-- zobraz watermark jen když je prázdno a textbox není ve fokusu -->
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="Text"
-                                               Value=""/>
-                                    <Condition Property="IsKeyboardFocused"
-                                               Value="False"/>
-                                </MultiTrigger.Conditions>
+                            <Trigger Property="Text"
+                                     Value="{x:Static sys:String.Empty}"
+                                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
                                 <Setter TargetName="Watermark"
                                         Property="Visibility"
                                         Value="Visible"/>
-                            </MultiTrigger>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused"
+                                     Value="True">
+                                <Setter TargetName="Watermark"
+                                        Property="Visibility"
+                                        Value="Collapsed"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -39,116 +41,78 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="12">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Panel s vyhledáváním a akcemi -->
+        <!-- Horní lišta: název + hledání + akce -->
         <DockPanel Grid.Row="0"
-                   LastChildFill="False"
-                   Margin="0,0,0,12">
+                   Margin="8,8,8,4">
+            <!-- Hledání vlevo široké -->
             <TextBox x:Name="SearchBox"
-                     Style="{StaticResource WatermarkTextBox}"
-                     Tag="Hledat (název, IČO)…"
-                     Width="220"
-                     Height="28"
                      DockPanel.Dock="Left"
-                     Margin="0,0,12,0"
-                     TextChanged="SearchBox_TextChanged"/>
+                     Width="320"
+                     Style="{StaticResource WatermarkTextBox}"
+                     Tag="Hledat (název, IČO, město, e‑mail)…"
+                     TextChanged="SearchBox_TextChanged"
+                     Margin="0,0,8,0"/>
 
-
-            <StackPanel Orientation="Horizontal"
-                        DockPanel.Dock="Right">
+            <!-- Akční tlačítka vpravo -->
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
                 <Button Content="Přidat"
-                        Width="90"
                         Margin="0,0,8,0"
                         Click="Add_Click"/>
                 <Button Content="Smazat vybrané"
-                        Width="120"
                         Margin="0,0,8,0"
                         Click="Delete_Click"/>
                 <Button Content="Uložit"
-                        Width="90"
                         Click="Save_Click"/>
             </StackPanel>
         </DockPanel>
 
-        <!-- GRID DODAVATELŮ -->
+        <!-- Seznam dodavatelů (přehledové sloupce) -->
         <DataGrid x:Name="SuppliersGrid"
                   Grid.Row="1"
                   ItemsSource="{Binding Suppliers, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   AutoGenerateColumns="False"
-                  CanUserAddRows="True"
+                  CanUserAddRows="False"
                   CanUserDeleteRows="True"
-                  IsReadOnly="False"
+                  IsReadOnly="True"
                   HeadersVisibility="Column"
                   ColumnHeaderHeight="28"
                   EnableRowVirtualization="True"
-                  RowEditEnding="SuppliersGrid_RowEditEnding"
-                  HorizontalScrollBarVisibility="Auto"
-                  ScrollViewer.CanContentScroll="True"
-                  Margin="0,8,0,0">
-
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="HorizontalContentAlignment"
-                            Value="Left"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  MouseDoubleClick="SuppliersGrid_MouseDoubleClick"
+                  Margin="8,0,8,8">
             <DataGrid.Columns>
+
                 <DataGridTextColumn Header="Název"
-                                    Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="160"
+                                    Binding="{Binding Name}"
                                     Width="2*"/>
                 <DataGridTextColumn Header="Ulice a č.p."
-                                    Binding="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="160"
+                                    Binding="{Binding Address}"
                                     Width="2*"/>
                 <DataGridTextColumn Header="Město"
-                                    Binding="{Binding City, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="120"
+                                    Binding="{Binding City}"
                                     Width="*"/>
-                <DataGridTextColumn Header="PSČ"
-                                    Binding="{Binding PostalCode, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="80"
-                                    Width="90"/>
                 <DataGridTextColumn Header="IČO"
-                                    Binding="{Binding ICO, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="90"
-                                    Width="100"/>
-                <DataGridTextColumn Header="DIČ"
-                                    Binding="{Binding DIC, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="110"
-                                    Width="120"/>
-                <DataGridTextColumn Header="Banka"
-                                    Binding="{Binding Bank, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="140"
-                                    Width="160"/>
-                <DataGridTextColumn Header="Účet"
-                                    Binding="{Binding AccountNumber, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="140"
-                                    Width="160"/>
-                <DataGridTextColumn Header="IBAN"
-                                    Binding="{Binding IBAN, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="180"
-                                    Width="200"/>
-                <DataGridTextColumn Header="E-mail"
-                                    Binding="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="160"
-                                    Width="180"/>
+                                    Binding="{Binding ICO}"
+                                    Width="*"/>
                 <DataGridTextColumn Header="Telefon"
-                                    Binding="{Binding Phone, UpdateSourceTrigger=PropertyChanged}"
-                                    MinWidth="120"
-                                    Width="140"/>
+                                    Binding="{Binding Phone}"
+                                    Width="*"/>
+                <DataGridTextColumn Header="E-mail"
+                                    Binding="{Binding Email}"
+                                    Width="2*"/>
                 <DataGridCheckBoxColumn Header="Plátce DPH"
-                                        Binding="{Binding IsVatPayer, UpdateSourceTrigger=PropertyChanged}"
-                                        MinWidth="110"
-                                        Width="120"/>
+                                        Binding="{Binding IsVatPayer}"
+                                        Width="*"/>
             </DataGrid.Columns>
         </DataGrid>
-
     </Grid>
 </UserControl>

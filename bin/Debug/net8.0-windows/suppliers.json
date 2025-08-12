@@ -1,30 +1,16 @@
 [
   {
-    "name": "Lucie Bastlov\u00E1",
-    "address": "J. A. Komensk\u00E9ho 536",
-    "city": "67521 Ok\u0159\u00ED\u0161ky",
-    "postalCode": null,
-    "ico": "01642049",
-    "dic": "CZ8855074987",
-    "bank": "Fio banka, a.s.",
-    "accountNumber": "2600456000/2010",
-    "iban": null,
-    "email": null,
-    "phone": null,
-    "isVatPayer": true
-  },
-  {
     "name": "Bc. Martin Novotn\u00FD",
     "address": "J. A. Komensk\u00E9ho 536",
-    "city": "67521 Ok\u0159\u00ED\u0161ky",
-    "postalCode": null,
+    "city": "Ok\u0159\u00ED\u0161ky",
+    "postalCode": "675 21",
     "ico": "01642065",
     "dic": null,
-    "bank": null,
-    "accountNumber": null,
-    "iban": null,
+    "bank": "Fio banka, a.s.",
+    "accountNumber": "2600456000/2010",
+    "iban": "CZ7120100000002600456000",
     "email": null,
-    "phone": null,
+    "phone": "",
     "isVatPayer": false
   }
 ]

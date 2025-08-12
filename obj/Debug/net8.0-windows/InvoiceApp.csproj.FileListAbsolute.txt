@@ -34,8 +34,10 @@ C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\bin\Debug\net8.
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\bin\Debug\net8.0-windows\runtimes\win-x64\native\QuestPdfSkia.dll
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\bin\Debug\net8.0-windows\runtimes\win-x86\native\QuestPdfSkia.dll
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.csproj.AssemblyReference.cache
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SupplierEditorWindow.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\InvoicePage.g.cs
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SupplierEditorWindow.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SuppliersPage.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\App.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs

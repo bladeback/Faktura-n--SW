@@ -1,0 +1,220 @@
+<Window x:Class="InvoiceApp.Views.SupplierEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:InvoiceApp.Converters"
+        Title="Dodavatel"
+        Height="640"
+        Width="560"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        MinHeight="520"
+        MinWidth="520">
+
+    <Window.Resources>
+        <!-- IBAN zobrazení s mezerami, do modelu se ukládá bez mezer a caps -->
+        <conv:IbanDisplayConverter x:Key="IbanDisplayConverter"/>
+        <!-- Pomocný styl na sekundární tlačítko (světlé) -->
+        <Style x:Key="SecondaryButton"
+                TargetType="Button"
+                BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background"
+                    Value="#F3F4F6"/>
+            <Setter Property="Foreground"
+                    Value="#374151"/>
+            <Setter Property="BorderBrush"
+                    Value="#E5E7EB"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- tlačítka dole -->
+        <StackPanel DockPanel.Dock="Bottom"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Margin="16,8,16,16">
+            <Button Content="OK"
+                    Width="96"
+                    Margin="0,0,8,0"
+                    IsDefault="True"
+                    Click="Ok_Click"/>
+            <Button Content="Zrušit"
+                    Width="96"
+                    IsCancel="True"
+                    Style="{StaticResource SecondaryButton}"/>
+        </StackPanel>
+
+        <!-- formulář -->
+        <Border Margin="16"
+                Padding="16"
+                Background="{DynamicResource PanelBgBrush}"
+                BorderBrush="{DynamicResource BorderBrushColor}"
+                BorderThickness="1"
+                CornerRadius="12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="170"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="Název:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Text="{Binding Editable.Name, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="Ulice a č.p.:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Text="{Binding Editable.Address, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="2"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="Město:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="2"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Text="{Binding Editable.City, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="3"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="PSČ:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="3"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Text="{Binding Editable.PostalCode, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="4"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="IČO:"
+                            VerticalAlignment="Center"/>
+                    <!-- IČO + tlačítko ARES vedle -->
+                    <Grid Grid.Row="4"
+                            Grid.Column="1"
+                            Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding Editable.ICO, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                MinWidth="0"
+                                Padding="12,6"
+                                Content="Načíst z ARES"
+                                Click="LoadFromAres_Click"
+                                Style="{StaticResource SecondaryButton}"/>
+                    </Grid>
+
+                    <TextBlock Grid.Row="5"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="DIČ:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="5"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Text="{Binding Editable.DIC, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="6"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="Účet:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="6"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                               Text="{Binding Editable.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
+                               TextChanged="Account_TextChanged"
+                            LostFocus="Account_LostFocus"/>
+
+                    <TextBlock Grid.Row="7"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="Banka:"
+                            VerticalAlignment="Center"/>
+                    <ComboBox  Grid.Row="7"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                               ItemsSource="{Binding Banks}"
+                               SelectedItem="{Binding SelectedBank, Mode=TwoWay}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                  <Run Text="{Binding Name}"/><Run Text=" ("/><Run Text="{Binding Code}"/><Run Text=")"/>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="8"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="IBAN:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="8"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                               IsReadOnly="True"
+                               Text="{Binding Editable.IBAN, Converter={StaticResource IbanDisplayConverter}}"/>
+
+                    <TextBlock Grid.Row="9"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="E-mail:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="9"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Text="{Binding Editable.Email, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Row="10"
+                            Grid.Column="0"
+                            Margin="0,0,8,6"
+                            Text="Telefon:"
+                            VerticalAlignment="Center"/>
+                    <TextBox   Grid.Row="10"
+                            Grid.Column="1"
+                            Margin="0,0,0,6"
+                            Text="{Binding Editable.Phone, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <CheckBox  Grid.Row="11"
+                            Grid.Column="1"
+                            Margin="0,6,0,0"
+                               Content="Plátce DPH"
+                               IsChecked="{Binding Editable.IsVatPayer}"/>
+                </Grid>
+            </ScrollViewer>
+        </Border>
+    </DockPanel>
+</Window>
