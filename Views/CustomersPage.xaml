@@ -1,0 +1,66 @@
+<UserControl x:Class="InvoiceApp.Views.CustomersPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="900"
+             Background="{StaticResource Brush.Surface}">
+    <DockPanel>
+        <!-- TOOLBAR -->
+        <Border DockPanel.Dock="Top"
+                Background="White"
+                BorderBrush="{StaticResource Brush.Border}"
+                BorderThickness="0,0,0,1"
+                Padding="16,12">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Přidat odběratele"
+                        Click="Add_Click"
+                        Style="{StaticResource ToolbarButton}"/>
+                
+                <Border Width="1" Height="24" Background="{StaticResource Brush.Border}" Margin="12,0"/>
+                
+                <Button Content="Smazat označené"
+                        Click="DeleteSelected_Click"
+                        Style="{StaticResource ToolbarButton}"/>
+                
+                <Border Width="1" Height="24" Background="{StaticResource Brush.Border}" Margin="12,0"/>
+
+                <Button Content="Uložit změny"
+                        Click="Save_Click"
+                        Style="{StaticResource ToolbarButton}"/>
+
+                <!-- Spacer -->
+                <Border Width="24"/>
+
+                <!-- Search -->
+                <TextBox x:Name="SearchBox"
+                         Width="250"
+                         Style="{StaticResource FormTextBox}"
+                         Tag="Hledat..."
+                         TextChanged="SearchBox_TextChanged"
+                         VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- CONTENT -->
+        <DataGrid x:Name="CustomersGrid"
+                  ItemsSource="{Binding Customers}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  MouseDoubleClick="CustomersGrid_MouseDoubleClick"
+                  Style="{StaticResource ThemedDataGrid}"
+                  Margin="16">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="IČO" Binding="{Binding ICO}" Width="100"/>
+                <DataGridTextColumn Header="Město" Binding="{Binding City}" Width="150"/>
+                <DataGridTextColumn Header="E-mail" Binding="{Binding Email}" Width="200"/>
+                <DataGridTextColumn Header="Telefon" Binding="{Binding Phone}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

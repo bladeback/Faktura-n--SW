@@ -102,7 +102,7 @@
                                 <Button x:Name="NavSuppliers"
                                         Content="Dodavatelé"
                                         Click="Suppliers_Click"
-                                        Style="{StaticResource NavButtonActiveStyle}"/>
+                                        Style="{StaticResource NavButtonStyle}"/>
 
                                 <Button x:Name="NavCustomers"
                                         Content="Odběratelé"

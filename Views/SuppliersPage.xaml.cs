@@ -25,7 +25,8 @@ namespace InvoiceApp.Views
             InitializeComponent();
             DataContext = this;
 
-            _banks = LoadBanksFromJson(); // <-- zpět načtení bank
+            _banks = LoadBanksFromJson();
+            LoadSuppliers();
         }
 
 
@@ -33,8 +34,8 @@ namespace InvoiceApp.Views
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Dodavatelé uloženi (napojení na reálné uložiště přidáme později).",
-                            "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
+            SaveSuppliers();
+            MessageBox.Show("Dodavatelé uloženi.", "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -50,6 +51,7 @@ namespace InvoiceApp.Views
             {
                 Suppliers.Add(model);
                 _allSuppliers.Add(model);
+                SaveSuppliers();
             }
         }
 
@@ -72,6 +74,7 @@ namespace InvoiceApp.Views
 
             Suppliers.Remove(selected);
             _allSuppliers.Remove(selected);
+            SaveSuppliers();
         }
 
         private void SuppliersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -114,7 +117,7 @@ namespace InvoiceApp.Views
                 selected.Phone = copy.Phone;
                 selected.IsVatPayer = copy.IsVatPayer;
 
-                SuppliersGrid.Items.Refresh();
+                SaveSuppliers();
             }
         }
 
@@ -139,6 +142,44 @@ namespace InvoiceApp.Views
             foreach (var c in src)
                 Suppliers.Add(c);
         }
+        private void LoadSuppliers()
+        {
+            try
+            {
+                var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp", "suppliers.json");
+                if (System.IO.File.Exists(path))
+                {
+                    var json = System.IO.File.ReadAllText(path);
+                    var list = System.Text.Json.JsonSerializer.Deserialize<List<Company>>(json);
+                    if (list != null)
+                    {
+                        _allSuppliers.Clear();
+                        _allSuppliers.AddRange(list);
+                        Suppliers.Clear();
+                        foreach (var c in list) Suppliers.Add(c);
+                    }
+                }
+            }
+            catch { /* ignore */ }
+        }
+
+        private void SaveSuppliers()
+        {
+            try
+            {
+                var folder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp");
+                if (!System.IO.Directory.Exists(folder)) System.IO.Directory.CreateDirectory(folder);
+
+                var path = System.IO.Path.Combine(folder, "suppliers.json");
+                var json = System.Text.Json.JsonSerializer.Serialize(_allSuppliers);
+                System.IO.File.WriteAllText(path, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Chyba při ukládání: {ex.Message}", "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private static List<Bank> LoadBanksFromJson()
         {
             try

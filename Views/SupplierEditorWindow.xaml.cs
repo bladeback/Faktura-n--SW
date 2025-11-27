@@ -32,9 +32,10 @@ namespace InvoiceApp.Views
             }
         }
 
-        public SupplierEditorWindow(Company model, IEnumerable<Bank> banks)
+        public SupplierEditorWindow(Company model, IEnumerable<Bank> banks, string title = "Dodavatel")
         {
             InitializeComponent();
+            Title = title;
 
             _target = model;
             Editable = CloneCompany(model);
@@ -127,122 +128,37 @@ namespace InvoiceApp.Views
             try
             {
                 var ares = new AresService();
+                var (name, address, city, dic) = await ares.GetByIcoAsync(ico);
 
-                // najdi volatelnou metodu
-                var m = ares.GetType().GetMethod("GetByIcoAsync")
-                        ?? ares.GetType().GetMethod("GetCompanyAsync")
-                        ?? ares.GetType().GetMethod("FindByIcoAsync");
-
-                if (m == null)
-                {
-                    MessageBox.Show("V AresService chybí metoda pro načtení firmy podle IČO.",
-                        "ARES", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                // zavolej metodu
-                object? ret = m.Invoke(ares, new object[] { ico });
-
-                // může to být Task<T> nebo přímo výsledek
-                object? result;
-                if (ret is System.Threading.Tasks.Task task)
-                {
-                    await task.ConfigureAwait(true);
-                    var prop = task.GetType().GetProperty("Result");
-                    result = prop?.GetValue(task);
-                }
-                else
-                {
-                    result = ret;
-                }
-
-                if (result == null)
+                if (name == null && address == null && city == null)
                 {
                     MessageBox.Show("V ARES nebyl nalezen žádný záznam.", "ARES",
                         MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
-                // varianta: rovnou Company
-                if (result is Company c)
+                if (!string.IsNullOrWhiteSpace(name)) Editable.Name = name;
+                if (!string.IsNullOrWhiteSpace(address)) Editable.Address = address;
+                if (!string.IsNullOrWhiteSpace(city)) Editable.City = city;
+                if (!string.IsNullOrWhiteSpace(dic))
                 {
-                    FillFromCompany(c);
-                    return;
+                    Editable.DIC = dic;
+                    Editable.IsVatPayer = true;
                 }
 
-                // varianta: ValueTuple<string...> (1 až 8 položek)
-                var t = result.GetType();
-                if (t.IsValueType && t.FullName != null && t.FullName.StartsWith("System.ValueTuple"))
+                // Pokusíme se rozparsovat město na PSČ a město
+                if (!string.IsNullOrWhiteSpace(city))
                 {
-                    // vyzobeme Item1..Item8, co existují
-                    var items = new List<string>();
-                    for (int i = 1; i <= 8; i++)
-                    {
-                        var p = t.GetProperty($"Item{i}");
-                        if (p == null) break;
-                        items.Add(p.GetValue(result)?.ToString() ?? "");
-                    }
-
-                    // mapování tolerantně podle obsahu
-                    // 1: Název
-                    if (items.Count >= 1 && !string.IsNullOrWhiteSpace(items[0]))
-                        Editable.Name = items[0].Trim();
-
-                    // 2: Ulice a č.p.
-                    if (items.Count >= 2 && !string.IsNullOrWhiteSpace(items[1]))
-                        Editable.Address = items[1].Trim();
-
-                    // 3: Město + PSČ v jednom
-                    if (items.Count >= 3 && !string.IsNullOrWhiteSpace(items[2]))
-                    {
-                        var s = items[2].Trim();
-                        var mP = Regex.Match(s, @"\b(\d{3})\s?(\d{2})\b");
-                        if (mP.Success)
-                        {
-                            Editable.PostalCode = $"{mP.Groups[1].Value}{mP.Groups[2].Value}";
-                            Editable.City = Regex.Replace(s, @"\b\d{3}\s?\d{2}\b", "")
-                                                 .Trim(new[] { ',', ' ', '-' });
-                        }
-                        else
-                        {
-                            Editable.City = s;
-                        }
-                    }
-
-                    // 4: DIČ (CZ…)
-                    if (items.Count >= 4 && Regex.IsMatch(items[3] ?? "", @"^\s*CZ\d+", RegexOptions.IgnoreCase))
-                        Editable.DIC = items[3].Replace(" ", "").ToUpperInvariant();
-
-                    // 5: E-mail (obsahuje @)
-                    if (items.Count >= 5 && (items[4]?.Contains("@") ?? false))
-                        Editable.Email = items[4].Trim();
-
-                    // 6: Telefon (nějaké číslo s mezerami)
-                    if (items.Count >= 6 && !string.IsNullOrWhiteSpace(items[5]))
-                        Editable.Phone = items[5].Trim();
-
-                    // 7: Účet (obsahuje '/')
-                    if (items.Count >= 7 && (items[6]?.Contains("/") ?? false))
-                        Editable.AccountNumber = items[6].Trim();
-
-                    // 8: IBAN (začíná CZ)
-                    if (items.Count >= 8 && Regex.IsMatch(items[7] ?? "", @"^\s*CZ\d+"))
-                        Editable.IBAN = items[7].Replace(" ", "").ToUpperInvariant();
-
-                    // z účtu vyber banku (pokud máme seznam)
-                    if (Banks.Count > 0 && TryGetBankCodeFromAccount(Editable.AccountNumber, out var code))
-                        SelectedBank = Banks.FirstOrDefault(b => b.Code == code);
-
-                    // když IBAN nepřišel hotový, spočítej
-                    if (string.IsNullOrWhiteSpace(Editable.IBAN))
-                        RecalcIban();
-
-                    PropertyChanged?.Invoke(this, new(nameof(Editable)));
-                    return;
+                     var mP = Regex.Match(city, @"\b(\d{3})\s?(\d{2})\b");
+                     if (mP.Success)
+                     {
+                         Editable.PostalCode = $"{mP.Groups[1].Value}{mP.Groups[2].Value}";
+                         Editable.City = Regex.Replace(city, @"\b\d{3}\s?\d{2}\b", "")
+                                              .Trim(new[] { ',', ' ', '-' });
+                     }
                 }
-
-                MessageBox.Show("ARES vrátil neočekávaný typ výsledku. Pošli mi prosím signaturu metody, upravím to natvrdo.",
-                    "ARES", MessageBoxButton.OK, MessageBoxImage.Warning);
+                
+                PropertyChanged?.Invoke(this, new(nameof(Editable)));
             }
             catch (Exception ex)
             {

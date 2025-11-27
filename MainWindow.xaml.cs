@@ -88,16 +88,13 @@ namespace InvoiceApp
 
         private void Suppliers_Click(object sender, RoutedEventArgs e)
         {
-            // Dodavatelé mají vlastní logiku a vlastní data (seznam),
-            // takže tam nepotřebujeme MainViewModel (nebo si ho stránka vytvoří sama,
-            // ale SuppliersPage má DataContext = this).
             ContentHost.Content = new Views.SuppliersPage();
             SetActive(NavSuppliers);
         }
 
         private void Customers_Click(object sender, RoutedEventArgs e)
         {
-            ContentHost.Content = new Views.ConstructionPage();
+            ContentHost.Content = new Views.CustomersPage();
             SetActive(NavCustomers);
         }
 
