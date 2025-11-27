@@ -1,0 +1,57 @@
+[
+  {
+    "Items": [
+      {
+        "TotalPrice": 36300.00,
+        "Name": "redak\u010Dn\u00ED dvoustrana - o rozm\u011Bru 410x285mm v projektu Poln\u00E1, vyd\u00E1n\u00ED 15.12.2025, zve\u0159ejn\u011Bn\u00ED redak\u010Dn\u00EDho rozhovoru na i-rozhovory.cz, FB, 300.000 zobr. magaz\u00EDnu p\u0159es iDNES.cz, DENIK.cz",
+        "Unit": "ks",
+        "Quantity": 1,
+        "UnitPrice": 30000,
+        "VatRate": 0.21
+      }
+    ],
+    "PaymentIban": "CZ0630300000001132212018",
+    "SubtotalNet": 30000,
+    "VatTotal": 6300.00,
+    "Total": 36300.00,
+    "Type": 1,
+    "Number": "OBJ-20250006",
+    "IssueDate": "2025-11-27T00:00:00+01:00",
+    "DueDate": "2025-11-27T00:00:00+01:00",
+    "Supplier": {
+      "SWIFT": "AIRACZPP",
+      "Name": "Bc. Martin Novotn\u00FD",
+      "Address": "J. A. Komensk\u00E9ho 536",
+      "City": "Ok\u0159\u00ED\u0161ky 67521",
+      "ICO": "01642065",
+      "DIC": "",
+      "Bank": "Air Bank a.s.",
+      "AccountNumber": "1132212018/3030",
+      "IBAN": "CZ0630300000001132212018",
+      "Email": "bc.novotny.martin@seznam.cz",
+      "Phone": "731 616 883",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "Customer": {
+      "SWIFT": null,
+      "Name": "Montessori st\u0159edn\u00ED \u0161kola, z\u00E1kladn\u00ED \u0161kola a mate\u0159sk\u00E1 \u0161kola Poln\u00E1",
+      "Address": "Alej svobody 1247",
+      "City": "Poln\u00E1 58813",
+      "ICO": "08050775",
+      "DIC": "",
+      "Bank": "",
+      "AccountNumber": "",
+      "IBAN": "",
+      "Email": "",
+      "Phone": "",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "VariableSymbol": "20250006",
+    "Currency": "CZK",
+    "Notes": "",
+    "PaymentMethod": "P\u0159evodem",
+    "ConstantSymbol": null,
+    "TaxableSupplyDate": "2025-11-27T00:00:00+01:00",
+    "IsPaid": false
+  }
+]

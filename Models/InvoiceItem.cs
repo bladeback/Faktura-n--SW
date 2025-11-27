@@ -14,6 +14,9 @@ namespace InvoiceApp.Models
         [ObservableProperty] private decimal unitPrice = 1000m;
 
         // 0.21 = 21 %
+        // 0.21 = 21 %
         [ObservableProperty] private decimal vatRate = 0.21m;
+
+        public decimal TotalPrice => Quantity * UnitPrice * (1 + VatRate);
     }
 }

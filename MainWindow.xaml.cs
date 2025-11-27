@@ -17,17 +17,15 @@ namespace InvoiceApp
 
             _mainViewModel = new MainViewModel();
 
-            // Výchozí stránka – Faktury (aby to dávalo smysl)
-            // Ale pokud chceš startovat na Dodavatelích, klidně to změň.
-            // Pro "výchozí" stav zavoláme Invoices_Click, aby se nastavilo vše potřebné.
-            Invoices_Click(this, new RoutedEventArgs());
+            // Výchozí stránka – Dashboard
+            Dashboard_Click(this, new RoutedEventArgs());
         }
 
         // Zvýraznění aktivního tlačítka (pouze ta, která v XAML existují)
         private void SetActive(Button? active)
         {
             // reset všech tlačítek
-            var buttons = new[] { NavInvoices, NavOrders, NavSuppliers, NavCustomers, NavSettings };
+            var buttons = new[] { NavDashboard, NavInvoices, NavOrders, NavSuppliers, NavCustomers, NavSettings, NavItems, NavHistory };
             foreach (var btn in buttons)
             {
                 if (btn == null) continue;
@@ -43,40 +41,48 @@ namespace InvoiceApp
             }
         }
 
+        private void Dashboard_Click(object sender, RoutedEventArgs e)
+        {
+            ContentHost.Content = new Views.DashboardPage();
+            SetActive(NavDashboard);
+        }
+
         private void Invoices_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Nastavíme obsah na InvoicePage
+            NavigateToInvoicePage(true);
+        }
+
+        private void NavigateToInvoicePage(bool createNew)
+        {
             var page = new Views.InvoicePage();
-            
-            // 2. Předáme sdílený ViewModel
             page.DataContext = _mainViewModel;
-            
-            // 3. VŽDY zavoláme NewInvoice, aby se vygenerovalo nové číslo a vyčistil formulář.
-            // Uživatel to tak očekává (klik na "Faktury" = chci dělat novou fakturu).
-            if (_mainViewModel.NewInvoiceCommand.CanExecute(null))
+
+            if (createNew && _mainViewModel.NewInvoiceCommand.CanExecute(null))
             {
                 _mainViewModel.NewInvoiceCommand.Execute(null);
             }
 
+            _ = _mainViewModel.LoadSavedParties();
             ContentHost.Content = page;
             SetActive(NavInvoices);
         }
 
         private void Orders_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Nastavíme obsah na InvoicePage (stejný formulář)
-            var page = new Views.InvoicePage();
+            NavigateToOrderPage(true);
+        }
 
-            // 2. Předáme sdílený ViewModel
+        private void NavigateToOrderPage(bool createNew)
+        {
+            var page = new Views.InvoicePage();
             page.DataContext = _mainViewModel;
 
-            // 3. VŽDY zavoláme NewOrder, aby se vygenerovalo nové číslo a vyčistil formulář.
-            // Uživatel to tak očekává (klik na "Objednávky" = chci dělat novou objednávku).
-            if (_mainViewModel.NewOrderCommand.CanExecute(null))
+            if (createNew && _mainViewModel.NewOrderCommand.CanExecute(null))
             {
                 _mainViewModel.NewOrderCommand.Execute(null);
             }
 
+            _ = _mainViewModel.LoadSavedParties();
             ContentHost.Content = page;
             SetActive(NavOrders);
         }
@@ -97,6 +103,32 @@ namespace InvoiceApp
         {
             ContentHost.Content = new Views.SettingsPage();
             SetActive(NavSettings);
+        }
+
+        private void Items_Click(object sender, RoutedEventArgs e)
+        {
+            ContentHost.Content = new Views.ItemsPage();
+            SetActive(NavItems);
+        }
+
+        private void History_Click(object sender, RoutedEventArgs e)
+        {
+            ContentHost.Content = new Views.HistoryPage();
+            SetActive(NavHistory);
+        }
+
+        public void EditDocument(Models.Invoice doc)
+        {
+            _mainViewModel.LoadDocument(doc);
+            
+            if (doc.Type == Models.DocType.Invoice)
+            {
+                NavigateToInvoicePage(false);
+            }
+            else
+            {
+                NavigateToOrderPage(false);
+            }
         }
     }
 }

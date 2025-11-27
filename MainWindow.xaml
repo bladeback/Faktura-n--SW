@@ -19,9 +19,11 @@
                         <Setter Property="HorizontalContentAlignment"
                                         Value="Left"/>
                         <Setter Property="Padding"
-                                        Value="14,10"/>
+                                        Value="14,14"/>
+                        <Setter Property="FontSize"
+                                        Value="16"/>
                         <Setter Property="Margin"
-                                        Value="0,6,0,0"/>
+                                        Value="0,8,0,0"/>
                         <Setter Property="BorderThickness"
                                         Value="0"/>
                         <Setter Property="FontWeight"
@@ -73,22 +75,23 @@
 
         <Grid>
                 <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="240"/>
                         <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-
                 <!-- Levé menu -->
                 <Border Grid.Column="0"
                                 Background="#0F172A"
-                                Padding="12">
+                                Padding="16">
                         <StackPanel>
-                                <TextBlock Text="Navigace"
-                                           Foreground="White"
-                                           FontWeight="Bold"
-                                           FontSize="16"
-                                           Margin="4,0,0,16"/>
+                                <TextBlock Text="InvoiceApp" 
+                                           FontSize="28" FontWeight="Bold" Foreground="#3B82F6"
+                                           Margin="0,0,0,40" HorizontalAlignment="Center"/>
 
-                                <!-- Výchozí aktivní: Dodavatelé -->
+                                <Button x:Name="NavDashboard"
+                                        Content="Přehled"
+                                        Click="Dashboard_Click"
+                                        Style="{StaticResource NavButtonStyle}"/>
+
                                 <Button x:Name="NavInvoices"
                                         Content="Faktury"
                                         Click="Invoices_Click"
@@ -107,6 +110,16 @@
                                 <Button x:Name="NavCustomers"
                                         Content="Odběratelé"
                                         Click="Customers_Click"
+                                        Style="{StaticResource NavButtonStyle}"/>
+
+                                <Button x:Name="NavItems"
+                                        Content="Položky"
+                                        Click="Items_Click"
+                                        Style="{StaticResource NavButtonStyle}"/>
+
+                                <Button x:Name="NavHistory"
+                                        Content="Historie"
+                                        Click="History_Click"
                                         Style="{StaticResource NavButtonStyle}"/>
 
                                 <Button x:Name="NavSettings"

@@ -23,7 +23,9 @@ namespace InvoiceApp.ViewModels
         private readonly QrService _qr = new();
         private readonly InvoiceNumberService _num = InvoiceNumberService.Instance;
         private readonly AresService _ares = new();
+
         private readonly BankService _bankService = new();
+        private readonly DocumentService _docService = new();
 
         private readonly SuppliersService _suppliersService = new();
         private readonly CustomersService _customersService = new();
@@ -41,7 +43,11 @@ namespace InvoiceApp.ViewModels
 
         // Uložené seznamy pro rychlý výběr
         public ObservableCollection<Company> SavedSuppliers { get; } = new();
+
         public ObservableCollection<Company> SavedCustomers { get; } = new();
+        public ObservableCollection<SavedItem> SavedItems { get; } = new();
+
+        private readonly SavedItemsService _savedItemsService = new();
 
         [ObservableProperty] private Company? _selectedSavedSupplier;
         [ObservableProperty] private Company? _selectedSavedCustomer;
@@ -86,7 +92,7 @@ namespace InvoiceApp.ViewModels
             LoadSavedParties();
         }
 
-        private async void LoadSavedParties()
+        public async Task LoadSavedParties()
         {
             try
             {
@@ -96,7 +102,13 @@ namespace InvoiceApp.ViewModels
 
                 var customers = await _customersService.LoadAsync();
                 SavedCustomers.Clear();
+
+                SavedCustomers.Clear();
                 foreach (var c in customers) SavedCustomers.Add(c);
+
+                var items = await _savedItemsService.LoadAsync();
+                SavedItems.Clear();
+                foreach (var i in items) SavedItems.Add(i);
             }
             catch { /* ignore */ }
         }
@@ -505,6 +517,48 @@ namespace InvoiceApp.ViewModels
             UpdateDueDate(); // u OBJ nastaví na issue date
         }
 
+        public void LoadDocument(Invoice doc)
+        {
+            // Odpojíme staré eventy
+            Current.PropertyChanged -= Current_PropertyChanged;
+            
+            // Nastavíme Current na předaný dokument (nebo jeho kopii, pokud chceme být safe, ale tady editujeme přímo)
+            // Pro jednoduchost použijeme přímo referenci, ale pozor: změny se projeví v historii až po uložení (pokud je to stejná instance v paměti).
+            // Lepší je udělat hlubokou kopii nebo prostě přepsat vlastnosti.
+            // Zde přepíšeme vlastnosti do nové instance, aby se neovlivnila historie dokud se neuloží.
+            // Ale počkat, JSON serializace v historii vytváří nové objekty při načtení.
+            // Takže pokud doc přišel z HistoryViewModelu, je to samostatná instance.
+            
+            Current = doc;
+            Current.PropertyChanged += Current_PropertyChanged;
+
+            // Synchronizace Items (ObservableCollection)
+            Items.Clear();
+            foreach (var item in doc.Items)
+            {
+                Items.Add(item);
+            }
+
+            // Nastavení stavu UI
+            SupplierIsVatPayer = !string.IsNullOrEmpty(doc.Supplier.DIC);
+            
+            // Nastavení banky v combu
+            if (!string.IsNullOrEmpty(doc.Supplier.Bank))
+            {
+                SelectedBank = Banks.FirstOrDefault(b => b.Name == doc.Supplier.Bank);
+            }
+
+            // Nastavení vyhledávacích textů
+            SupplierSearchText = doc.Supplier.Name;
+            CustomerSearchText = doc.Customer.Name;
+
+            HookSupplierWatcher(Current.Supplier);
+            RaiseTotalsChanged();
+            OnPropertyChanged(nameof(DisplayNumber));
+            
+            // Přepočítat splatnost jen pokud je to potřeba, ale tady už je datum nastavené
+        }
+
         [RelayCommand]
         private async Task ExportPdfAsync()
         {
@@ -548,6 +602,9 @@ namespace InvoiceApp.ViewModels
                     // úspěšný export -> potvrdit číslo
                     if (Current.Type == DocType.Invoice) _num.CommitInvoice();
                     else _num.CommitOrder();
+
+                    // Uložit do historie
+                    await _docService.SaveDocumentAsync(Current);
 
                     MessageBox.Show($"Uloženo: {path}");
                 }

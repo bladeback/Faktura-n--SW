@@ -59,6 +59,8 @@ namespace InvoiceApp.Models
         [ObservableProperty] private string? constantSymbol;
         [ObservableProperty] private DateTime? taxableSupplyDate;
 
+        [ObservableProperty] private bool isPaid;
+
         public string PaymentIban
         {
             get
