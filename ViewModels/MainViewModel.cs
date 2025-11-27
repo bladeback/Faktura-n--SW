@@ -25,6 +25,9 @@ namespace InvoiceApp.ViewModels
         private readonly AresService _ares = new();
         private readonly BankService _bankService = new();
 
+        private readonly SuppliersService _suppliersService = new();
+        private readonly CustomersService _customersService = new();
+
         [ObservableProperty]
         private Invoice _current = new();
 
@@ -35,6 +38,17 @@ namespace InvoiceApp.ViewModels
         public List<string> PaymentMethods { get; } = new() { "Převodem", "Hotově", "Kartou" };
         public ObservableCollection<Bank> Banks { get; } = new();
         [ObservableProperty] private Bank? _selectedBank;
+
+        // Uložené seznamy pro rychlý výběr
+        public ObservableCollection<Company> SavedSuppliers { get; } = new();
+        public ObservableCollection<Company> SavedCustomers { get; } = new();
+
+        [ObservableProperty] private Company? _selectedSavedSupplier;
+        [ObservableProperty] private Company? _selectedSavedCustomer;
+
+        // Text pro vyhledávání v ComboBoxech (aby se dal resetovat na "Vyberte ze seznamu...")
+        [ObservableProperty] private string supplierSearchText = "Vyberte ze seznamu...";
+        [ObservableProperty] private string customerSearchText = "Vyberte ze seznamu...";
 
         // Uživatelsky nastavitelná doba splatnosti (dny) – výchozí 14
         [ObservableProperty]
@@ -69,6 +83,66 @@ namespace InvoiceApp.ViewModels
             Items.CollectionChanged += Items_CollectionChanged;
             HookSupplierWatcher(Current.Supplier);
             LoadBanks();
+            LoadSavedParties();
+        }
+
+        private async void LoadSavedParties()
+        {
+            try
+            {
+                var suppliers = await _suppliersService.LoadAsync();
+                SavedSuppliers.Clear();
+                foreach (var s in suppliers) SavedSuppliers.Add(s);
+
+                var customers = await _customersService.LoadAsync();
+                SavedCustomers.Clear();
+                foreach (var c in customers) SavedCustomers.Add(c);
+            }
+            catch { /* ignore */ }
+        }
+
+        partial void OnSelectedSavedSupplierChanged(Company? value)
+        {
+            if (value == null) return;
+            if (Current?.Supplier == null) return;
+
+            Current.Supplier.Name = value.Name ?? "";
+            Current.Supplier.Address = value.Address ?? "";
+            Current.Supplier.City = $"{value.City} {value.PostalCode}".Trim();
+            Current.Supplier.ICO = value.ICO ?? "";
+            Current.Supplier.DIC = value.DIC ?? "";
+            Current.Supplier.Bank = value.Bank ?? "";
+            Current.Supplier.AccountNumber = value.AccountNumber ?? "";
+            Current.Supplier.IBAN = value.IBAN ?? "";
+            Current.Supplier.Email = value.Email ?? "";
+            Current.Supplier.Phone = value.Phone ?? "";
+            Current.Supplier.Country = "Česká republika";
+            
+            SupplierIsVatPayer = value.IsVatPayer;
+            
+            // Trigger update
+            OnPropertyChanged(nameof(Current));
+            OnPropertyChanged(nameof(Current.Supplier));
+            RaiseTotalsChanged();
+        }
+
+        partial void OnSelectedSavedCustomerChanged(Company? value)
+        {
+            if (value == null) return;
+            if (Current?.Customer == null) return;
+
+            Current.Customer.Name = value.Name ?? "";
+            Current.Customer.Address = value.Address ?? "";
+            Current.Customer.City = $"{value.City} {value.PostalCode}".Trim();
+            Current.Customer.ICO = value.ICO ?? "";
+            Current.Customer.DIC = value.DIC ?? "";
+            // Current.Customer.Bank ... u odběratele obvykle neřešíme, ale model to má
+            Current.Customer.Email = value.Email ?? "";
+            Current.Customer.Phone = value.Phone ?? "";
+            Current.Customer.Country = "Česká republika";
+
+            OnPropertyChanged(nameof(Current));
+            OnPropertyChanged(nameof(Current.Customer));
         }
 
         private void Current_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -387,6 +461,10 @@ namespace InvoiceApp.ViewModels
             Items.Clear();
             SupplierIsVatPayer = false;
             SelectedBank = null;
+            SelectedSavedSupplier = null;
+            SelectedSavedCustomer = null;
+            SupplierSearchText = "Vyberte ze seznamu...";
+            CustomerSearchText = "Vyberte ze seznamu...";
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));
@@ -416,6 +494,10 @@ namespace InvoiceApp.ViewModels
             Items.Clear();
             SupplierIsVatPayer = false;
             SelectedBank = null;
+            SelectedSavedSupplier = null;
+            SelectedSavedCustomer = null;
+            SupplierSearchText = "Vyberte ze seznamu...";
+            CustomerSearchText = "Vyberte ze seznamu...";
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));

@@ -6,19 +6,27 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using InvoiceApp.Models;
+using InvoiceApp.Services;
 
 namespace InvoiceApp.Views
 {
-    public partial class CustomersPage : UserControl
+    public partial class CustomersPage : UserControl, System.ComponentModel.INotifyPropertyChanged
     {
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+
         // Hlavní kolekce pro DataGrid
         public ObservableCollection<Company> Customers { get; } = new();
+
+        public int Count => Customers.Count;
 
         // Nezávislá kopie pro filtrování
         private readonly List<Company> _allCustomers = new();
 
         // Banky pro editor
         private List<Bank> _banks = new();
+
+        private readonly CustomersService _service = new();
 
         public CustomersPage()
         {
@@ -32,13 +40,13 @@ namespace InvoiceApp.Views
 
         // === TLAČÍTKA ===
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private async void Save_Click(object sender, RoutedEventArgs e)
         {
-            SaveCustomers();
+            await SaveCustomers();
             MessageBox.Show("Odběratelé uloženi.", "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void Add_Click(object sender, RoutedEventArgs e)
+        private async void Add_Click(object sender, RoutedEventArgs e)
         {
             var model = new Company();
 
@@ -52,13 +60,14 @@ namespace InvoiceApp.Views
             {
                 Customers.Add(model);
                 _allCustomers.Add(model);
-                SaveCustomers();
+                OnPropertyChanged(nameof(Count));
+                await SaveCustomers();
             }
         }
 
         private void DeleteSelected_Click(object sender, RoutedEventArgs e) => Delete_Click(sender, e);
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             if (CustomersGrid.SelectedItem is not Company selected)
             {
@@ -74,10 +83,11 @@ namespace InvoiceApp.Views
 
             Customers.Remove(selected);
             _allCustomers.Remove(selected);
-            SaveCustomers();
+            OnPropertyChanged(nameof(Count));
+            await SaveCustomers();
         }
 
-        private void CustomersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void CustomersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (CustomersGrid.SelectedItem is not Company selected) return;
 
@@ -117,7 +127,7 @@ namespace InvoiceApp.Views
                 selected.Phone = copy.Phone;
                 selected.IsVatPayer = copy.IsVatPayer;
 
-                SaveCustomers();
+                await SaveCustomers();
             }
         }
 
@@ -141,39 +151,29 @@ namespace InvoiceApp.Views
 
             foreach (var c in src)
                 Customers.Add(c);
+            
+            OnPropertyChanged(nameof(Count));
         }
 
-        private void LoadCustomers()
+        private async void LoadCustomers()
         {
             try
             {
-                var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp", "customers.json");
-                if (System.IO.File.Exists(path))
-                {
-                    var json = System.IO.File.ReadAllText(path);
-                    var list = System.Text.Json.JsonSerializer.Deserialize<List<Company>>(json);
-                    if (list != null)
-                    {
-                        _allCustomers.Clear();
-                        _allCustomers.AddRange(list);
-                        Customers.Clear();
-                        foreach (var c in list) Customers.Add(c);
-                    }
-                }
+                var list = await _service.LoadAsync();
+                _allCustomers.Clear();
+                _allCustomers.AddRange(list);
+                Customers.Clear();
+                foreach (var c in list) Customers.Add(c);
+                OnPropertyChanged(nameof(Count));
             }
             catch { /* ignore */ }
         }
 
-        private void SaveCustomers()
+        private async System.Threading.Tasks.Task SaveCustomers()
         {
             try
             {
-                var folder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp");
-                if (!System.IO.Directory.Exists(folder)) System.IO.Directory.CreateDirectory(folder);
-
-                var path = System.IO.Path.Combine(folder, "customers.json");
-                var json = System.Text.Json.JsonSerializer.Serialize(_allCustomers);
-                System.IO.File.WriteAllText(path, json);
+                await _service.SaveAsync(_allCustomers);
             }
             catch (Exception ex)
             {
@@ -206,3 +206,4 @@ namespace InvoiceApp.Views
         }
     }
 }
+

@@ -18,7 +18,12 @@ namespace InvoiceApp.Services
         };
 
         private static string GetPath()
-            => Path.Combine(AppContext.BaseDirectory, FileName);
+        {
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp");
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+            return Path.Combine(folder, FileName);
+        }
 
         public async Task<List<Company>> LoadAsync()
         {

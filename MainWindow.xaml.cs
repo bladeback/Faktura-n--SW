@@ -51,17 +51,11 @@ namespace InvoiceApp
             // 2. Předáme sdílený ViewModel
             page.DataContext = _mainViewModel;
             
-            // 3. Ujistíme se, že jsme v režimu "Faktura"
-            // Pokud už tam jsme, nic se nestane. Pokud ne, přepne se to.
-            // Volitelně můžeme zavolat NewInvoiceCommand, pokud chceme VŽDY novou fakturu při kliknutí.
-            // Ale logičtější je asi jen přepnout typ, aby uživatel nepřišel o rozpracovanou práci,
-            // pokud jen omylem klikl jinam.
-            if (_mainViewModel.Current.Type != Models.DocType.Invoice)
+            // 3. VŽDY zavoláme NewInvoice, aby se vygenerovalo nové číslo a vyčistil formulář.
+            // Uživatel to tak očekává (klik na "Faktury" = chci dělat novou fakturu).
+            if (_mainViewModel.NewInvoiceCommand.CanExecute(null))
             {
-                // Pokud přepínáme z Objednávky na Fakturu, asi chceme zachovat data?
-                // Nebo raději čistý štít?
-                // Prozatím jen přepneme typ dokladu.
-                _mainViewModel.Current.Type = Models.DocType.Invoice;
+                _mainViewModel.NewInvoiceCommand.Execute(null);
             }
 
             ContentHost.Content = page;
@@ -76,10 +70,11 @@ namespace InvoiceApp
             // 2. Předáme sdílený ViewModel
             page.DataContext = _mainViewModel;
 
-            // 3. Přepneme na režim "Objednávka"
-            if (_mainViewModel.Current.Type != Models.DocType.Order)
+            // 3. VŽDY zavoláme NewOrder, aby se vygenerovalo nové číslo a vyčistil formulář.
+            // Uživatel to tak očekává (klik na "Objednávky" = chci dělat novou objednávku).
+            if (_mainViewModel.NewOrderCommand.CanExecute(null))
             {
-                _mainViewModel.Current.Type = Models.DocType.Order;
+                _mainViewModel.NewOrderCommand.Execute(null);
             }
 
             ContentHost.Content = page;

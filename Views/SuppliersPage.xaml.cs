@@ -6,19 +6,27 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using InvoiceApp.Models;
+using InvoiceApp.Services;
 
 namespace InvoiceApp.Views
 {
-    public partial class SuppliersPage : UserControl
+    public partial class SuppliersPage : UserControl, System.ComponentModel.INotifyPropertyChanged
     {
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+
         // Hlavní kolekce pro DataGrid (je na ni navázán XAML)
         public ObservableCollection<Company> Suppliers { get; } = new();
+
+        public int Count => Suppliers.Count;
 
         // Nezávislá kopie pro filtrování (aby šlo "vrátit" všechny záznamy)
         private readonly List<Company> _allSuppliers = new();
 
         // Banky pro editor (pokud nemáš, necháme prázdné)
         private List<Bank> _banks = new();
+
+        private readonly SuppliersService _service = new();
 
         public SuppliersPage()
         {
@@ -32,13 +40,13 @@ namespace InvoiceApp.Views
 
         // === TLAČÍTKA ===
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private async void Save_Click(object sender, RoutedEventArgs e)
         {
-            SaveSuppliers();
+            await SaveSuppliers();
             MessageBox.Show("Dodavatelé uloženi.", "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void Add_Click(object sender, RoutedEventArgs e)
+        private async void Add_Click(object sender, RoutedEventArgs e)
         {
             var model = new Company();
 
@@ -51,14 +59,15 @@ namespace InvoiceApp.Views
             {
                 Suppliers.Add(model);
                 _allSuppliers.Add(model);
-                SaveSuppliers();
+                OnPropertyChanged(nameof(Count));
+                await SaveSuppliers();
             }
         }
 
         // Pro kompatibilitu, kdyby XAML ještě volal starý handler:
         private void DeleteSelected_Click(object sender, RoutedEventArgs e) => Delete_Click(sender, e);
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             if (SuppliersGrid.SelectedItem is not Company selected)
             {
@@ -74,10 +83,11 @@ namespace InvoiceApp.Views
 
             Suppliers.Remove(selected);
             _allSuppliers.Remove(selected);
-            SaveSuppliers();
+            OnPropertyChanged(nameof(Count));
+            await SaveSuppliers();
         }
 
-        private void SuppliersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void SuppliersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (SuppliersGrid.SelectedItem is not Company selected) return;
 
@@ -117,7 +127,7 @@ namespace InvoiceApp.Views
                 selected.Phone = copy.Phone;
                 selected.IsVatPayer = copy.IsVatPayer;
 
-                SaveSuppliers();
+                await SaveSuppliers();
             }
         }
 
@@ -141,38 +151,28 @@ namespace InvoiceApp.Views
 
             foreach (var c in src)
                 Suppliers.Add(c);
+            
+            OnPropertyChanged(nameof(Count));
         }
-        private void LoadSuppliers()
+        private async void LoadSuppliers()
         {
             try
             {
-                var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp", "suppliers.json");
-                if (System.IO.File.Exists(path))
-                {
-                    var json = System.IO.File.ReadAllText(path);
-                    var list = System.Text.Json.JsonSerializer.Deserialize<List<Company>>(json);
-                    if (list != null)
-                    {
-                        _allSuppliers.Clear();
-                        _allSuppliers.AddRange(list);
-                        Suppliers.Clear();
-                        foreach (var c in list) Suppliers.Add(c);
-                    }
-                }
+                var list = await _service.LoadAsync();
+                _allSuppliers.Clear();
+                _allSuppliers.AddRange(list);
+                Suppliers.Clear();
+                foreach (var c in list) Suppliers.Add(c);
+                OnPropertyChanged(nameof(Count));
             }
             catch { /* ignore */ }
         }
 
-        private void SaveSuppliers()
+        private async System.Threading.Tasks.Task SaveSuppliers()
         {
             try
             {
-                var folder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp");
-                if (!System.IO.Directory.Exists(folder)) System.IO.Directory.CreateDirectory(folder);
-
-                var path = System.IO.Path.Combine(folder, "suppliers.json");
-                var json = System.Text.Json.JsonSerializer.Serialize(_allSuppliers);
-                System.IO.File.WriteAllText(path, json);
+                await _service.SaveAsync(_allSuppliers);
             }
             catch (Exception ex)
             {
@@ -206,3 +206,4 @@ namespace InvoiceApp.Views
 
     }
 }
+

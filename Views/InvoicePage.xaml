@@ -81,15 +81,7 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Typ:" Style="{StaticResource FormLabel}"/>
-                                <ComboBox Grid.Row="0" Grid.Column="1"
-                                          SelectedValue="{Binding Current.Type, Mode=TwoWay}"
-                                          SelectedValuePath="Tag"
-                                          Style="{StaticResource FormComboBox}"
-                                          Margin="0,4">
-                                    <ComboBoxItem Content="Faktura" Tag="{x:Static models:DocType.Invoice}"/>
-                                    <ComboBoxItem Content="Objednávka" Tag="{x:Static models:DocType.Order}"/>
-                                </ComboBox>
+
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Číslo:" Style="{StaticResource FormLabel}"/>
                                 <TextBox   Grid.Row="1" Grid.Column="1"
@@ -189,29 +181,41 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Název:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Name}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Rychlý výběr:" Style="{StaticResource FormLabel}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Primary}"/>
+                                <ComboBox  Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                           ItemsSource="{Binding SavedSuppliers}"
+                                           SelectedItem="{Binding SelectedSavedSupplier, Mode=TwoWay}"
+                                           DisplayMemberPath="Name"
+                                           Style="{StaticResource FormComboBox}"
+                                           Margin="0,4"
+                                           IsEditable="True"
+                                           IsTextSearchEnabled="True"
+                                           Text="{Binding SupplierSearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Ulice:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Address}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Název:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Name}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Město/PSČ:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.City}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Ulice:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Address}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Země:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Country}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Město/PSČ:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.City}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="IČO:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding Current.Supplier.ICO}" Style="{StaticResource FormTextBox}" Margin="0,4,8,4"/>
-                                <Button    Grid.Row="4" Grid.Column="2" Content="Načíst z ARES" Command="{Binding LoadSupplierFromIcoCommand}" Style="{StaticResource SecondaryButton}" Margin="0,4"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Země:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Country}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="DIČ:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.DIC}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="IČO:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding Current.Supplier.ICO}" Style="{StaticResource FormTextBox}" Margin="0,4,8,4"/>
+                                <Button    Grid.Row="5" Grid.Column="2" Content="Načíst z ARES" Command="{Binding LoadSupplierFromIcoCommand}" Style="{StaticResource SecondaryButton}" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="DIČ:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.DIC}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
                                 <!-- Banka (skrýt pro objednávku) -->
-                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Banka:">
+                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Banka:">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource FormLabel}">
                                             <Setter Property="Visibility" Value="Visible"/>
@@ -223,7 +227,7 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <ComboBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2"
+                                <ComboBox Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"
                                           ItemsSource="{Binding Banks}"
                                           SelectedItem="{Binding SelectedBank, Mode=TwoWay}"
                                           IsEditable="False"
@@ -248,7 +252,7 @@
                                     </ComboBox.Style>
                                 </ComboBox>
 
-                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Účet:">
+                                <TextBlock Grid.Row="8" Grid.Column="0" Text="Účet:">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource FormLabel}">
                                             <Setter Property="Visibility" Value="Visible"/>
@@ -260,7 +264,7 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBox Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"
+                                <TextBox Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2"
                                          Text="{Binding Current.Supplier.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,4">
                                     <TextBox.Style>
@@ -275,7 +279,7 @@
                                     </TextBox.Style>
                                 </TextBox>
 
-                                <TextBlock Grid.Row="8" Grid.Column="0" Text="IBAN:">
+                                <TextBlock Grid.Row="9" Grid.Column="0" Text="IBAN:">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource FormLabel}">
                                             <Setter Property="Visibility" Value="Visible"/>
@@ -287,7 +291,7 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBox Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2"
+                                <TextBox Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2"
                                          Text="{Binding Current.Supplier.IBAN, Mode=TwoWay, Converter={StaticResource IbanDisplay}, UpdateSourceTrigger=LostFocus}"
                                          Margin="0,4">
                                     <TextBox.Style>
@@ -302,7 +306,7 @@
                                     </TextBox.Style>
                                 </TextBox>
 
-                                <TextBlock Grid.Row="9" Grid.Column="0" Text="SWIFT:">
+                                <TextBlock Grid.Row="10" Grid.Column="0" Text="SWIFT:">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock" BasedOn="{StaticResource FormLabel}">
                                             <Setter Property="Visibility" Value="Visible"/>
@@ -314,7 +318,7 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <TextBox Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2"
+                                <TextBox Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="2"
                                          Text="{Binding Current.Supplier.SWIFT}"
                                          Margin="0,4">
                                     <TextBox.Style>
@@ -329,14 +333,14 @@
                                     </TextBox.Style>
                                 </TextBox>
 
-                                <TextBlock Grid.Row="10" Grid.Column="0" Text="E-mail:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Email}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="11" Grid.Column="0" Text="E-mail:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="11" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Email}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="11" Grid.Column="0" Text="Telefon:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="11" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Phone}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="12" Grid.Column="0" Text="Telefon:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="12" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Supplier.Phone}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="12" Grid.Column="0" Text="Plátce DPH:" Style="{StaticResource FormLabel}"/>
-                                <CheckBox  Grid.Row="12" Grid.Column="1" IsChecked="{Binding SupplierIsVatPayer}" Style="{StaticResource FormCheckBox}" Margin="0,12,0,4"/>
+                                <TextBlock Grid.Row="13" Grid.Column="0" Text="Plátce DPH:" Style="{StaticResource FormLabel}"/>
+                                <CheckBox  Grid.Row="13" Grid.Column="1" IsChecked="{Binding SupplierIsVatPayer}" Style="{StaticResource FormCheckBox}" Margin="0,12,0,4"/>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -358,26 +362,38 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Název:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.Name}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Rychlý výběr:" Style="{StaticResource FormLabel}" VerticalAlignment="Center" Foreground="{StaticResource Brush.Primary}"/>
+                                <ComboBox  Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                           ItemsSource="{Binding SavedCustomers}"
+                                           SelectedItem="{Binding SelectedSavedCustomer, Mode=TwoWay}"
+                                           DisplayMemberPath="Name"
+                                           Style="{StaticResource FormComboBox}"
+                                           Margin="0,4"
+                                           IsEditable="True"
+                                           IsTextSearchEnabled="True"
+                                           Text="{Binding CustomerSearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Ulice:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.Address}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Název:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.Name}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Město/PSČ:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.City}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Ulice:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.Address}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Země:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.Country}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Město/PSČ:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.City}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="IČO:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding Current.Customer.ICO}" Style="{StaticResource FormTextBox}" Margin="0,4,8,4"/>
-                                <Button    Grid.Row="4" Grid.Column="2" Content="Načíst z ARES" Command="{Binding LoadCustomerFromIcoCommand}" Style="{StaticResource SecondaryButton}" Margin="0,4"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Země:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.Country}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
 
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="DIČ:" Style="{StaticResource FormLabel}"/>
-                                <TextBox   Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.DIC}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="IČO:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding Current.Customer.ICO}" Style="{StaticResource FormTextBox}" Margin="0,4,8,4"/>
+                                <Button    Grid.Row="5" Grid.Column="2" Content="Načíst z ARES" Command="{Binding LoadCustomerFromIcoCommand}" Style="{StaticResource SecondaryButton}" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="DIČ:" Style="{StaticResource FormLabel}"/>
+                                <TextBox   Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Current.Customer.DIC}" Style="{StaticResource FormTextBox}" Margin="0,4"/>
                             </Grid>
                         </StackPanel>
                     </Border>

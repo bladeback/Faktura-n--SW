@@ -6,54 +6,65 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900"
              Background="{StaticResource Brush.Surface}">
-    <DockPanel>
-        <!-- TOOLBAR -->
-        <Border DockPanel.Dock="Top"
-                Background="White"
-                BorderBrush="{StaticResource Brush.Border}"
-                BorderThickness="0,0,0,1"
-                Padding="16,12">
-            <StackPanel Orientation="Horizontal">
-                <Button Content="Přidat odběratele"
-                        Click="Add_Click"
-                        Style="{StaticResource ToolbarButton}"/>
-                
-                <Border Width="1" Height="24" Background="{StaticResource Brush.Border}" Margin="12,0"/>
-                
-                <Button Content="Smazat označené"
-                        Click="DeleteSelected_Click"
-                        Style="{StaticResource ToolbarButton}"/>
-                
-                <Border Width="1" Height="24" Background="{StaticResource Brush.Border}" Margin="12,0"/>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-                <Button Content="Uložit změny"
-                        Click="Save_Click"
-                        Style="{StaticResource ToolbarButton}"/>
+        <!-- Horní pruh: název vlevo, toolbar vpravo -->
+        <Grid Grid.Row="0" Margin="16,12,16,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-                <!-- Spacer -->
-                <Border Width="24"/>
-
-                <!-- Search -->
-                <TextBox x:Name="SearchBox"
-                         Width="250"
-                         Style="{StaticResource FormTextBox}"
-                         Tag="Hledat..."
-                         TextChanged="SearchBox_TextChanged"
-                         VerticalAlignment="Center"/>
+            <!-- Titulek -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Odběratelé" Style="{StaticResource Heading1}"/>
+                <TextBlock Text="{Binding Count, StringFormat='  ({0})'}"
+                           Margin="6,0,0,0"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource SubtleText}"/>
             </StackPanel>
-        </Border>
+
+            <!-- Toolbar -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Přidat" Click="Add_Click" Style="{StaticResource ToolbarButton}"/>
+                <Button Content="Smazat vybrané" Click="DeleteSelected_Click" Style="{StaticResource ToolbarButton}"/>
+                <Button Content="Uložit" Click="Save_Click" Style="{StaticResource ToolbarButton}"/>
+
+                <!-- mezera -->
+                <Border Width="12" Background="Transparent"/>
+
+                <!-- Hledání -->
+                <TextBox x:Name="SearchBox"
+                         Style="{StaticResource SearchBox}"
+                         Width="300"
+                         VerticalAlignment="Center"
+                         ToolTip="Hledat (název, IČO, město, e-mail)…"
+                         TextChanged="SearchBox_TextChanged"/>
+            </StackPanel>
+        </Grid>
 
         <!-- CONTENT -->
         <DataGrid x:Name="CustomersGrid"
-                  ItemsSource="{Binding Customers}"
+                  Grid.Row="1"
+                  ItemsSource="{Binding Customers, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
                   MouseDoubleClick="CustomersGrid_MouseDoubleClick"
-                  Style="{StaticResource ThemedDataGrid}"
-                  Margin="16">
+                  RowStyle="{StaticResource ModernRowStyle}"
+                  CellStyle="{StaticResource ModernCellStyle}"
+                  ColumnHeaderStyle="{StaticResource ModernHeaderStyle}"
+                  HeadersVisibility="Column"
+                  ColumnHeaderHeight="32"
+                  EnableRowVirtualization="True"
+                  SelectionUnit="FullRow"
+                  Margin="16,0,16,16">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="*"/>
                 <DataGridTextColumn Header="IČO" Binding="{Binding ICO}" Width="100"/>
@@ -62,5 +73,5 @@
                 <DataGridTextColumn Header="Telefon" Binding="{Binding Phone}" Width="120"/>
             </DataGrid.Columns>
         </DataGrid>
-    </DockPanel>
+    </Grid>
 </UserControl>
