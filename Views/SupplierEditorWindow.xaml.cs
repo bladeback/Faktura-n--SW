@@ -119,7 +119,8 @@ namespace InvoiceApp.Views
             var ico = (Editable.ICO ?? "").Trim();
             if (string.IsNullOrWhiteSpace(ico))
             {
-                MessageBox.Show("Zadej IČO, které mám hledat.", "ARES", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Zadej IČO, které mám hledat.", "ARES",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -127,64 +128,80 @@ namespace InvoiceApp.Views
             {
                 var ares = new AresService();
 
+                // najdi volatelnou metodu
                 var m = ares.GetType().GetMethod("GetByIcoAsync")
                         ?? ares.GetType().GetMethod("GetCompanyAsync")
                         ?? ares.GetType().GetMethod("FindByIcoAsync");
 
                 if (m == null)
                 {
-                    MessageBox.Show("V AresService chybí metoda pro načtení firmy podle IČO.", "ARES",
-                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("V AresService chybí metoda pro načtení firmy podle IČO.",
+                        "ARES", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                // spustit a počkat na Task, typ řešíme přes Result
-                var rawTask = m.Invoke(ares, new object[] { ico }) as System.Threading.Tasks.Task;
-                if (rawTask == null) throw new InvalidOperationException("ARES service nevrátil Task.");
+                // zavolej metodu
+                object? ret = m.Invoke(ares, new object[] { ico });
 
-                await rawTask.ConfigureAwait(true);
+                // může to být Task<T> nebo přímo výsledek
+                object? result;
+                if (ret is System.Threading.Tasks.Task task)
+                {
+                    await task.ConfigureAwait(true);
+                    var prop = task.GetType().GetProperty("Result");
+                    result = prop?.GetValue(task);
+                }
+                else
+                {
+                    result = ret;
+                }
 
-                var result = rawTask.GetType().GetProperty("Result")?.GetValue(rawTask);
                 if (result == null)
                 {
                     MessageBox.Show("V ARES nebyl nalezen žádný záznam.", "ARES",
-                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
+                // varianta: rovnou Company
                 if (result is Company c)
                 {
                     FillFromCompany(c);
                     return;
                 }
 
-                // ValueTuple<string,...> – vyzobeme Item1..Item7
+                // varianta: ValueTuple<string...> (1 až 8 položek)
                 var t = result.GetType();
                 if (t.IsValueType && t.FullName != null && t.FullName.StartsWith("System.ValueTuple"))
                 {
+                    // vyzobeme Item1..Item8, co existují
                     var items = new List<string>();
-                    for (int i = 1; i <= 7; i++)
+                    for (int i = 1; i <= 8; i++)
                     {
                         var p = t.GetProperty($"Item{i}");
                         if (p == null) break;
-                        var v = p.GetValue(result)?.ToString() ?? "";
-                        items.Add(v);
+                        items.Add(p.GetValue(result)?.ToString() ?? "");
                     }
 
-                    // Název, adresa, město/PSČ, DIČ (CZ…)
-                    Editable.Name = items.FirstOrDefault(s => !string.IsNullOrWhiteSpace(s))?.Trim() ?? Editable.Name;
+                    // mapování tolerantně podle obsahu
+                    // 1: Název
+                    if (items.Count >= 1 && !string.IsNullOrWhiteSpace(items[0]))
+                        Editable.Name = items[0].Trim();
 
-                    if (items.Count > 1 && !string.IsNullOrWhiteSpace(items[1]))
+                    // 2: Ulice a č.p.
+                    if (items.Count >= 2 && !string.IsNullOrWhiteSpace(items[1]))
                         Editable.Address = items[1].Trim();
 
-                    if (items.Count > 2 && !string.IsNullOrWhiteSpace(items[2]))
+                    // 3: Město + PSČ v jednom
+                    if (items.Count >= 3 && !string.IsNullOrWhiteSpace(items[2]))
                     {
                         var s = items[2].Trim();
-                        var mP = Regex.Match(s, @"\b(\d{3}\s?\d{2})\b");
+                        var mP = Regex.Match(s, @"\b(\d{3})\s?(\d{2})\b");
                         if (mP.Success)
                         {
-                            Editable.PostalCode = mP.Groups[1].Value.Replace(" ", "");
-                            Editable.City = Regex.Replace(s, @"\b\d{3}\s?\d{2}\b", "").Trim(new[] { ',', ' ', '-' });
+                            Editable.PostalCode = $"{mP.Groups[1].Value}{mP.Groups[2].Value}";
+                            Editable.City = Regex.Replace(s, @"\b\d{3}\s?\d{2}\b", "")
+                                                 .Trim(new[] { ',', ' ', '-' });
                         }
                         else
                         {
@@ -192,26 +209,48 @@ namespace InvoiceApp.Views
                         }
                     }
 
-                    var dic = items.FirstOrDefault(v => Regex.IsMatch(v ?? "", @"^\s*CZ\d+", RegexOptions.IgnoreCase));
-                    if (!string.IsNullOrWhiteSpace(dic)) Editable.DIC = dic.Replace(" ", "");
+                    // 4: DIČ (CZ…)
+                    if (items.Count >= 4 && Regex.IsMatch(items[3] ?? "", @"^\s*CZ\d+", RegexOptions.IgnoreCase))
+                        Editable.DIC = items[3].Replace(" ", "").ToUpperInvariant();
 
+                    // 5: E-mail (obsahuje @)
+                    if (items.Count >= 5 && (items[4]?.Contains("@") ?? false))
+                        Editable.Email = items[4].Trim();
+
+                    // 6: Telefon (nějaké číslo s mezerami)
+                    if (items.Count >= 6 && !string.IsNullOrWhiteSpace(items[5]))
+                        Editable.Phone = items[5].Trim();
+
+                    // 7: Účet (obsahuje '/')
+                    if (items.Count >= 7 && (items[6]?.Contains("/") ?? false))
+                        Editable.AccountNumber = items[6].Trim();
+
+                    // 8: IBAN (začíná CZ)
+                    if (items.Count >= 8 && Regex.IsMatch(items[7] ?? "", @"^\s*CZ\d+"))
+                        Editable.IBAN = items[7].Replace(" ", "").ToUpperInvariant();
+
+                    // z účtu vyber banku (pokud máme seznam)
                     if (Banks.Count > 0 && TryGetBankCodeFromAccount(Editable.AccountNumber, out var code))
                         SelectedBank = Banks.FirstOrDefault(b => b.Code == code);
 
-                    RecalcIban();
+                    // když IBAN nepřišel hotový, spočítej
+                    if (string.IsNullOrWhiteSpace(Editable.IBAN))
+                        RecalcIban();
+
                     PropertyChanged?.Invoke(this, new(nameof(Editable)));
                     return;
                 }
 
-                MessageBox.Show("ARES vrátil neočekávaný formát dat. Když mi pošleš přesnou signaturu, upravím to natvrdo.",
-                                "ARES", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("ARES vrátil neočekávaný typ výsledku. Pošli mi prosím signaturu metody, upravím to natvrdo.",
+                    "ARES", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Načtení z ARES selhalo:\n{ex.Message}", "ARES",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         // === Pomocné ===
 
