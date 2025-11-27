@@ -67,15 +67,9 @@
                           CanUserAddRows="False"
                           CanUserDeleteRows="True"
                           IsReadOnly="False"
-                          HeadersVisibility="Column"
-                          ColumnHeaderHeight="32"
                           EnableRowVirtualization="True"
                           MouseDoubleClick="SuppliersGrid_MouseDoubleClick"
-                          SelectionMode="Single"
-                          SelectionUnit="FullRow"
-                          RowStyle="{StaticResource ModernRowStyle}"
-                          CellStyle="{StaticResource ModernCellStyle}"
-                          ColumnHeaderStyle="{StaticResource ModernHeaderStyle}">
+                          Style="{StaticResource ModernDataGrid}">
 
                         <DataGrid.Columns>
                                 <DataGridTextColumn Header="Název"

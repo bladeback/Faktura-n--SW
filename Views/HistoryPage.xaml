@@ -24,11 +24,8 @@
         <DataGrid Grid.Row="1"
                   ItemsSource="{Binding Documents}"
                   AutoGenerateColumns="False"
-                  CanUserAddRows="False"
                   IsReadOnly="True"
-                  RowStyle="{StaticResource ModernRowStyle}"
-                  CellStyle="{StaticResource ModernCellStyle}"
-                  ColumnHeaderStyle="{StaticResource ModernHeaderStyle}">
+                  Style="{StaticResource ModernDataGrid}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="120"/>
                 <DataGridTextColumn Header="Typ" Binding="{Binding Type}" Width="100"/>

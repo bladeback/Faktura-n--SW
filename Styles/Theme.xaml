@@ -437,36 +437,89 @@
         <!-- ===================== -->
         <!--       DATAGRID        -->
         <!-- ===================== -->
+        <!-- ===================== -->
+        <!--       DATAGRID        -->
+        <!-- ===================== -->
+        <Style x:Key="ModernDataGrid"
+               TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowHeight" Value="48"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#E5E7EB"/>
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="True"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="SelectionUnit" Value="FullRow"/>
+            <Setter Property="EnableRowVirtualization" Value="True"/>
+            
+            <!-- Apply sub-styles automatically -->
+            <Setter Property="ColumnHeaderStyle" Value="{DynamicResource ModernHeaderStyle}"/>
+            <Setter Property="RowStyle" Value="{DynamicResource ModernRowStyle}"/>
+            <Setter Property="CellStyle" Value="{DynamicResource ModernCellStyle}"/>
+        </Style>
+
         <Style x:Key="ModernCellStyle"
                         TargetType="DataGridCell">
                 <Setter Property="Padding"
-                                Value="12,8"/>
+                                Value="16,0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridCell">
+                            <Border Padding="{TemplateBinding Padding}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Background="{TemplateBinding Background}"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
                 <Setter Property="BorderThickness"
-                                Value="0,0,0,1"/>
-                <Setter Property="BorderBrush"
-                                Value="{StaticResource Brush.Border}"/>
+                                Value="0"/>
                 <Setter Property="Background"
                                 Value="Transparent"/>
                 <Setter Property="Foreground"
                                 Value="{StaticResource Brush.Text}"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         </Style>
 
         <Style x:Key="ModernHeaderStyle"
                         TargetType="DataGridColumnHeader">
                 <Setter Property="Background"
-                                Value="#EDF2F7"/>
+                                Value="#F9FAFB"/>
                 <Setter Property="Foreground"
-                                Value="#374151"/>
+                                Value="#6B7280"/>
                 <Setter Property="FontWeight"
                                 Value="SemiBold"/>
+                <Setter Property="FontSize"
+                                Value="13"/>
                 <Setter Property="BorderBrush"
-                                Value="{StaticResource Brush.Border}"/>
+                                Value="#E5E7EB"/>
                 <Setter Property="BorderThickness"
                                 Value="0,0,0,1"/>
                 <Setter Property="Padding"
-                                Value="12,8"/>
+                                Value="16,12"/>
                 <Setter Property="HorizontalContentAlignment"
                                 Value="Left"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridColumnHeader">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center"
+                                                  SnapsToDevicePixels="True"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
         </Style>
 
         <Style x:Key="ModernRowStyle"
@@ -476,15 +529,16 @@
                 <Setter Property="Cursor"
                                 Value="Hand"/>
                 <Setter Property="Background"
-                                Value="#FFFFFFFF"/>
+                                Value="White"/>
                 <Setter Property="Foreground"
                                 Value="{StaticResource Brush.Text}"/>
+                <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Template">
                         <Setter.Value>
                                 <ControlTemplate TargetType="DataGridRow">
                                         <Border x:Name="bd"
                                                         Background="{TemplateBinding Background}"
-                                                        BorderBrush="#E3E6ED"
+                                                        BorderBrush="#E5E7EB"
                                                         BorderThickness="0,0,0,1">
                                                 <DataGridCellsPresenter/>
                                         </Border>
@@ -493,17 +547,15 @@
                                                                 Value="True">
                                                         <Setter TargetName="bd"
                                                                         Property="Background"
-                                                                        Value="#EAF2FF"/>
-                                                        <Setter Property="Foreground"
-                                                                        Value="{StaticResource Brush.Text}"/>
+                                                                        Value="#F3F4F6"/>
                                                 </Trigger>
                                                 <Trigger Property="IsSelected"
                                                                 Value="True">
                                                         <Setter TargetName="bd"
                                                                         Property="Background"
-                                                                        Value="#BFDBFE"/>
+                                                                        Value="#EFF6FF"/>
                                                         <Setter Property="Foreground"
-                                                                        Value="{StaticResource Brush.Text}"/>
+                                                                        Value="#1E40AF"/>
                                                 </Trigger>
                                         </ControlTemplate.Triggers>
                                 </ControlTemplate>

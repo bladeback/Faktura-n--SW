@@ -27,8 +27,17 @@ namespace InvoiceApp.ViewModels
         {
             var list = await _service.LoadAsync();
             Items.Clear();
-            foreach (var item in list) Items.Add(item);
+            foreach (var item in list)
+            {
+                item.PropertyChanged += Item_PropertyChanged;
+                Items.Add(item);
+            }
             UpdateCount();
+        }
+
+        private void Item_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            _ = SaveAsync();
         }
 
         private void UpdateCount() => Count = Items.Count;
@@ -37,8 +46,10 @@ namespace InvoiceApp.ViewModels
         private void Add()
         {
             var newItem = new SavedItem { Name = "Nová položka", UnitPrice = 100, Unit = "ks" };
+            newItem.PropertyChanged += Item_PropertyChanged;
             Items.Add(newItem);
             UpdateCount();
+            _ = SaveAsync();
         }
 
         [RelayCommand]
@@ -48,17 +59,17 @@ namespace InvoiceApp.ViewModels
             {
                 if (MessageBox.Show($"Opravdu smazat položku '{item.Name}'?", "Smazat", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
+                    item.PropertyChanged -= Item_PropertyChanged;
                     Items.Remove(item);
                     UpdateCount();
+                    _ = SaveAsync();
                 }
             }
         }
 
-        [RelayCommand]
-        private async Task Save()
+        private async Task SaveAsync()
         {
             await _service.SaveAsync(Items.ToList());
-            MessageBox.Show("Položky uloženy.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

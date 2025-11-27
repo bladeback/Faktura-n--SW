@@ -57,13 +57,7 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   MouseDoubleClick="CustomersGrid_MouseDoubleClick"
-                  RowStyle="{StaticResource ModernRowStyle}"
-                  CellStyle="{StaticResource ModernCellStyle}"
-                  ColumnHeaderStyle="{StaticResource ModernHeaderStyle}"
-                  HeadersVisibility="Column"
-                  ColumnHeaderHeight="32"
-                  EnableRowVirtualization="True"
-                  SelectionUnit="FullRow"
+                  Style="{StaticResource ModernDataGrid}"
                   Margin="16,0,16,16">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="*"/>

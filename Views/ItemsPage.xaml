@@ -33,7 +33,6 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="Přidat" Command="{Binding AddCommand}" Style="{StaticResource ToolbarButton}"/>
-                <Button Content="Uložit" Command="{Binding SaveCommand}" Style="{StaticResource ToolbarButton}"/>
             </StackPanel>
         </Grid>
 
@@ -43,9 +42,7 @@
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   CanUserDeleteRows="True"
-                  RowStyle="{StaticResource ModernRowStyle}"
-                  CellStyle="{StaticResource ModernCellStyle}"
-                  ColumnHeaderStyle="{StaticResource ModernHeaderStyle}">
+                  Style="{StaticResource ModernDataGrid}">
             
             <DataGrid.InputBindings>
                 <KeyBinding Key="Delete" Command="{Binding DeleteSelectedCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=SelectedItem}"/>
