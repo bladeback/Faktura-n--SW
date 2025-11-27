@@ -19,9 +19,8 @@ namespace InvoiceApp.Services
 
         private static string GetPath()
         {
-            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "InvoiceApp");
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
+            // Portable: Ukládáme do složky s aplikací (vedle .exe)
+            var folder = AppDomain.CurrentDomain.BaseDirectory;
             return Path.Combine(folder, FileName);
         }
 

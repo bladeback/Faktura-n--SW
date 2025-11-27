@@ -1,0 +1,30 @@
+[
+  {
+    "name": "NYKO MEDIA s.r.o.",
+    "address": "Brn\u011Bnsk\u00E1 2806/71",
+    "city": "Jihlava",
+    "postalCode": "58601",
+    "ico": "21945543",
+    "dic": "CZ21945543",
+    "bank": null,
+    "accountNumber": null,
+    "iban": "",
+    "email": null,
+    "phone": null,
+    "isVatPayer": true
+  },
+  {
+    "name": "Montessori st\u0159edn\u00ED \u0161kola, z\u00E1kladn\u00ED \u0161kola a mate\u0159sk\u00E1 \u0161kola Poln\u00E1",
+    "address": "Alej svobody 1247",
+    "city": "Poln\u00E1",
+    "postalCode": "58813",
+    "ico": "08050775",
+    "dic": null,
+    "bank": null,
+    "accountNumber": null,
+    "iban": "",
+    "email": null,
+    "phone": null,
+    "isVatPayer": false
+  }
+]

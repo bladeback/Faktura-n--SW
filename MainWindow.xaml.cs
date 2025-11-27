@@ -95,7 +95,7 @@ namespace InvoiceApp
 
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
-            ContentHost.Content = new Views.ConstructionPage();
+            ContentHost.Content = new Views.SettingsPage();
             SetActive(NavSettings);
         }
     }

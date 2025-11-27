@@ -21,7 +21,7 @@ namespace InvoiceApp.ViewModels
     {
         private readonly PdfService _pdf = new();
         private readonly QrService _qr = new();
-        private readonly InvoiceNumberService _num = new();
+        private readonly InvoiceNumberService _num = InvoiceNumberService.Instance;
         private readonly AresService _ares = new();
         private readonly BankService _bankService = new();
 

@@ -8,12 +8,11 @@ namespace InvoiceApp.Services
     /// <summary>
     /// Číslování: yyyy + pořadí 000001–999999 (10 číslic).
     /// – oddělené čítače pro FA a OBJ,
-    /// – perzistence v %AppData%\InvoiceApp\invoice_counter.json,
+    /// – perzistence v rootu aplikace (portable),
     /// – dvoufázově: Reserve…() jen rezervuje číslo, Commit…() potvrdí (trvalé navýšení).
     /// </summary>
     public class InvoiceNumberService
     {
-        private const string AppFolderName = "InvoiceApp";
         private const string FileName = "invoice_counter.json";
 
         private readonly string _filePath;
@@ -24,11 +23,12 @@ namespace InvoiceApp.Services
         private string? _reservedFa;
         private string? _reservedObj;
 
-        public InvoiceNumberService()
+        public static readonly InvoiceNumberService Instance = new();
+
+        private InvoiceNumberService()
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var dir = Path.Combine(appData, AppFolderName);
-            Directory.CreateDirectory(dir);
+            // Portable: Ukládáme vedle .exe
+            var dir = AppDomain.CurrentDomain.BaseDirectory;
             _filePath = Path.Combine(dir, FileName);
             _counters = Load();
         }
@@ -77,9 +77,59 @@ namespace InvoiceApp.Services
             }
         }
 
-        // ZPĚTNÁ KOMPATIBILITA: pokud někde stále voláš „Next…Number()“, deleguji na Reserve…()
+        // ZPĚTNÁ KOMPATIBILITA
         public string NextInvoiceNumber() => ReserveInvoiceNumber();
         public string NextOrderNumber() => ReserveOrderNumber();
+
+        // --------- METODY PRO NASTAVENÍ (Settings) ----------
+
+        public int GetNextInvoiceNumber(string year)
+        {
+            lock (_sync)
+            {
+                if (_counters.Years.TryGetValue(year, out var y))
+                    return y.FaNext;
+                return 1;
+            }
+        }
+
+        public void SetNextInvoiceNumber(string year, int nextVal)
+        {
+            lock (_sync)
+            {
+                if (!_counters.Years.TryGetValue(year, out var y))
+                {
+                    y = new YearCounters();
+                    _counters.Years[year] = y;
+                }
+                y.FaNext = nextVal;
+                Save(_counters);
+            }
+        }
+
+        public int GetNextOrderNumber(string year)
+        {
+            lock (_sync)
+            {
+                if (_counters.Years.TryGetValue(year, out var y))
+                    return y.ObjNext;
+                return 1;
+            }
+        }
+
+        public void SetNextOrderNumber(string year, int nextVal)
+        {
+            lock (_sync)
+            {
+                if (!_counters.Years.TryGetValue(year, out var y))
+                {
+                    y = new YearCounters();
+                    _counters.Years[year] = y;
+                }
+                y.ObjNext = nextVal;
+                Save(_counters);
+            }
+        }
 
         // --------- INTERNÍ LOGIKA ----------
 
@@ -91,19 +141,20 @@ namespace InvoiceApp.Services
             {
                 y = new YearCounters();
                 _counters.Years[year] = y;
+                // Pokud zakládáme nový rok a je to 2025, můžeme (volitelně) inicializovat
+                // Ale logika "Load" už to řeší při prvním spuštění.
+                // Zde necháme 1, pokud uživatel v nastavení nezměnil.
             }
 
             long next = kind == "FA" ? y.FaNext : y.ObjNext;
-            if (next < 1) next = 1;                 // začínáme od 000001
+            if (next < 1) next = 1;
             if (next > 9999) throw new InvalidOperationException($"Dosažen limit 9999 pro {kind} v roce {year}.");
 
-            // Vracíme neprefixované číslo yyyy + 6 číslic
             return $"{year}{next:0000}";
         }
 
         private void Commit(string kind, string number)
         {
-            // number je ve formátu yyyy###### (10 číslic)
             var year = number.Substring(0, 4);
 
             if (!_counters.Years.TryGetValue(year, out var y))
@@ -112,7 +163,6 @@ namespace InvoiceApp.Services
                 _counters.Years[year] = y;
             }
 
-            // z čísla si vytáhneme užité pořadí a posuneme next na další
             var seqPart = number.Substring(4); // 6 číslic
             if (!int.TryParse(seqPart, out var used)) used = 0;
 
@@ -142,7 +192,20 @@ namespace InvoiceApp.Services
                 }
             }
             catch { /* ignore */ }
-            return new Counters();
+
+            // Pokud soubor neexistuje (první spuštění v novém umístění),
+            // inicializujeme výchozí hodnoty pro rok 2025 dle přání uživatele.
+            var defaults = new Counters();
+            defaults.Years["2025"] = new YearCounters
+            {
+                FaNext = 20,  // Další bude FA-20250020
+                ObjNext = 6   // Další bude OBJ-20250006
+            };
+            
+            // Uložíme, aby se soubor vytvořil
+            Save(defaults);
+
+            return defaults;
         }
 
         private void Save(Counters data)
@@ -159,13 +222,13 @@ namespace InvoiceApp.Services
 
         private class Counters
         {
-            public Dictionary<string, YearCounters> Years { get; set; } = new(); // key = "2025"
+            public Dictionary<string, YearCounters> Years { get; set; } = new(); 
         }
 
         private class YearCounters
         {
-            public int FaNext { get; set; } = 1;   // další pořadí pro FA v roce
-            public int ObjNext { get; set; } = 1;  // další pořadí pro OBJ v roce
+            public int FaNext { get; set; } = 1;
+            public int ObjNext { get; set; } = 1;
         }
     }
 }
