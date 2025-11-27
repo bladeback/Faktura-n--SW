@@ -49,7 +49,7 @@ namespace InvoiceApp.Models
         [ObservableProperty] private Party supplier = new();
         [ObservableProperty] private Party customer = new();
 
-        public ObservableCollection<InvoiceItem> Items { get; } = new();
+        public ObservableCollection<InvoiceItem> Items { get; set; } = new();
 
         [ObservableProperty] private string variableSymbol = string.Empty;
         [ObservableProperty] private string currency = "CZK";

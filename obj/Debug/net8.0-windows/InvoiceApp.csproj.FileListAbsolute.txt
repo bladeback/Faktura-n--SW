@@ -43,7 +43,10 @@ C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\MainWindow.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\ConstructionPage.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\CustomersPage.g.cs
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\DashboardPage.g.cs
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\HistoryPage.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\InvoicePage.g.cs
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\ItemsPage.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SettingsPage.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SupplierEditorWindow.g.cs
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SuppliersPage.g.cs
@@ -52,7 +55,10 @@ C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp_MarkupCompile.cache
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp_MarkupCompile.lref
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\App.baml
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\DashboardPage.baml
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\HistoryPage.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\InvoicePage.baml
+C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\ItemsPage.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\SettingsPage.baml
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.g.resources
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.GeneratedMSBuildEditorConfig.editorconfig
@@ -66,9 +72,3 @@ C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.pdb
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\InvoiceApp.genruntimeconfig.cache
 C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\ref\InvoiceApp.dll
-C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\ItemsPage.g.cs
-C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\ItemsPage.baml
-C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\HistoryPage.g.cs
-C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\HistoryPage.baml
-C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\DashboardPage.g.cs
-C:\Users\blade\Documents\PlatformIO\Projects\InvoiceApp_WPF_net8\obj\Debug\net8.0-windows\Views\DashboardPage.baml

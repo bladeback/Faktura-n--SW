@@ -14,7 +14,7 @@ namespace InvoiceApp.Services
         private static readonly string ThemeColor = "#009A8D";
         private static readonly string GreyColor = "#F0F0F0";
 
-        public string SaveInvoicePdf(Invoice invoice, byte[]? qrPng, string filePath)
+        public string SaveInvoicePdf(Invoice invoice, byte[]? qrPng, string filePath, AppConfig config)
         {
             if (invoice == null)
                 throw new ArgumentNullException(nameof(invoice));
@@ -30,11 +30,9 @@ namespace InvoiceApp.Services
                     page.DefaultTextStyle(x => x.FontSize(9).FontFamily(Fonts.Calibri));
                     page.PageColor(Colors.White);
 
-                    page.Header().Element(c => ComposeHeader(c, invoice));        // 2 argy
-                    page.Content().Element(c => ComposeBody(c, invoice, qrPng));   // 3 argy (qr je v Body)
-                    page.Footer().Element(c => ComposeFooter(c, invoice));         // 2 argy
-
-
+                    page.Header().Element(c => ComposeHeader(c, invoice));
+                    page.Content().Element(c => ComposeBody(c, invoice, qrPng));
+                    page.Footer().Element(c => ComposeFooter(c, invoice, config));
                 });
             });
 
@@ -160,32 +158,57 @@ namespace InvoiceApp.Services
             });
         }
 
-
         // =================== FOOTER ===================
-        private void ComposeFooter(IContainer container, Invoice inv)
+        private void ComposeFooter(IContainer container, Invoice inv, AppConfig config)
         {
             container.Column(col =>
             {
-                // OBJ: výrazný černý text
-                if (inv.Type == DocType.Order)
+                // URL (jen pro faktury, pokud je vyplněno)
+                if (inv.Type == DocType.Invoice && !string.IsNullOrWhiteSpace(config.InvoiceUrl))
                 {
-                    col.Item().PaddingBottom(5).Text(t =>
+                    col.Item().PaddingBottom(5).AlignRight().Hyperlink(config.InvoiceUrl).Text(t =>
                     {
-                        t.Span("Faktura bude vystavena v den vydání. Splatnost faktur 14 dní ode dne doručení. Objednatel souhlasí se zněním objednávky a potvrzením vzniká závazná objednávka služby.").Bold()
-                         .FontSize(11)          // větší
-                         .FontColor(Colors.Black);
+                        var displayText = !string.IsNullOrWhiteSpace(config.InvoiceUrlText) 
+                            ? config.InvoiceUrlText 
+                            : config.InvoiceUrl;
+                            
+                        t.Span(displayText).Bold().FontSize(10).FontColor(ThemeColor);
                     });
                 }
-                // FA: necháme původní decentní šedý text
-                else
+
+                // Text patičky
+                var text = inv.Type == DocType.Invoice ? config.FooterInvoice : config.FooterOrder;
+                
+                // Pokud je prázdný, použijeme default
+                if (string.IsNullOrWhiteSpace(text))
                 {
-                    col.Item().PaddingBottom(5).Text(t =>
-                    {
-                        t.Span("Dovolujeme si Vás upozornit, že v případě nedodržení data splatnosti uvedeného na faktuře Vám můžeme účtovat zákonný úrok z prodlení.")
-                         .FontSize(8)
-                         .FontColor(Colors.Grey.Medium);
-                    });
+                    text = inv.Type == DocType.Invoice
+                        ? "Dovolujeme si Vás upozornit, že v případě nedodržení data splatnosti uvedeného na faktuře Vám můžeme účtovat zákonný úrok z prodlení."
+                        : "Faktura bude vystavena v den vydání. Splatnost faktur 14 dní ode dne doručení. Objednatel souhlasí se zněním objednávky a potvrzením vzniká závazná objednávka služby.";
                 }
+
+                col.Item().PaddingBottom(5).Text(t =>
+                {
+                    // Výchozí styl
+                    if (inv.Type == DocType.Order)
+                        t.DefaultTextStyle(x => x.FontSize(11).FontColor(Colors.Black)); // Default bold removed here, handled by tags or specific span
+                    else
+                        t.DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium));
+
+                    // Pokud text neobsahuje tagy, vykreslíme ho postaru (pro zachování kompatibility vzhledu)
+                    if (!text.Contains("<") && !text.Contains(">"))
+                    {
+                        if (inv.Type == DocType.Order)
+                            t.Span(text).Bold();
+                        else
+                            t.Span(text);
+                    }
+                    else
+                    {
+                        // Rich text parsing
+                        RenderRichText(t, text);
+                    }
+                });
 
                 // řádek s číslem stránky beze změny
                 col.Item().Row(row =>
@@ -205,6 +228,62 @@ namespace InvoiceApp.Services
                     });
                 });
             });
+        }
+
+        private void RenderRichText(TextDescriptor t, string text)
+        {
+            // Simple parser for <b>...</b>, <i>...</i>, <size:15>...</size>, <color:#RRGGBB>...</color>, <bg:#RRGGBB>...</bg>
+            // We will split by tags and process segments.
+            // Regex to find tags: <[^>]+>
+            
+            var matches = System.Text.RegularExpressions.Regex.Matches(text, @"(<[^>]+>)|([^<]+)");
+            
+            bool isBold = false;
+            bool isItalic = false;
+            float? currentSize = null;
+            string? currentColor = null;
+            string? currentBg = null;
+
+            foreach (System.Text.RegularExpressions.Match m in matches)
+            {
+                var val = m.Value;
+                if (val.StartsWith("<"))
+                {
+                    // Tag processing
+                    var tag = val.ToLowerInvariant();
+                    if (tag == "<b>") isBold = true;
+                    else if (tag == "</b>") isBold = false;
+                    else if (tag == "<i>") isItalic = true;
+                    else if (tag == "</i>") isItalic = false;
+                    else if (tag.StartsWith("<size:"))
+                    {
+                        var sizePart = tag.Substring(6, tag.Length - 7).Trim();
+                        if (float.TryParse(sizePart, NumberStyles.Any, CultureInfo.InvariantCulture, out var s))
+                            currentSize = s;
+                    }
+                    else if (tag == "</size>") currentSize = null;
+                    else if (tag.StartsWith("<color:"))
+                    {
+                        currentColor = tag.Substring(7, tag.Length - 8).Trim();
+                    }
+                    else if (tag == "</color>") currentColor = null;
+                    else if (tag.StartsWith("<bg:"))
+                    {
+                        currentBg = tag.Substring(4, tag.Length - 5).Trim();
+                    }
+                    else if (tag == "</bg>") currentBg = null;
+                }
+                else
+                {
+                    // Text content
+                    var span = t.Span(val);
+                    if (isBold) span.Bold();
+                    if (isItalic) span.Italic();
+                    if (currentSize.HasValue) span.FontSize(currentSize.Value);
+                    if (!string.IsNullOrEmpty(currentColor)) span.FontColor(currentColor);
+                    if (!string.IsNullOrEmpty(currentBg)) span.BackgroundColor(currentBg);
+                }
+            }
         }
 
 

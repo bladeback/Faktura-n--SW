@@ -12,68 +12,280 @@
         <vm:SettingsViewModel/>
     </UserControl.DataContext>
 
-    <Grid Margin="40">
+
+    <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Toolbar -->
+            <RowDefinition Height="*"/>    <!-- Content (Tabs) -->
+            <RowDefinition Height="Auto"/> <!-- Footer (Save Button) -->
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Nastavení aplikace" 
-                   FontSize="28" FontWeight="Bold" Foreground="#1E293B"
-                   Margin="0,0,0,20"/>
+        <TextBlock Grid.Row="0" Text="Nastavení aplikace" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" Foreground="#1E293B"/>
 
-        <Border Grid.Row="1" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="20">
+        <!-- Číslování dokladů Section - kept inside a ScrollViewer in the main content area or separate? 
+             Actually, the user wants the Save button always visible. 
+             So we should put the main content in a ScrollViewer in Row 2. -->
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
             <StackPanel>
-                <TextBlock Text="Číslování dokladů" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15" Foreground="#334155"/>
+                <!-- Číslování dokladů -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Číslování dokladů" FontSize="18" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="Uložit číslování" 
+                                    Command="{Binding SaveSettingsCommand}"
+                                    Background="#009A8D" Foreground="White" Padding="10,5" BorderThickness="0" FontWeight="SemiBold">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </Grid>
+                        
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Rok:" VerticalAlignment="Center" Foreground="#64748B"/>
+                            <TextBox Grid.Column="1" Text="{Binding CurrentYear, UpdateSourceTrigger=PropertyChanged}" Padding="5" BorderBrush="#CBD5E1"/>
+                        </Grid>
 
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="200"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Rok:" VerticalAlignment="Center" Foreground="#64748B"/>
-                    <TextBox Grid.Column="1" Text="{Binding CurrentYear, UpdateSourceTrigger=PropertyChanged}" 
-                             Padding="5" BorderBrush="#CBD5E1"/>
-                </Grid>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Další číslo faktury:" VerticalAlignment="Center" Foreground="#64748B"/>
+                            <TextBox Grid.Column="1" Text="{Binding NextInvoiceNumber}" Padding="5" BorderBrush="#CBD5E1"/>
+                        </Grid>
 
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="200"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Další číslo faktury:" VerticalAlignment="Center" Foreground="#64748B"/>
-                    <TextBox Grid.Column="1" Text="{Binding NextInvoiceNumber}" 
-                             Padding="5" BorderBrush="#CBD5E1"/>
-                </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Další číslo objednávky:" VerticalAlignment="Center" Foreground="#64748B"/>
+                            <TextBox Grid.Column="1" Text="{Binding NextOrderNumber}" Padding="5" BorderBrush="#CBD5E1"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="200"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Další číslo objednávky:" VerticalAlignment="Center" Foreground="#64748B"/>
-                    <TextBox Grid.Column="1" Text="{Binding NextOrderNumber}" 
-                             Padding="5" BorderBrush="#CBD5E1"/>
-                </Grid>
+                <!-- Patička a Odkazy -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Patička a Odkazy" FontSize="18" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="Uložit vzhled" 
+                                    Command="{Binding SaveSettingsCommand}"
+                                    Background="#009A8D" Foreground="White" Padding="10,5" BorderThickness="0" FontWeight="SemiBold">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </Grid>
 
-                <Button Content="Uložit nastavení" 
-                        Command="{Binding SaveSettingsCommand}"
-                        HorizontalAlignment="Left"
-                        Padding="20,10"
-                        Background="#2563EB" Foreground="White" FontWeight="Bold" BorderThickness="0">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="6"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
+                        <!-- Formatting Toolbar (Shared) -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Background="#F1F5F9">
+                            <Button Content="B" FontWeight="Bold" Width="30" Height="25" Margin="5,5,5,5" Click="InsertBold_Click" ToolTip="Tučně (označený text)" Focusable="False"/>
+                            <Button Content="I" FontStyle="Italic" Width="30" Height="25" Margin="0,5,5,5" Click="InsertItalic_Click" ToolTip="Kurzíva (označený text)" Focusable="False"/>
+                            <Button Content="S" FontSize="10" Width="30" Height="25" Margin="0,5,5,5" Click="InsertSize_Click" ToolTip="Velikost písma" Focusable="False">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="10" Click="SizeItem_Click" Tag="10"/>
+                                        <MenuItem Header="11" Click="SizeItem_Click" Tag="11"/>
+                                        <MenuItem Header="12" Click="SizeItem_Click" Tag="12"/>
+                                        <MenuItem Header="14" Click="SizeItem_Click" Tag="14"/>
+                                        <MenuItem Header="16" Click="SizeItem_Click" Tag="16"/>
+                                        <MenuItem Header="18" Click="SizeItem_Click" Tag="18"/>
+                                        <MenuItem Header="20" Click="SizeItem_Click" Tag="20"/>
+                                        <MenuItem Header="24" Click="SizeItem_Click" Tag="24"/>
+                                        <Separator/>
+                                        <MenuItem Header="Vlastní..." Click="InsertSize_Click"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                            <Button Content="Color" FontSize="10" Width="40" Height="25" Margin="0,5,5,5" Click="InsertColor_Click" ToolTip="Barva písma" Focusable="False">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Černá" Click="ColorItem_Click" Tag="#000000">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#000000" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Červená" Click="ColorItem_Click" Tag="#FF0000">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FF0000" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Modrá" Click="ColorItem_Click" Tag="#0000FF">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#0000FF" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Zelená" Click="ColorItem_Click" Tag="#008000">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#008000" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Oranžová" Click="ColorItem_Click" Tag="#FFA500">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FFA500" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Žlutá" Click="ColorItem_Click" Tag="#FFFF00">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FFFF00" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Fialová" Click="ColorItem_Click" Tag="#800080">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#800080" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Růžová" Click="ColorItem_Click" Tag="#FF1493">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FF1493" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Tyrkysová" Click="ColorItem_Click" Tag="#008080">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#008080" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Hnědá" Click="ColorItem_Click" Tag="#A52A2A">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#A52A2A" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Šedá" Click="ColorItem_Click" Tag="#808080">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#808080" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
+                                        <MenuItem Header="Vlastní..." Click="InsertColor_Click"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                            <Button Content="Bg" FontSize="10" Width="30" Height="25" Margin="0,5,5,5" Click="InsertBg_Click" ToolTip="Barva pozadí" Focusable="False">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Černá" Click="BgItem_Click" Tag="#000000">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#000000" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Červená" Click="BgItem_Click" Tag="#FF0000">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FF0000" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Modrá" Click="BgItem_Click" Tag="#0000FF">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#0000FF" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Zelená" Click="BgItem_Click" Tag="#008000">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#008000" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Oranžová" Click="BgItem_Click" Tag="#FFA500">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FFA500" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Žlutá" Click="BgItem_Click" Tag="#FFFF00">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FFFF00" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Fialová" Click="BgItem_Click" Tag="#800080">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#800080" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Růžová" Click="BgItem_Click" Tag="#FF1493">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#FF1493" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Tyrkysová" Click="BgItem_Click" Tag="#008080">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#008080" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Hnědá" Click="BgItem_Click" Tag="#A52A2A">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#A52A2A" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Šedá" Click="BgItem_Click" Tag="#808080">
+                                            <MenuItem.Icon><Border Width="10" Height="10" Background="#808080" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
+                                        <MenuItem Header="Vlastní..." Click="InsertBg_Click"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                            <TextBlock Text="Označte text a klikněte na tlačítko." VerticalAlignment="Center" Foreground="#64748B" FontSize="11" Margin="5,0,0,0"/>
+                        </StackPanel>
+
+                        <TabControl Margin="0,0,0,0" BorderThickness="0" Background="Transparent">
+                            <TabControl.Resources>
+                                <Style TargetType="TabItem">
+                                    <Setter Property="FontSize" Value="14"/>
+                                    <Setter Property="Padding" Value="10,5"/>
+                                    <Setter Property="Margin" Value="0,0,5,0"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TabItem">
+                                                <Border Name="Border" BorderThickness="0,0,0,2" BorderBrush="Transparent" Margin="0,0,5,0">
+                                                    <ContentPresenter x:Name="ContentSite"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center"
+                                                        ContentSource="Header"
+                                                        Margin="10,5"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Border" Property="BorderBrush" Value="#009A8D"/>
+                                                        <Setter Property="Foreground" Value="#009A8D"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="False">
+                                                        <Setter Property="Foreground" Value="#64748B"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </TabControl.Resources>
+
+                            <!-- FAKTURA TAB -->
+                            <TabItem Header="Faktura">
+                                <StackPanel Margin="0,15,0,0">
+                                    <TextBlock Text="Text patičky:" Foreground="#64748B" Margin="0,0,0,5"/>
+                                    <TextBox x:Name="FooterInvoiceBox" Text="{Binding FooterInvoice, UpdateSourceTrigger=PropertyChanged}" 
+                                             Height="80" TextWrapping="Wrap" AcceptsReturn="True"
+                                             Padding="5" BorderBrush="#CBD5E1" Margin="0,0,0,10" VerticalScrollBarVisibility="Auto"
+                                             TextChanged="FooterInvoiceBox_TextChanged"/>
+                                    
+                                    <TextBlock Text="Náhled:" Foreground="#64748B" FontSize="11" Margin="0,0,0,2"/>
+                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Background="White" Padding="10" Margin="0,0,0,20" MinHeight="40">
+                                        <TextBlock x:Name="PreviewInvoice" TextWrapping="Wrap" FontSize="11" Foreground="Black"/>
+                                    </Border>
+
+                                    <Grid Margin="0,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                            <TextBlock Text="Webová adresa (URL):" Foreground="#64748B" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding InvoiceUrl}" Padding="5" BorderBrush="#CBD5E1"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                            <TextBlock Text="Zobrazený text odkazu:" Foreground="#64748B" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding InvoiceUrlText}" Padding="5" BorderBrush="#CBD5E1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </TabItem>
+
+                            <!-- OBJEDNÁVKA TAB -->
+                            <TabItem Header="Objednávka">
+                                <StackPanel Margin="0,15,0,0">
+                                    <TextBlock Text="Text patičky:" Foreground="#64748B" Margin="0,0,0,5"/>
+                                    <TextBox x:Name="FooterOrderBox" Text="{Binding FooterOrder, UpdateSourceTrigger=PropertyChanged}" 
+                                             Height="80" TextWrapping="Wrap" AcceptsReturn="True"
+                                             Padding="5" BorderBrush="#CBD5E1" Margin="0,0,0,10" VerticalScrollBarVisibility="Auto"
+                                             TextChanged="FooterOrderBox_TextChanged"/>
+
+                                    <TextBlock Text="Náhled:" Foreground="#64748B" FontSize="11" Margin="0,0,0,2"/>
+                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Background="White" Padding="10" Margin="0,0,0,20" MinHeight="40">
+                                        <TextBlock x:Name="PreviewOrder" TextWrapping="Wrap" FontSize="11" Foreground="Black"/>
+                                    </Border>
+                                </StackPanel>
+                            </TabItem>
+                        </TabControl>
+                    </StackPanel>
+                </Border>
             </StackPanel>
-        </Border>
-
-        <TextBlock Grid.Row="2" Text="Poznámka: Změny se projeví okamžitě." 
-                   Foreground="#94A3B8" FontStyle="Italic" Margin="0,10,0,0"/>
-
+        </ScrollViewer>
     </Grid>
 </UserControl>

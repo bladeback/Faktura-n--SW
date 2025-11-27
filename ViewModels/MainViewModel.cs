@@ -559,6 +559,10 @@ namespace InvoiceApp.ViewModels
             // Přepočítat splatnost jen pokud je to potřeba, ale tady už je datum nastavené
         }
 
+        private readonly ConfigService _configService = new();
+
+        // ... (existing fields)
+
         [RelayCommand]
         private async Task ExportPdfAsync()
         {
@@ -597,7 +601,8 @@ namespace InvoiceApp.ViewModels
                 var dialog = new SaveFileDialog { Filter = "PDF (*.pdf)|*.pdf", FileName = $"{Current.Number}.pdf" };
                 if (dialog.ShowDialog() == true)
                 {
-                    var path = await Task.Run(() => _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName));
+                    var config = await _configService.LoadAsync();
+                    var path = await Task.Run(() => _pdf.SaveInvoicePdf(Current, qrPng, dialog.FileName, config));
 
                     // úspěšný export -> potvrdit číslo
                     if (Current.Type == DocType.Invoice) _num.CommitInvoice();
