@@ -84,6 +84,83 @@ namespace InvoiceApp.ViewModels
         // However, we need to expose the properties to be bound.
 
 
+        private readonly BackupService _backupService = new();
+
+        [RelayCommand]
+        private async Task CreateBackup()
+        {
+            try
+            {
+                var dialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "ZIP Archive (*.zip)|*.zip",
+                    FileName = $"InvoiceApp_Backup_{DateTime.Now:yyyyMMdd}.zip"
+                };
+
+                if (dialog.ShowDialog() == true)
+                {
+                    await _backupService.CreateBackupAsync(dialog.FileName);
+                    MessageBox.Show($"Záloha byla úspěšně vytvořena:\n{dialog.FileName}", "Záloha dokončena", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Chyba při vytváření zálohy: {ex.Message}", "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        [RelayCommand]
+        private async Task RestoreBackup()
+        {
+            try
+            {
+                var result = MessageBox.Show(
+                    "Obnovení ze zálohy PŘEPÍŠE všechna aktuální data (faktury, klienty, nastavení).\n\nChcete pokračovat?",
+                    "Potvrzení obnovy",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result != MessageBoxResult.Yes) return;
+
+                var dialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "ZIP Archive (*.zip)|*.zip"
+                };
+
+                if (dialog.ShowDialog() == true)
+                {
+                    await _backupService.RestoreBackupAsync(dialog.FileName);
+                    
+                    var restartResult = MessageBox.Show(
+                        "Data byla úspěšně obnovena.\n\nPro správné načtení všech dat je nutné aplikaci restartovat.\nChcete aplikaci restartovat nyní?", 
+                        "Obnova dokončena", 
+                        MessageBoxButton.YesNo, 
+                        MessageBoxImage.Question);
+
+                    if (restartResult == MessageBoxResult.Yes)
+                    {
+                        // Restart application
+                        var exePath = Environment.ProcessPath;
+                        if (exePath != null)
+                        {
+                            System.Diagnostics.Process.Start(exePath);
+                            Application.Current.Shutdown();
+                        }
+                    }
+                    else
+                    {
+                        // Reload current view data at least
+                        LoadCounters();
+                        LoadConfig();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Chyba při obnově dat: {ex.Message}", "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         partial void OnCurrentYearChanged(string value)
         {
             // Pokud uživatel změní rok, načteme čítače pro ten rok

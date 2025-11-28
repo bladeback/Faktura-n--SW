@@ -31,6 +31,14 @@
                 <DataGridTextColumn Header="Typ" Binding="{Binding Type}" Width="100"/>
                 <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=d}" Width="100"/>
                 <DataGridTextColumn Header="Odběratel" Binding="{Binding Customer.Name}" Width="*"/>
+                <DataGridTextColumn Header="Částka" Binding="{Binding Total, StringFormat={}{0:N0} Kč}" Width="100">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="Padding" Value="0,0,10,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
                 
                 <DataGridTemplateColumn Header="Zaplaceno" Width="100">
                     <DataGridTemplateColumn.CellTemplate>

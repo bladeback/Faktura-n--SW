@@ -40,11 +40,7 @@ namespace InvoiceApp.Views
 
         // === TLAČÍTKA ===
 
-        private async void Save_Click(object sender, RoutedEventArgs e)
-        {
-            await SaveSuppliers();
-            MessageBox.Show("Dodavatelé uloženi.", "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+
 
         private async void Add_Click(object sender, RoutedEventArgs e)
         {

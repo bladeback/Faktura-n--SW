@@ -26,5 +26,19 @@
     "email": null,
     "phone": null,
     "isVatPayer": false
+  },
+  {
+    "name": "Lucie Bastlov\u00E1",
+    "address": "J. A. Komensk\u00E9ho 536",
+    "city": "Ok\u0159\u00ED\u0161ky",
+    "postalCode": "67521",
+    "ico": "01642049",
+    "dic": "CZ8855074987",
+    "bank": null,
+    "accountNumber": null,
+    "iban": "",
+    "email": null,
+    "phone": null,
+    "isVatPayer": true
   }
 ]

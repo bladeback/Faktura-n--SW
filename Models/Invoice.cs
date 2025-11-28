@@ -76,7 +76,19 @@ namespace InvoiceApp.Models
         }
 
         public decimal SubtotalNet => Items.Sum(i => i.Quantity * i.UnitPrice);
-        public decimal VatTotal => Items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate);
+        
+        public decimal VatTotal
+        {
+            get
+            {
+                // Pokud dodavatel nemá DIČ, je neplátce -> DPH je 0
+                if (string.IsNullOrWhiteSpace(Supplier?.DIC))
+                    return 0;
+
+                return Items.Sum(i => i.Quantity * i.UnitPrice * i.VatRate);
+            }
+        }
+
         public decimal Total => SubtotalNet + VatTotal;
 
         private static string? BuildCzIbanFromAccount(string? account)

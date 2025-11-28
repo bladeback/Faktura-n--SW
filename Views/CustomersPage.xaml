@@ -32,7 +32,7 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="Přidat" Click="Add_Click" Style="{StaticResource ToolbarButton}"/>
                 <Button Content="Smazat vybrané" Click="DeleteSelected_Click" Style="{StaticResource ToolbarButton}"/>
-                <Button Content="Uložit" Click="Save_Click" Style="{StaticResource ToolbarButton}"/>
+
 
                 <!-- mezera -->
                 <Border Width="12" Background="Transparent"/>

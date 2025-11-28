@@ -285,6 +285,38 @@
                         </TabControl>
                     </StackPanel>
                 </Border>
+
+                <!-- Zálohování a data -->
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Zálohování a data" FontSize="18" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,15"/>
+                        
+                        <TextBlock Text="Zde můžete vytvořit kompletní zálohu všech dat aplikace (faktury, klienti, nastavení) nebo data obnovit ze zálohy." 
+                                   Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,15"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Vytvořit zálohu" 
+                                    Command="{Binding CreateBackupCommand}"
+                                    Background="#009A8D" Foreground="White" Padding="15,8" BorderThickness="0" FontWeight="SemiBold" Margin="0,0,15,0">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+
+                            <Button Content="Obnovit ze zálohy" 
+                                    Command="{Binding RestoreBackupCommand}"
+                                    Background="White" Foreground="#EF4444" Padding="15,8" BorderBrush="#EF4444" BorderThickness="1" FontWeight="SemiBold">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

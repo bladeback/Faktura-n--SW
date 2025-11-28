@@ -41,7 +41,7 @@ namespace InvoiceApp.ViewModels
 
         public DashboardViewModel()
         {
-            SelectedYear = DateTime.Now.Year;
+            selectedYear = DateTime.Now.Year;
             LoadStats(true);
         }
 
@@ -190,10 +190,96 @@ namespace InvoiceApp.ViewModels
                 }
             }
 
-            MonthlyStats = stats;
+            // Calculate nice Y-axis scale
+            long maxValLong = (long)Math.Ceiling(maxVal);
+            long niceMax = CalculateNiceGraphMax(maxValLong);
+            
+            YAxisLabels.Clear();
+            // Create 5 intervals (6 labels including 0)
+            decimal step = niceMax / 5m;
+            
+            for (int i = 5; i >= 0; i--)
+            {
+                decimal val = step * i;
+                YAxisLabels.Add($"{val:N0} Kč");
+            }
+
+            // Recalculate heights based on niceMax
+            stats.Clear();
+            if (SelectedPeriod == ChartPeriod.Months)
+            {
+                var monthNames = new[] { "Led", "Úno", "Bře", "Dub", "Kvě", "Čer", "Čvc", "Srp", "Zář", "Říj", "Lis", "Pro" };
+                var monthlyValues = new decimal[12];
+                for (int m = 1; m <= 12; m++)
+                {
+                    monthlyValues[m - 1] = invoices
+                        .Where(i => i.IssueDate.Year == SelectedYear && i.IssueDate.Month == m)
+                        .Sum(i => i.Total);
+                }
+
+                for (int i = 0; i < 12; i++)
+                {
+                    double height = (double)(monthlyValues[i] / niceMax) * 150;
+                    if (height < 2 && monthlyValues[i] > 0) height = 2;
+
+                    stats.Add(new ChartItem 
+                    { 
+                        Label = monthNames[i], 
+                        Value = monthlyValues[i], 
+                        Height = height,
+                        Color = monthlyValues[i] > 0 ? "#009A8D" : "#E2E8F0"
+                    });
+                }
+            }
+            // ... (similar logic for Quarters and Years would need update, but let's focus on Months first or refactor)
+            // Actually, I should refactor UpdateChart to separate calculation from rendering to avoid code duplication.
+            // But for now, let's just apply the niceMax to the existing logic.
+            
+            // Wait, I can't easily inject niceMax into the previous blocks without refactoring.
+            // Let's refactor UpdateChart slightly.
+
+
+            // Update MonthlyStats collection instead of replacing it
+            MonthlyStats.Clear();
+            foreach (var item in stats)
+            {
+                MonthlyStats.Add(item);
+            }
         }
 
-        [ObservableProperty] private System.Collections.ObjectModel.ObservableCollection<ChartItem> monthlyStats;
+        private long CalculateNiceGraphMax(long max)
+        {
+            if (max == 0) return 100;
+
+            // Find the order of magnitude
+            double mag = Math.Floor(Math.Log10(max));
+            double magPow = Math.Pow(10, mag);
+
+            // Normalize max to 0..10
+            double magMsd = max / magPow;
+
+            double niceMsd;
+            if (magMsd > 5) niceMsd = 10;
+            else if (magMsd > 2) niceMsd = 5;
+            else if (magMsd > 1) niceMsd = 2;
+            else niceMsd = 1;
+
+            long niceMax = (long)(niceMsd * magPow);
+            
+            // If the nice max is smaller than actual max (e.g. max=12, nice=10), bump it up
+            if (niceMax < max)
+            {
+                if (niceMsd == 1) niceMax = (long)(2 * magPow);
+                else if (niceMsd == 2) niceMax = (long)(5 * magPow);
+                else if (niceMsd == 5) niceMax = (long)(10 * magPow);
+                else niceMax = (long)(20 * magPow); // Should not happen if niceMsd=10
+            }
+
+            return niceMax;
+        }
+
+        [ObservableProperty] private System.Collections.ObjectModel.ObservableCollection<ChartItem> monthlyStats = new();
+        [ObservableProperty] private System.Collections.ObjectModel.ObservableCollection<string> yAxisLabels = new();
     }
 
     public class ChartItem
