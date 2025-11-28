@@ -174,7 +174,7 @@ namespace InvoiceApp.Views
                         try
                         {
                             var colorPart = tag.Substring(7, tag.Length - 8).Trim();
-                            currentColor = (Brush)new BrushConverter().ConvertFromString(colorPart);
+                            currentColor = new BrushConverter().ConvertFromString(colorPart) as Brush;
                         }
                         catch { /* ignore invalid color */ }
                     }
@@ -184,7 +184,7 @@ namespace InvoiceApp.Views
                         try
                         {
                             var bgPart = tag.Substring(4, tag.Length - 5).Trim();
-                            currentBg = (Brush)new BrushConverter().ConvertFromString(bgPart);
+                            currentBg = new BrushConverter().ConvertFromString(bgPart) as Brush;
                         }
                         catch { /* ignore invalid color */ }
                     }

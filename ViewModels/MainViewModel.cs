@@ -89,7 +89,7 @@ namespace InvoiceApp.ViewModels
             Items.CollectionChanged += Items_CollectionChanged;
             HookSupplierWatcher(Current.Supplier);
             LoadBanks();
-            LoadSavedParties();
+            _ = LoadSavedParties();
         }
 
         public async Task LoadSavedParties()
