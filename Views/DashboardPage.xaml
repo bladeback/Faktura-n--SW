@@ -81,13 +81,84 @@
         <!-- Placeholder pro graf nebo seznam posledních -->
         <!-- Graf vývoje tržeb -->
         <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
+            <Border.Resources>
+                <Style x:Key="SegmentButton" TargetType="Button">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="#64748B"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Padding" Value="16,6"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="16">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Border.Resources>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 
-                <TextBlock Text="{Binding SelectedYear, StringFormat='Vývoj tržeb v roce {0}'}" FontSize="16" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,20"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Text="{Binding SelectedYear, StringFormat='Vývoj tržeb v roce {0}'}" FontSize="16" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                    
+                    <!-- Segmented Control -->
+                    <Border Grid.Column="1" Background="#F1F5F9" CornerRadius="20" Padding="4">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Měsíce" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ChartPeriod.Months}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedPeriod}" Value="{x:Static vm:ChartPeriod.Months}">
+                                                <Setter Property="Background" Value="#8B5CF6"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            
+                            <Button Content="Kvartály" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ChartPeriod.Quarters}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedPeriod}" Value="{x:Static vm:ChartPeriod.Quarters}">
+                                                <Setter Property="Background" Value="#8B5CF6"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            
+                            <Button Content="Roky" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ChartPeriod.Years}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedPeriod}" Value="{x:Static vm:ChartPeriod.Years}">
+                                                <Setter Property="Background" Value="#8B5CF6"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
                 
                 <ItemsControl Grid.Row="1" ItemsSource="{Binding MonthlyStats}" VerticalAlignment="Bottom">
                     <ItemsControl.ItemsPanel>
