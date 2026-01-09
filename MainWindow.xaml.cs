@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -7,8 +8,7 @@ namespace InvoiceApp
 {
     public partial class MainWindow : Window
     {
-        // Držíme jednu instanci ViewModelu pro celou dobu běhu okna,
-        // aby se při přepínání stránek neztrácela rozpracovaná data.
+        // Držíme jednu instanci ViewModelu pro celou dobu běhu okna.
         private readonly MainViewModel _mainViewModel;
 
         public MainWindow()
@@ -21,23 +21,37 @@ namespace InvoiceApp
             Dashboard_Click(this, new RoutedEventArgs());
         }
 
-        // Zvýraznění aktivního tlačítka (pouze ta, která v XAML existují)
+        // Zvýraznění aktivního tlačítka (nyní přes Styles)
         private void SetActive(Button? active)
         {
-            // reset všech tlačítek
+            // reset všech tlačítek na základní styl
             var buttons = new[] { NavDashboard, NavInvoices, NavOrders, NavSuppliers, NavCustomers, NavSettings, NavItems, NavHistory };
             foreach (var btn in buttons)
             {
                 if (btn == null) continue;
-                btn.ClearValue(Control.BackgroundProperty);
-                btn.ClearValue(Control.ForegroundProperty);
+                btn.Style = (Style)FindResource("NavButtonStyle");
             }
 
-            // aktivní
+            // aktivní na Active Style
             if (active != null)
             {
-                active.Background = new SolidColorBrush(Color.FromRgb(37, 99, 235)); // #2563EB
-                active.Foreground = Brushes.White;
+                active.Style = (Style)FindResource("NavButtonActiveStyle");
+            }
+        }
+
+        private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox toggle)
+            {
+                bool isDark = toggle.IsChecked == true;
+                string themeFile = isDark ? "Theme.Dark.xaml" : "Theme.Light.xaml";
+                
+                // Předpokládáme, že první MergedDictionary v App.xaml je Theme (Dark/Light)
+                if (Application.Current.Resources.MergedDictionaries.Count > 0)
+                {
+                    Application.Current.Resources.MergedDictionaries[0].Source = 
+                        new Uri($"Styles/{themeFile}", UriKind.Relative);
+                }
             }
         }
 
@@ -134,7 +148,7 @@ namespace InvoiceApp
         public void ConvertOrder(Models.Invoice order)
         {
             _mainViewModel.CreateFromOrder(order);
-            NavigateToInvoicePage(false); // false = nepouštěj NewInvoice, už máme nastaveno
+            NavigateToInvoicePage(false); 
         }
     }
 }

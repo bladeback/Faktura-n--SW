@@ -7,24 +7,24 @@
              xmlns:models="clr-namespace:InvoiceApp.Models"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800"
-             Background="White">
+             Background="{DynamicResource Brush.AppBackground}">
 
     <UserControl.DataContext>
         <vm:HistoryViewModel/>
     </UserControl.DataContext>
 
-    <Grid Margin="20">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,20">
+        <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,24">
             <TextBlock Text="Historie dokladů" Style="{StaticResource Heading1}" VerticalAlignment="Center" DockPanel.Dock="Left"/>
             
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                <TextBlock Text="Období:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#64748B"/>
-                <ComboBox Width="150" Height="32"
+                <TextBlock Text="Období:" VerticalAlignment="Center" Margin="0,0,12,0" Style="{StaticResource FormLabel}"/>
+                <ComboBox Width="160" Height="36"
                           VerticalContentAlignment="Center"
                           Padding="10,0"
                           ItemsSource="{Binding FilterOptions}"
@@ -37,26 +37,26 @@
             <TabControl.Resources>
                 <Style TargetType="TabItem">
                     <Setter Property="FontSize" Value="14"/>
-                    <Setter Property="Padding" Value="12,8"/>
+                    <Setter Property="Padding" Value="16,10"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
                     <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="BorderThickness" Value="0,0,0,3"/>
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
-                                <Border x:Name="Border" BorderBrush="Transparent" BorderThickness="0,0,0,3" Background="Transparent" Padding="12,8">
+                                <Border x:Name="Border" BorderBrush="Transparent" BorderThickness="0,0,0,2" Background="Transparent" Padding="16,8">
                                     <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Border" Property="BorderBrush" Value="#2563EB"/>
-                                        <Setter Property="Foreground" Value="#2563EB"/>
+                                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource Brush.Primary}"/>
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="False">
-                                        <Setter Property="Foreground" Value="#64748B"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}"/>
                                     </Trigger>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="#1D4ED8"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource Brush.PrimaryDark}"/>
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -73,14 +73,14 @@
                           Style="{StaticResource ModernDataGrid}"
                           Margin="0,16,0,0">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="250"/>
-                        <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=dd.MM.yyyy}" Width="125"/>
+                        <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="200"/>
+                        <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=dd.MM.yyyy}" Width="120"/>
                         <DataGridTextColumn Header="Odběratel" Binding="{Binding Customer.Name}" Width="*"/>
                         <DataGridTextColumn Header="Částka" Binding="{Binding Total, StringFormat={}{0:N0} Kč}" Width="140">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,10,0"/>
+                                    <Setter Property="Padding" Value="0,0,16,0"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -104,7 +104,7 @@
                                             Command="{Binding DataContext.EditDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource ToolbarButton}"
-                                            Margin="2"/>
+                                            Margin="4"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -120,14 +120,14 @@
                           Style="{StaticResource ModernDataGrid}"
                           Margin="0,16,0,0">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="250"/>
-                        <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=dd.MM.yyyy}" Width="125"/>
+                        <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="200"/>
+                        <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=dd.MM.yyyy}" Width="120"/>
                         <DataGridTextColumn Header="Odběratel" Binding="{Binding Customer.Name}" Width="*"/>
                         <DataGridTextColumn Header="Částka" Binding="{Binding Total, StringFormat={}{0:N0} Kč}" Width="140">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="HorizontalAlignment" Value="Right"/>
-                                    <Setter Property="Padding" Value="0,0,10,0"/>
+                                    <Setter Property="Padding" Value="0,0,16,0"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -139,11 +139,11 @@
                                         <Button Content="Vytvořit fakturu" 
                                                 Command="{Binding DataContext.CreateInvoiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                 CommandParameter="{Binding}"
-                                                Background="#16A34A" Foreground="White"
-                                                Padding="8,4" Margin="2">
+                                                Background="{DynamicResource Brush.Success}" Foreground="White"
+                                                Padding="12,6" Margin="4">
                                             <Button.Resources>
                                                 <Style TargetType="Border">
-                                                    <Setter Property="CornerRadius" Value="4"/>
+                                                    <Setter Property="CornerRadius" Value="6"/>
                                                 </Style>
                                             </Button.Resources>
                                         </Button>
@@ -152,7 +152,7 @@
                                                 Command="{Binding DataContext.EditDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource ToolbarButton}"
-                                                Margin="2"/>
+                                                Margin="4"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900"
-             Background="{StaticResource Brush.Surface}">
+             Background="{DynamicResource Brush.AppBackground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -59,7 +59,7 @@
                   Style="{StaticResource ModernDataGrid}"
                   Margin="16,0,16,16">
             <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernRowStyle}">
                     <Setter Property="Cursor" Value="Hand"/>
                     <EventSetter Event="PreviewMouseLeftButtonUp" Handler="Row_Click"/>
                 </Style>

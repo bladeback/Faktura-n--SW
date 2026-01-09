@@ -12,6 +12,7 @@
 
       <!-- Globální styly UI -->
       <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Styles/Theme.Dark.xaml"/> <!-- Default Theme -->
         <ResourceDictionary Source="Styles/Theme.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 

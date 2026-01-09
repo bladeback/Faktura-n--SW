@@ -1,0 +1,67 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- DARK THEME PALETTE (2026 Neon/Cyberpunk) -->
+    
+    <!-- Backgrounds -->
+    <Color x:Key="Color.AppBackground">#0F1115</Color>
+    <SolidColorBrush x:Key="Brush.AppBackground" Color="{StaticResource Color.AppBackground}"/>
+
+    <Color x:Key="Color.CardBackground">#161B22</Color>
+    <SolidColorBrush x:Key="Brush.CardBackground" Color="{StaticResource Color.CardBackground}"/>
+
+    <Color x:Key="Color.CardHover">#1C2128</Color>
+    <SolidColorBrush x:Key="Brush.CardHover" Color="{StaticResource Color.CardHover}"/>
+
+    <Color x:Key="Color.Border">#30363D</Color>
+    <SolidColorBrush x:Key="Brush.Border" Color="{StaticResource Color.Border}"/>
+
+    <!-- Typography -->
+    <Color x:Key="Color.TextPrimary">#FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.TextPrimary" Color="{StaticResource Color.TextPrimary}"/>
+
+    <Color x:Key="Color.TextSecondary">#94A3B8</Color> <!-- Slate 400 -->
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="{StaticResource Color.TextSecondary}"/>
+
+    <Color x:Key="Color.TextDisabled">#475569</Color> <!-- Slate 600 -->
+    <SolidColorBrush x:Key="Brush.TextDisabled" Color="{StaticResource Color.TextDisabled}"/>
+
+    <!-- Accents -->
+    <!-- Neon Cyan/Blue Hybrid -->
+    <Color x:Key="Color.Primary">#00E5FF</Color> 
+    <SolidColorBrush x:Key="Brush.Primary" Color="{StaticResource Color.Primary}"/>
+    
+    <Color x:Key="Color.PrimaryDark">#00B8D4</Color>
+    <SolidColorBrush x:Key="Brush.PrimaryDark" Color="{StaticResource Color.PrimaryDark}"/>
+
+    <!-- Gradient for Primary Buttons -->
+    <LinearGradientBrush x:Key="Brush.PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#00E5FF" Offset="0"/> <!-- Cyan -->
+        <GradientStop Color="#2979FF" Offset="1"/> <!-- Electric Blue -->
+    </LinearGradientBrush>
+    
+    <!-- Glow Effect Color (for ShadowDepth) -->
+    <Color x:Key="Color.PrimaryGlow">#00E5FF</Color>
+
+    <!-- Secondary Accents -->
+    <Color x:Key="Color.Secondary">#651FFF</Color> <!-- Deep Neon Purple -->
+    <SolidColorBrush x:Key="Brush.Secondary" Color="{StaticResource Color.Secondary}"/>
+
+    <Color x:Key="Color.Success">#00E676</Color> <!-- Neon Green -->
+    <SolidColorBrush x:Key="Brush.Success" Color="{StaticResource Color.Success}"/>
+
+    <Color x:Key="Color.Warning">#FFEA00</Color> <!-- Neon Yellow -->
+    <SolidColorBrush x:Key="Brush.Warning" Color="{StaticResource Color.Warning}"/>
+
+    <Color x:Key="Color.Danger">#FF3D00</Color> <!-- Neon Red -->
+    <SolidColorBrush x:Key="Brush.Danger" Color="{StaticResource Color.Danger}"/>
+
+    <!-- UI Specifics -->
+    <SolidColorBrush x:Key="Brush.InputBackground" Color="#0D1117"/>
+    <SolidColorBrush x:Key="Brush.InputBorder" Color="#30363D"/>
+    
+    <!-- ScrollBar -->
+    <SolidColorBrush x:Key="Brush.ScrollThumb" Color="#30363D"/>
+    <SolidColorBrush x:Key="Brush.ScrollTrack" Color="Transparent"/>
+
+</ResourceDictionary>

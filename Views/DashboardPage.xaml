@@ -5,125 +5,133 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800"
-             Background="White">
+             d:DesignHeight="800" d:DesignWidth="1000"
+             Background="Transparent">
 
     <UserControl.DataContext>
         <vm:DashboardViewModel/>
     </UserControl.DataContext>
 
-    <Grid Margin="40">
+    <UserControl.Resources>
+        <!-- Local Style for Segment Buttons -->
+        <Style x:Key="SegmentButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="16">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush.CardHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <Grid Margin="0,0,0,30">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Přehled" Style="{StaticResource Heading1}"/>
-            <ComboBox Grid.Column="1" Width="100" ItemsSource="{Binding AvailableYears}" SelectedItem="{Binding SelectedYear}"
-                      VerticalAlignment="Center" HorizontalContentAlignment="Center" FontWeight="SemiBold"/>
+            <TextBlock Text="Přehled" Style="{StaticResource Heading1}" Margin="0"/>
+            
+            <!-- Year Selector -->
+            <ComboBox Grid.Column="1" Width="120" ItemsSource="{Binding AvailableYears}" SelectedItem="{Binding SelectedYear}"
+                      VerticalAlignment="Center" HorizontalContentAlignment="Center" FontWeight="SemiBold"
+                      Style="{StaticResource {x:Type ComboBox}}"/>
         </Grid>
 
-        <!-- Karty se statistikami -->
+        <!-- Stat Cards -->
         <WrapPanel Grid.Row="1">
             <!-- Měsíční tržby -->
-            <Border Width="220" Height="140" Margin="0,0,20,20" 
-                    Background="#EFF6FF" BorderBrush="#DBEAFE" BorderThickness="1" CornerRadius="12" Padding="20">
+            <Border Width="240" Margin="0,0,20,20" Style="{StaticResource CardStyle}">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Fakturováno tento měsíc" Foreground="#1E40AF" FontSize="14" FontWeight="SemiBold"/>
+                    <TextBlock Text="Fakturováno tento měsíc" Style="{StaticResource SubtleText}"/>
                     <TextBlock Text="{Binding TotalRevenueMonth, StringFormat={}{0:N0} Kč}" 
-                               FontSize="28" FontWeight="Bold" Foreground="#1E3A8A" Margin="0,8,0,0"/>
+                               FontSize="28" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- Roční tržby -->
-            <Border Width="220" Height="140" Margin="0,0,20,20" 
-                    Background="#F0FDF4" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="12" Padding="20">
+            <Border Width="240" Margin="0,0,20,20" Style="{StaticResource CardStyle}">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding SelectedYear, StringFormat='Celkem rok {0}'}" Foreground="#166534" FontSize="14" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding SelectedYear, StringFormat='Celkem rok {0}'}" Style="{StaticResource SubtleText}"/>
                     <TextBlock Text="{Binding TotalRevenueYear, StringFormat={}{0:N0} Kč}" 
-                               FontSize="28" FontWeight="Bold" Foreground="#14532D" Margin="0,8,0,0"/>
+                               FontSize="28" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- Neuhrazeno -->
-            <Border Width="220" Height="140" Margin="0,0,20,20" 
-                    Background="#FEF2F2" BorderBrush="#FEE2E2" BorderThickness="1" CornerRadius="12" Padding="20">
+            <Border Width="240" Margin="0,0,20,20" Style="{StaticResource CardStyle}">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Neuhrazeno celkem" Foreground="#991B1B" FontSize="14" FontWeight="SemiBold"/>
+                    <TextBlock Text="Neuhrazeno celkem" Style="{StaticResource SubtleText}"/>
                     <TextBlock Text="{Binding TotalUnpaid, StringFormat={}{0:N0} Kč}" 
-                               FontSize="28" FontWeight="Bold" Foreground="#7F1D1D" Margin="0,8,0,0"/>
+                               FontSize="28" FontWeight="Bold" Foreground="{DynamicResource Brush.Danger}" Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- Počet dokladů -->
-            <Border Width="220" Height="140" Margin="0,0,20,20" 
-                    Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
+            <Border Width="240" Margin="0,0,20,20" Style="{StaticResource CardStyle}">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Vystavené doklady (rok)" Foreground="#475569" FontSize="14" FontWeight="SemiBold"/>
+                    <TextBlock Text="Vystavené doklady (rok)" Style="{StaticResource SubtleText}"/>
                     <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        <TextBlock Text="{Binding CountInvoicesYear}" FontSize="28" FontWeight="Bold" Foreground="#334155"/>
-                        <TextBlock Text=" faktur" FontSize="16" VerticalAlignment="Bottom" Margin="4,0,0,5" Foreground="#64748B"/>
+                        <TextBlock Text="{Binding CountInvoicesYear}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}"/>
+                        <TextBlock Text=" faktur" FontSize="16" VerticalAlignment="Bottom" Margin="4,0,0,5" Foreground="{DynamicResource Brush.TextSecondary}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding CountOrdersYear}" FontSize="20" FontWeight="SemiBold" Foreground="#334155"/>
-                        <TextBlock Text=" objednávek" FontSize="14" VerticalAlignment="Bottom" Margin="4,0,0,3" Foreground="#64748B"/>
+                        <TextBlock Text="{Binding CountOrdersYear}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}"/>
+                        <TextBlock Text=" objednávek" FontSize="14" VerticalAlignment="Bottom" Margin="4,0,0,3" Foreground="{DynamicResource Brush.TextSecondary}"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
         </WrapPanel>
         
-        <!-- Placeholder pro graf nebo seznam posledních -->
-        <!-- Graf vývoje tržeb -->
-        <Border Grid.Row="2" Background="White" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="20">
-            <Border.Resources>
-                <Style x:Key="SegmentButton" TargetType="Button">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="Foreground" Value="#64748B"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Padding" Value="16,6"/>
-                    <Setter Property="FontSize" Value="13"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="Cursor" Value="Hand"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="16">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Border.Resources>
+        <!-- Chart Section -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="30">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 
-                <Grid Margin="0,0,0,20">
+                <!-- Chart Header & Filter -->
+                <Grid Margin="0,0,0,30">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
-                    <TextBlock Text="{Binding SelectedYear, StringFormat='Vývoj tržeb v roce {0}'}" FontSize="16" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding SelectedYear, StringFormat='Vývoj tržeb v roce {0}'}" Style="{StaticResource Heading2}" Margin="0"/>
                     
                     <!-- Segmented Control -->
-                    <Border Grid.Column="1" Background="#F1F5F9" CornerRadius="20" Padding="4">
+                    <Border Grid.Column="1" Background="{DynamicResource Brush.AppBackground}" CornerRadius="20" Padding="4">
                         <StackPanel Orientation="Horizontal">
                             <Button Content="Měsíce" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ChartPeriod.Months}">
                                 <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButtonStyle}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding SelectedPeriod}" Value="{x:Static vm:ChartPeriod.Months}">
-                                                <Setter Property="Background" Value="#8B5CF6"/>
+                                                <Setter Property="Background" Value="{DynamicResource Brush.Primary}"/>
                                                 <Setter Property="Foreground" Value="White"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -133,10 +141,10 @@
                             
                             <Button Content="Kvartály" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ChartPeriod.Quarters}">
                                 <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButtonStyle}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding SelectedPeriod}" Value="{x:Static vm:ChartPeriod.Quarters}">
-                                                <Setter Property="Background" Value="#8B5CF6"/>
+                                                <Setter Property="Background" Value="{DynamicResource Brush.Primary}"/>
                                                 <Setter Property="Foreground" Value="White"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -146,10 +154,10 @@
                             
                             <Button Content="Roky" Command="{Binding SetPeriodCommand}" CommandParameter="{x:Static vm:ChartPeriod.Years}">
                                 <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButton}">
+                                    <Style TargetType="Button" BasedOn="{StaticResource SegmentButtonStyle}">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding SelectedPeriod}" Value="{x:Static vm:ChartPeriod.Years}">
-                                                <Setter Property="Background" Value="#8B5CF6"/>
+                                                <Setter Property="Background" Value="{DynamicResource Brush.Primary}"/>
                                                 <Setter Property="Foreground" Value="White"/>
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -160,6 +168,7 @@
                     </Border>
                 </Grid>
                 
+                <!-- Chart Area -->
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -167,7 +176,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Y-Axis Labels -->
-                    <ItemsControl ItemsSource="{Binding YAxisLabels}" Margin="0,0,10,20" VerticalAlignment="Stretch">
+                    <ItemsControl ItemsSource="{Binding YAxisLabels}" Margin="0,0,15,30" VerticalAlignment="Stretch">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Columns="1"/>
@@ -175,7 +184,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" FontSize="11" Foreground="#94A3B8" 
+                                <TextBlock Text="{Binding}" FontSize="12" Foreground="{DynamicResource Brush.TextDisabled}" 
                                            VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,-6,0,0"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -190,21 +199,21 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Grid VerticalAlignment="Bottom" Margin="5,0" ToolTip="{Binding Tooltip}">
+                                <Grid VerticalAlignment="Bottom" Margin="8,0" ToolTip="{Binding Tooltip}">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     
                                     <!-- Sloupec -->
-                                    <Border Grid.Row="0" Width="30" Height="{Binding Height}" 
-                                            Background="{Binding Color}" CornerRadius="4,4,0,0"
-                                            VerticalAlignment="Bottom"/>
+                                    <Border Grid.Row="0" Width="40" Height="{Binding Height}" 
+                                            Background="{Binding Color}" CornerRadius="6,6,0,0"
+                                            VerticalAlignment="Bottom" Opacity="0.9"/>
                                     
                                     <!-- Popisek -->
                                     <TextBlock Grid.Row="1" Text="{Binding Label}" 
-                                               HorizontalAlignment="Center" Margin="0,5,0,0" 
-                                               FontSize="12" Foreground="#64748B"/>
+                                               HorizontalAlignment="Center" Margin="0,10,0,0" 
+                                               FontSize="13" Foreground="{DynamicResource Brush.TextSecondary}"/>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

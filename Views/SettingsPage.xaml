@@ -6,14 +6,18 @@
              xmlns:vm="clr-namespace:InvoiceApp.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800"
-             Background="White">
+             Background="{DynamicResource Brush.AppBackground}">
+    <UserControl.Resources>
+        <!-- Local Style for Formatting Buttons -->
+        <Style x:Key="FormattingButton" TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+        </Style>
+    </UserControl.Resources>
 
-    <UserControl.DataContext>
-        <vm:SettingsViewModel/>
-    </UserControl.DataContext>
-
-
-    <Grid Margin="20">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/> <!-- Header -->
             <RowDefinition Height="Auto"/> <!-- Toolbar -->
@@ -21,7 +25,7 @@
             <RowDefinition Height="Auto"/> <!-- Footer (Save Button) -->
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Nastavení aplikace" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" Foreground="#1E293B"/>
+        <TextBlock Grid.Row="0" Text="Nastavení aplikace" Style="{StaticResource Heading1}" Margin="0,0,0,24"/>
 
         <!-- Číslování dokladů Section - kept inside a ScrollViewer in the main content area or separate? 
              Actually, the user wants the Save button always visible. 
@@ -30,41 +34,35 @@
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
             <StackPanel>
                 <!-- Číslování dokladů -->
-                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+                <Border Style="{StaticResource GroupCard}" Margin="0,0,0,24">
                     <StackPanel>
-                        <Grid Margin="0,0,0,15">
+                        <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Číslování dokladů" FontSize="18" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                            <TextBlock Text="Číslování dokladů" Style="{StaticResource Heading2}"/>
                             <Button Grid.Column="1" Content="Uložit číslování" 
                                     Command="{Binding SaveSettingsCommand}"
-                                    Background="#009A8D" Foreground="White" Padding="10,5" BorderThickness="0" FontWeight="SemiBold">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="4"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                                    Style="{StaticResource PrimaryButton}"/>
                         </Grid>
                         
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Rok:" VerticalAlignment="Center" Foreground="#64748B"/>
-                            <TextBox Grid.Column="1" Text="{Binding CurrentYear, UpdateSourceTrigger=PropertyChanged}" Padding="5" BorderBrush="#CBD5E1"/>
+                            <TextBlock Text="Rok:" Style="{StaticResource FormLabel}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding CurrentYear, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FormTextBox}"/>
                         </Grid>
 
-                        <Grid Margin="0,0,0,10">
+                        <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Další číslo faktury:" VerticalAlignment="Center" Foreground="#64748B"/>
-                            <TextBox Grid.Column="1" Text="{Binding NextInvoiceNumber}" Padding="5" BorderBrush="#CBD5E1"/>
+                            <TextBlock Text="Další číslo faktury:" Style="{StaticResource FormLabel}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding NextInvoiceNumber}" Style="{StaticResource FormTextBox}"/>
                         </Grid>
 
                         <Grid>
@@ -72,37 +70,31 @@
                                 <ColumnDefinition Width="150"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Další číslo objednávky:" VerticalAlignment="Center" Foreground="#64748B"/>
-                            <TextBox Grid.Column="1" Text="{Binding NextOrderNumber}" Padding="5" BorderBrush="#CBD5E1"/>
+                            <TextBlock Text="Další číslo objednávky:" Style="{StaticResource FormLabel}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Text="{Binding NextOrderNumber}" Style="{StaticResource FormTextBox}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- Patička a Odkazy -->
-                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+                <Border Style="{StaticResource GroupCard}" Margin="0,0,0,24">
                     <StackPanel>
-                        <Grid Margin="0,0,0,15">
+                        <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="Patička a Odkazy" FontSize="18" FontWeight="SemiBold" Foreground="#334155" VerticalAlignment="Center"/>
+                            <TextBlock Text="Patička a Odkazy" Style="{StaticResource Heading2}"/>
                             <Button Grid.Column="1" Content="Uložit vzhled" 
                                     Command="{Binding SaveSettingsCommand}"
-                                    Background="#009A8D" Foreground="White" Padding="10,5" BorderThickness="0" FontWeight="SemiBold">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="4"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                                    Style="{StaticResource PrimaryButton}"/>
                         </Grid>
 
                         <!-- Formatting Toolbar (Shared) -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Background="#F1F5F9">
-                            <Button Content="B" FontWeight="Bold" Width="30" Height="25" Margin="5,5,5,5" Click="InsertBold_Click" ToolTip="Tučně (označený text)" Focusable="False"/>
-                            <Button Content="I" FontStyle="Italic" Width="30" Height="25" Margin="0,5,5,5" Click="InsertItalic_Click" ToolTip="Kurzíva (označený text)" Focusable="False"/>
-                            <Button Content="S" FontSize="10" Width="30" Height="25" Margin="0,5,5,5" Click="InsertSize_Click" ToolTip="Velikost písma" Focusable="False">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Background="{DynamicResource Brush.Surface}">
+                            <Button Content="B" FontWeight="Bold" Click="InsertBold_Click" ToolTip="Tučně" Style="{StaticResource FormattingButton}"/>
+                            <Button Content="I" FontStyle="Italic" Click="InsertItalic_Click" ToolTip="Kurzíva" Style="{StaticResource FormattingButton}"/>
+                            <Button Content="S" FontSize="10" Click="InsertSize_Click" ToolTip="Velikost" Style="{StaticResource FormattingButton}">
                                 <Button.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="10" Click="SizeItem_Click" Tag="10"/>
@@ -118,7 +110,7 @@
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
-                            <Button Content="Color" FontSize="10" Width="40" Height="25" Margin="0,5,5,5" Click="InsertColor_Click" ToolTip="Barva písma" Focusable="False">
+                            <Button Content="Color" FontSize="10" Width="40" Click="InsertColor_Click" ToolTip="Barva" Style="{StaticResource FormattingButton}">
                                 <Button.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Černá" Click="ColorItem_Click" Tag="#000000">
@@ -154,12 +146,11 @@
                                         <MenuItem Header="Šedá" Click="ColorItem_Click" Tag="#808080">
                                             <MenuItem.Icon><Border Width="10" Height="10" Background="#808080" BorderBrush="Gray" BorderThickness="1"/></MenuItem.Icon>
                                         </MenuItem>
-                                        <Separator/>
                                         <MenuItem Header="Vlastní..." Click="InsertColor_Click"/>
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
-                            <Button Content="Bg" FontSize="10" Width="30" Height="25" Margin="0,5,5,5" Click="InsertBg_Click" ToolTip="Barva pozadí" Focusable="False">
+                            <Button Content="Bg" FontSize="10" Click="InsertBg_Click" ToolTip="Pozadí" Style="{StaticResource FormattingButton}">
                                 <Button.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Černá" Click="BgItem_Click" Tag="#000000">
@@ -200,7 +191,7 @@
                                     </ContextMenu>
                                 </Button.ContextMenu>
                             </Button>
-                            <TextBlock Text="Označte text a klikněte na tlačítko." VerticalAlignment="Center" Foreground="#64748B" FontSize="11" Margin="5,0,0,0"/>
+                            <TextBlock Text="Označte text a klikněte na tlačítko." VerticalAlignment="Center" Style="{StaticResource SubtleText}" FontSize="11" Margin="8,0,0,0"/>
                         </StackPanel>
 
                         <TabControl Margin="0,0,0,0" BorderThickness="0" Background="Transparent">
@@ -222,12 +213,12 @@
                                                 </Border>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="Border" Property="BorderBrush" Value="#009A8D"/>
-                                                        <Setter Property="Foreground" Value="#009A8D"/>
+                                                        <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource Brush.Primary}"/>
                                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                                     </Trigger>
                                                     <Trigger Property="IsSelected" Value="False">
-                                                        <Setter Property="Foreground" Value="#64748B"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -238,15 +229,15 @@
 
                             <!-- FAKTURA TAB -->
                             <TabItem Header="Faktura">
-                                <StackPanel Margin="0,15,0,0">
-                                    <TextBlock Text="Text patičky:" Foreground="#64748B" Margin="0,0,0,5"/>
+                                <StackPanel Margin="0,16,0,0">
+                                    <TextBlock Text="Text patičky:" Style="{StaticResource FormLabel}" Margin="0,0,0,5"/>
                                     <TextBox x:Name="FooterInvoiceBox" Text="{Binding FooterInvoice, UpdateSourceTrigger=PropertyChanged}" 
                                              Height="80" TextWrapping="Wrap" AcceptsReturn="True"
-                                             Padding="5" BorderBrush="#CBD5E1" Margin="0,0,0,10" VerticalScrollBarVisibility="Auto"
+                                             Style="{StaticResource FormTextBox}" Margin="0,0,0,10" VerticalScrollBarVisibility="Auto"
                                              TextChanged="FooterInvoiceBox_TextChanged"/>
                                     
-                                    <TextBlock Text="Náhled:" Foreground="#64748B" FontSize="11" Margin="0,0,0,2"/>
-                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Background="White" Padding="10" Margin="0,0,0,20" MinHeight="40">
+                                    <TextBlock Text="Náhled:" Style="{StaticResource FormLabel}" FontSize="11" Margin="0,0,0,2"/>
+                                    <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" Background="White" Padding="10" Margin="0,0,0,24" MinHeight="40">
                                         <TextBlock x:Name="PreviewInvoice" TextWrapping="Wrap" FontSize="11" Foreground="Black"/>
                                     </Border>
 
@@ -256,12 +247,12 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                            <TextBlock Text="Webová adresa (URL):" Foreground="#64748B" Margin="0,0,0,5"/>
-                                            <TextBox Text="{Binding InvoiceUrl}" Padding="5" BorderBrush="#CBD5E1"/>
+                                            <TextBlock Text="Webová adresa (URL):" Style="{StaticResource FormLabel}" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding InvoiceUrl}" Style="{StaticResource FormTextBox}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                                            <TextBlock Text="Zobrazený text odkazu:" Foreground="#64748B" Margin="0,0,0,5"/>
-                                            <TextBox Text="{Binding InvoiceUrlText}" Padding="5" BorderBrush="#CBD5E1"/>
+                                            <TextBlock Text="Zobrazený text odkazu:" Style="{StaticResource FormLabel}" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding InvoiceUrlText}" Style="{StaticResource FormTextBox}"/>
                                         </StackPanel>
                                     </Grid>
                                 </StackPanel>
@@ -269,15 +260,15 @@
 
                             <!-- OBJEDNÁVKA TAB -->
                             <TabItem Header="Objednávka">
-                                <StackPanel Margin="0,15,0,0">
-                                    <TextBlock Text="Text patičky:" Foreground="#64748B" Margin="0,0,0,5"/>
+                                <StackPanel Margin="0,16,0,0">
+                                    <TextBlock Text="Text patičky:" Style="{StaticResource FormLabel}" Margin="0,0,0,5"/>
                                     <TextBox x:Name="FooterOrderBox" Text="{Binding FooterOrder, UpdateSourceTrigger=PropertyChanged}" 
                                              Height="80" TextWrapping="Wrap" AcceptsReturn="True"
-                                             Padding="5" BorderBrush="#CBD5E1" Margin="0,0,0,10" VerticalScrollBarVisibility="Auto"
+                                             Style="{StaticResource FormTextBox}" Margin="0,0,0,10" VerticalScrollBarVisibility="Auto"
                                              TextChanged="FooterOrderBox_TextChanged"/>
 
-                                    <TextBlock Text="Náhled:" Foreground="#64748B" FontSize="11" Margin="0,0,0,2"/>
-                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" Background="White" Padding="10" Margin="0,0,0,20" MinHeight="40">
+                                    <TextBlock Text="Náhled:" Style="{StaticResource FormLabel}" FontSize="11" Margin="0,0,0,2"/>
+                                    <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" Background="White" Padding="10" Margin="0,0,0,24" MinHeight="40">
                                         <TextBlock x:Name="PreviewOrder" TextWrapping="Wrap" FontSize="11" Foreground="Black"/>
                                     </Border>
                                 </StackPanel>
@@ -287,53 +278,36 @@
                 </Border>
 
                 <!-- Zálohování a data -->
-                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,20" BorderBrush="#E2E8F0" BorderThickness="1">
+                <!-- Zálohování a data -->
+                <Border Style="{StaticResource GroupCard}" Margin="0,0,0,24">
                     <StackPanel>
-                        <TextBlock Text="Zálohování a data" FontSize="18" FontWeight="SemiBold" Foreground="#334155" Margin="0,0,0,15"/>
+                        <TextBlock Text="Zálohování a data" Style="{StaticResource Heading2}" Margin="0,0,0,12"/>
                         
                         <TextBlock Text="Zde můžete vytvořit kompletní zálohu všech dat aplikace (faktury, klienti, nastavení) nebo data obnovit ze zálohy." 
-                                   Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                                   Style="{StaticResource SubtleText}" TextWrapping="Wrap" Margin="0,0,0,16"/>
 
                         <StackPanel Orientation="Horizontal">
                             <Button Content="Vytvořit zálohu" 
                                     Command="{Binding CreateBackupCommand}"
-                                    Background="#009A8D" Foreground="White" Padding="15,8" BorderThickness="0" FontWeight="SemiBold" Margin="0,0,15,0">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="4"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                                    Style="{StaticResource PrimaryButton}" Margin="0,0,16,0"/>
 
                             <Button Content="Obnovit ze zálohy" 
                                     Command="{Binding RestoreBackupCommand}"
-                                    Background="White" Foreground="#EF4444" Padding="15,8" BorderBrush="#EF4444" BorderThickness="1" FontWeight="SemiBold">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="4"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                                    Style="{StaticResource SecondaryButton}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
                 <!-- TOVÁRNÍ NASTAVENÍ -->
-                <Border Style="{StaticResource GroupCard}" BorderBrush="#FECACA" Background="#FEF2F2">
+                <!-- TOVÁRNÍ NASTAVENÍ -->
+                <Border Style="{StaticResource GroupCard}" BorderBrush="{DynamicResource Brush.Danger}" Background="Transparent">
                     <StackPanel>
-                        <TextBlock Text="Tovární nastavení" Style="{StaticResource Heading1}" Margin="0,0,0,12" Foreground="#DC2626"/>
+                        <TextBlock Text="Tovární nastavení" Style="{StaticResource Heading1}" Margin="0,0,0,12" Foreground="{DynamicResource Brush.Danger}"/>
                         <TextBlock Text="Tato akce smaže všechna data aplikace (faktury, klienty, nastavení)." 
-                                   Style="{StaticResource SubtleText}" Margin="0,0,0,12"/>
+                                   Style="{StaticResource SubtleText}" Margin="0,0,0,16"/>
                         <Button Content="Resetovat aplikaci a smazat data"
                                 Command="{Binding FactoryResetCommand}"
-                                Background="#DC2626" Foreground="White"
-                                Padding="16,8"
-                                HorizontalAlignment="Left">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="6"/>
-                                </Style>
-                            </Button.Resources>
-                        </Button>
+                                Style="{StaticResource DangerButton}"
+                                HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
             </StackPanel>
