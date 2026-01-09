@@ -66,8 +66,13 @@
                           CanUserDeleteRows="True"
                           IsReadOnly="True"
                           EnableRowVirtualization="True"
-                          MouseDoubleClick="SuppliersGrid_MouseDoubleClick"
                           Style="{StaticResource ModernDataGrid}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Cursor" Value="Hand"/>
+                            <EventSetter Event="PreviewMouseLeftButtonUp" Handler="Row_Click"/>
+                        </Style>
+                    </DataGrid.RowStyle>
 
                         <DataGrid.Columns>
                                 <DataGridTextColumn Header="Název"

@@ -56,9 +56,14 @@
                   CanUserDeleteRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
-                  MouseDoubleClick="CustomersGrid_MouseDoubleClick"
                   Style="{StaticResource ModernDataGrid}"
                   Margin="16,0,16,16">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <EventSetter Event="PreviewMouseLeftButtonUp" Handler="Row_Click"/>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="*"/>
                 <DataGridTextColumn Header="IČO" Binding="{Binding ICO}" Width="100"/>

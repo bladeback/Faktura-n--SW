@@ -83,9 +83,9 @@ namespace InvoiceApp.Views
             await SaveCustomers();
         }
 
-        private async void CustomersGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void Row_Click(object sender, MouseButtonEventArgs e)
         {
-            if (CustomersGrid.SelectedItem is not Company selected) return;
+            if (sender is not DataGridRow row || row.DataContext is not Company selected) return;
 
             var copy = new Company
             {
