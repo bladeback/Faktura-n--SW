@@ -186,7 +186,19 @@
          INPUTS
          ========================================================================= -->
 
-    <Style TargetType="TextBox">
+    <!-- =========================================================================
+         INPUTS & FORMS
+         ========================================================================= -->
+
+    <Style x:Key="FormLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,10,0"/>
+    </Style>
+
+    <Style x:Key="FormTextBox" TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource Brush.InputBackground}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.InputBorder}"/>
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
@@ -205,15 +217,85 @@
                         <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <!-- Focus State -->
                         <Trigger Property="IsKeyboardFocused" Value="True">
                              <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
-                             <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                             <Setter TargetName="border" Property="BorderThickness" Value="1"/>
+                             <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect Color="{DynamicResource Color.Primary}" BlurRadius="8" Opacity="0.3" ShadowDepth="0"/>
+                                </Setter.Value>
+                             </Setter>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="FormComboBox" TargetType="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource Brush.InputBackground}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.InputBorder}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton Name="ToggleButton" 
+                                      Template="{StaticResource ComboBoxToggleButton}" 
+                                      Grid.Column="2" 
+                                      Focusable="false"
+                                      IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
+                                      ClickMode="Press"/>
+                        <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="12,0,23,0" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        <TextBox x:Name="PART_EditableTextBox" Style="{x:Null}" Template="{StaticResource ComboBoxTextBox}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,3,23,3" Focusable="True" Background="Transparent" Visibility="Hidden" IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                        <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                            <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                <Border x:Name="DropDownBorder" Background="{DynamicResource Brush.CardBackground}" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border}" CornerRadius="8" Margin="0,4,0,0">
+                                     <Border.Effect>
+                                        <DropShadowEffect Color="Black" BlurRadius="10" Opacity="0.1" ShadowDepth="4"/>
+                                    </Border.Effect>
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- Basic Triggers -->
+                        <Trigger Property="IsGrouping" Value="true">
+                            <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+        <Border x:Name="Border" Grid.Column="2" CornerRadius="8" Background="{DynamicResource Brush.InputBackground}" BorderBrush="{DynamicResource Brush.InputBorder}" BorderThickness="1">
+            <Path x:Name="Arrow" Grid.Column="1" Fill="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Right" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z" Margin="0,0,10,0"/>
+        </Border>
+        <ControlTemplate.Triggers>
+             <Trigger Property="IsChecked" Value="True">
+                 <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
+             </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="ComboBoxTextBox" TargetType="TextBox">
+        <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+    </ControlTemplate>
+
+    <Style x:Key="FormCheckBox" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <!-- Basic Template if needed, or default -->
     </Style>
 
     <!-- =========================================================================
@@ -233,7 +315,7 @@
     </Style>
 
     <!-- Cell -->
-    <Style TargetType="DataGridCell">
+    <Style x:Key="ModernCellStyle" TargetType="DataGridCell">
         <Setter Property="Padding" Value="10,12"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -256,7 +338,7 @@
     </Style>
     
     <!-- Row -->
-    <Style TargetType="DataGridRow">
+    <Style x:Key="ModernRowStyle" TargetType="DataGridRow">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
         <Setter Property="BorderThickness" Value="0,0,0,1"/> <!-- Divider line -->
@@ -272,7 +354,7 @@
         </Style.Triggers>
     </Style>
 
-    <Style TargetType="DataGrid">
+    <Style x:Key="ModernDataGrid" TargetType="DataGrid">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="RowHeaderWidth" Value="0"/>
         <Setter Property="GridLinesVisibility" Value="None"/>
@@ -280,6 +362,7 @@
         <Setter Property="HeadersVisibility" Value="Column"/>
         <Setter Property="CanUserAddRows" Value="False"/>
         <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="RowStyle" Value="{StaticResource ModernRowStyle}"/>
     </Style>
 
     <!-- =========================================================================
