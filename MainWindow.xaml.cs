@@ -130,5 +130,11 @@ namespace InvoiceApp
                 NavigateToOrderPage(false);
             }
         }
+
+        public void ConvertOrder(Models.Invoice order)
+        {
+            _mainViewModel.CreateFromOrder(order);
+            NavigateToInvoicePage(false); // false = nepouštěj NewInvoice, už máme nastaveno
+        }
     }
 }

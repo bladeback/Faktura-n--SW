@@ -35,7 +35,13 @@ namespace InvoiceApp.Services
             sb.Append("SPD*1.0");
             sb.Append("*ACC:").Append(iban);
             sb.Append("*AM:").Append(am);
-            sb.Append("*CC:").Append(string.IsNullOrWhiteSpace(currency) ? "CZK" : currency.Trim().ToUpperInvariant());
+            var currNorm = string.IsNullOrWhiteSpace(currency) ? "CZK" : currency.Trim();
+            if (currNorm.Equals("Kč", StringComparison.OrdinalIgnoreCase) || 
+                currNorm.Equals("KC", StringComparison.OrdinalIgnoreCase))
+            {
+                currNorm = "CZK";
+            }
+            sb.Append("*CC:").Append(currNorm.ToUpperInvariant());
 
             if (!string.IsNullOrEmpty(vs))
                 sb.Append("*X-VS:").Append(vs);

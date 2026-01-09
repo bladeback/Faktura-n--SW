@@ -19,61 +19,147 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Historie dokladů" Style="{StaticResource Heading1}" Margin="0,0,0,20"/>
+        <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,20">
+            <TextBlock Text="Historie dokladů" Style="{StaticResource Heading1}" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+            
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                <TextBlock Text="Období:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#64748B"/>
+                <ComboBox Width="150" Height="32"
+                          VerticalContentAlignment="Center"
+                          Padding="10,0"
+                          ItemsSource="{Binding FilterOptions}"
+                          SelectedItem="{Binding SelectedFilter}"
+                          Style="{StaticResource FormComboBox}"/>
+            </StackPanel>
+        </DockPanel>
 
-        <DataGrid Grid.Row="1"
-                  ItemsSource="{Binding Documents}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  Style="{StaticResource ModernDataGrid}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="120"/>
-                <DataGridTextColumn Header="Typ" Binding="{Binding Type}" Width="100"/>
-                <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=d}" Width="100"/>
-                <DataGridTextColumn Header="Odběratel" Binding="{Binding Customer.Name}" Width="*"/>
-                <DataGridTextColumn Header="Částka" Binding="{Binding Total, StringFormat={}{0:N0} Kč}" Width="100">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                            <Setter Property="Padding" Value="0,0,10,0"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                
-                <DataGridTemplateColumn Header="Zaplaceno" Width="100">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <CheckBox IsChecked="{Binding IsPaid, Mode=OneWay}" 
-                                      Command="{Binding DataContext.MarkAsPaidCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                      CommandParameter="{Binding}"
-                                      HorizontalAlignment="Center">
-                                <CheckBox.Style>
-                                    <Style TargetType="CheckBox" BasedOn="{StaticResource FormCheckBox}">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Type}" Value="{x:Static models:DocType.Order}">
-                                                <Setter Property="Visibility" Value="Hidden"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </CheckBox.Style>
-                            </CheckBox>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Padding" Value="12,8"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,3"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="Border" BorderBrush="Transparent" BorderThickness="0,0,0,3" Background="Transparent" Padding="12,8">
+                                    <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Border" Property="BorderBrush" Value="#2563EB"/>
+                                        <Setter Property="Foreground" Value="#2563EB"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter Property="Foreground" Value="#64748B"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="#1D4ED8"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
 
-                <DataGridTemplateColumn Width="Auto">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Button Content="Upravit" 
-                                    Command="{Binding DataContext.EditDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                    CommandParameter="{Binding}"
-                                    Style="{StaticResource ToolbarButton}"
-                                    Margin="2"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+            <!-- FAKTURY -->
+            <TabItem Header="Faktury">
+                <DataGrid ItemsSource="{Binding Invoices}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Style="{StaticResource ModernDataGrid}"
+                          Margin="0,16,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="250"/>
+                        <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=dd.MM.yyyy}" Width="125"/>
+                        <DataGridTextColumn Header="Odběratel" Binding="{Binding Customer.Name}" Width="*"/>
+                        <DataGridTextColumn Header="Částka" Binding="{Binding Total, StringFormat={}{0:N0} Kč}" Width="140">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,10,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        
+                        <DataGridTemplateColumn Header="Zaplaceno" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsPaid, Mode=OneWay}" 
+                                              Command="{Binding DataContext.MarkAsPaidCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              CommandParameter="{Binding}"
+                                              HorizontalAlignment="Center"
+                                              Style="{StaticResource FormCheckBox}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Upravit" 
+                                            Command="{Binding DataContext.EditDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource ToolbarButton}"
+                                            Margin="2"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- OBJEDNÁVKY -->
+            <TabItem Header="Objednávky">
+                <DataGrid ItemsSource="{Binding Orders}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Style="{StaticResource ModernDataGrid}"
+                          Margin="0,16,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Číslo" Binding="{Binding Number}" Width="250"/>
+                        <DataGridTextColumn Header="Datum" Binding="{Binding IssueDate, StringFormat=dd.MM.yyyy}" Width="125"/>
+                        <DataGridTextColumn Header="Odběratel" Binding="{Binding Customer.Name}" Width="*"/>
+                        <DataGridTextColumn Header="Částka" Binding="{Binding Total, StringFormat={}{0:N0} Kč}" Width="140">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Padding" Value="0,0,10,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTemplateColumn Header="Akce" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="Vytvořit fakturu" 
+                                                Command="{Binding DataContext.CreateInvoiceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                CommandParameter="{Binding}"
+                                                Background="#16A34A" Foreground="White"
+                                                Padding="8,4" Margin="2">
+                                            <Button.Resources>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="CornerRadius" Value="4"/>
+                                                </Style>
+                                            </Button.Resources>
+                                        </Button>
+
+                                        <Button Content="Upravit" 
+                                                Command="{Binding DataContext.EditDocumentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ToolbarButton}"
+                                                Margin="2"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

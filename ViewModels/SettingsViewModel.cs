@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InvoiceApp.Services;
+using InvoiceApp.Views;
 using System;
 using System.Windows;
 
@@ -160,6 +161,66 @@ namespace InvoiceApp.ViewModels
                 MessageBox.Show($"Chyba při obnově dat: {ex.Message}", "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        [RelayCommand]
+        private void FactoryReset()
+        {
+            var warning = MessageBox.Show(
+                "Tato akce NEVRATNĚ SMAŽE VŠECHNA DATA APLIKACE!\n\n" +
+                "Smažou se:\n" +
+                "- Všechny faktury a objednávky\n" +
+                "- Seznam klientů a dodavatelů\n" +
+                "- Uložené položky\n" +
+                "- Nastavení\n\n" +
+                "Opravdu chcete pokračovat?",
+                "NEBEZPEČNÁ AKCE",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (warning != MessageBoxResult.Yes) return;
+
+            var dialog = new SecureInputWindow();
+            if (dialog.ShowDialog() == true && dialog.InputText == "DELETE")
+            {
+                try
+                {
+                    // Smazat všechny .json soubory v adresáři, KROMĚ systémových
+                    var dir = AppDomain.CurrentDomain.BaseDirectory;
+                    var files = System.IO.Directory.GetFiles(dir, "*.json");
+                    foreach (var file in files)
+                    {
+                        // Přeskočit kritické soubory .NET runtime
+                        if (file.EndsWith(".runtimeconfig.json", StringComparison.OrdinalIgnoreCase) || 
+                            file.EndsWith(".deps.json", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        try { System.IO.File.Delete(file); } catch { /* ignore locked */ }
+                    }
+
+                    // Restart aplikace
+                    var exePath = Environment.ProcessPath;
+                    if (exePath != null)
+                    {
+                        System.Diagnostics.Process.Start(exePath);
+                        Application.Current.Shutdown();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Chyba při mazání dat: {ex.Message}", "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                if (dialog.DialogResult == true) // Jen pokud potvrdil, ale napsal špatně
+                {
+                    MessageBox.Show("Nesprávné potvrzovací heslo. Data nebyla smazána.", "Chyba", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+        }
+
 
         partial void OnCurrentYearChanged(string value)
         {

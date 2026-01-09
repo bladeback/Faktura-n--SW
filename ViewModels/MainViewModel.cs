@@ -30,6 +30,8 @@ namespace InvoiceApp.ViewModels
         private readonly SuppliersService _suppliersService = new();
         private readonly CustomersService _customersService = new();
 
+        private bool _isNewDocument = true;
+
         [ObservableProperty]
         private Invoice _current = new();
 
@@ -61,26 +63,45 @@ namespace InvoiceApp.ViewModels
         private int paymentTermDays = 14;
 
 
-        public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "CZK");
-        public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "CZK");
+        public string SubtotalDisplay => FormatMoney(ComputeBaseTotal(), Current?.Currency ?? "Kč");
+        public string VatTotalDisplay => FormatMoney(ComputeVatTotal(), Current?.Currency ?? "Kč");
 
         // Součet bez zaokrouhlení
-        public string GrandTotalDisplay => FormatMoney(ComputeBaseTotal() + ComputeVatTotal(), Current?.Currency ?? "CZK");
+        public string GrandTotalDisplay => FormatMoney(ComputeBaseTotal() + ComputeVatTotal(), Current?.Currency ?? "Kč");
 
-        // Zaokrouhlení (může být + nebo −)
-        public string RoundingDisplay => FormatSignedMoney(ComputeRounding(), Current?.Currency ?? "CZK");
+        // Zaokroulení (může být + nebo −)
+        public string RoundingDisplay => FormatSignedMoney(ComputeRounding(), Current?.Currency ?? "Kč");
 
         // Částka k úhradě po zaokrouhlení
-        public string PayableDisplay => FormatMoney(ComputeRoundedTotal(), Current?.Currency ?? "CZK");
+        public string PayableDisplay => FormatMoney(ComputeRoundedTotal(), Current?.Currency ?? "Kč");
 
         // Pro UI necháme TotalDisplay směřovat na „k úhradě“
         public string TotalDisplay => PayableDisplay;
 
-        // Viditelnost řádku „Zaokrouhlení“
-        public bool ShowRounding => Math.Round(ComputeRounding(), 2) != 0m;
+        // Viditelnost řádku „Zaokrouhlení“ - zobrazit jen pokud je >= 0.50 (jinak je v N0 formátu 0)
+        public bool ShowRounding => Math.Abs(ComputeRounding()) >= 0.5m;
 
         // Zobrazení čísla dokladu pro UI – vrací to, co je v Current.Number
-        public string DisplayNumber => Current?.Number ?? string.Empty;
+        public string DisplayNumber
+        {
+            get => Current?.Number ?? string.Empty;
+            set
+            {
+                if (Current != null && Current.Number != value)
+                {
+                    Current.Number = value;
+                    OnPropertyChanged();
+                    
+                    // Pokusíme se vyparsovat VariableSymbol, pokud to vypadá jako číslo
+                    var digits = new string(value.Where(char.IsDigit).ToArray());
+                    if (!string.IsNullOrEmpty(digits))
+                    {
+                        Current.VariableSymbol = digits.Length > 10 ? digits[^10..] : digits;
+                        OnPropertyChanged(nameof(Current));
+                    }
+                }
+            }
+        }
 
         public MainViewModel()
         {
@@ -170,6 +191,43 @@ namespace InvoiceApp.ViewModels
             {
                 UpdateDueDate();
                 OnPropertyChanged(nameof(DisplayNumber));
+
+                // SMART DATE LOGIC:
+                // Pokud je to nový doklad (ne načtený z historie) a změní se rok vystavení,
+                // automaticky přečíslujeme doklad pro daný rok.
+                if (_isNewDocument && e.PropertyName == nameof(Invoice.IssueDate))
+                {
+                    var newYear = Current.IssueDate != default ? Current.IssueDate.Year : DateTime.Now.Year;
+                    var currentNum = Current.Number;
+                    
+                    // Zjednodušený regex bez \b pro jistotu
+                    var match = Regex.Match(currentNum, @"(20\d{2})");
+                    
+                    if (match.Success)
+                    {
+                        if (int.TryParse(match.Value, out int currentYearVal))
+                        {
+                            if (currentYearVal != newYear)
+                            {
+                                if (Current.Type == DocType.Invoice)
+                                {
+                                    var newNum = _num.ReserveInvoiceNumber(newYear);
+                                    Current.Number = $"FA-{newNum}"; 
+                                }
+                                else
+                                {
+                                    var newNum = _num.ReserveOrderNumber(newYear);
+                                    Current.Number = $"OBJ-{newNum}";
+                                }
+                                
+                                var digits = new string(Current.Number.Where(char.IsDigit).ToArray());
+                                Current.VariableSymbol = digits.Length > 10 ? digits[^10..] : digits;
+                                OnPropertyChanged(nameof(Current));
+                                OnPropertyChanged(nameof(DisplayNumber)); // Force UI update
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -278,8 +336,12 @@ namespace InvoiceApp.ViewModels
 
         private static string FormatMoney(decimal value, string currency)
         {
-            var ci = new CultureInfo("cs-CZ");
-            return $"{string.Format(ci, "{0:N2}", value)} {currency}";
+            var culture = new System.Globalization.CultureInfo("cs-CZ");
+            var formatted = value.ToString("N0", culture);
+            var curr = string.IsNullOrWhiteSpace(currency) ? "Kč" : currency;
+            // Vynutit zobrazení Kč, pokud je v datech CZK (case-insensitive)
+            if (string.Equals(curr.Trim(), "CZK", StringComparison.OrdinalIgnoreCase)) curr = "Kč";
+            return $"{formatted} {curr}";
         }
 
         private static string FormatSignedMoney(decimal value, string currency)
@@ -288,7 +350,7 @@ namespace InvoiceApp.ViewModels
             var sign = value > 0 ? "+" : "-";
             var ci = new CultureInfo("cs-CZ");
             var abs = Math.Abs(value);
-            return $"{sign}{string.Format(ci, "{0:N2}", abs)} {currency}";
+            return $"{sign}{string.Format(ci, "{0:N0}", abs)} {currency}";
         }
 
         private void RaiseTotalsChanged()
@@ -454,13 +516,14 @@ namespace InvoiceApp.ViewModels
         [RelayCommand]
         private void NewInvoice()
         {
+            _isNewDocument = true;
             var newNumber = _num.ReserveInvoiceNumber();
             Current.PropertyChanged -= Current_PropertyChanged;
             Current = new Invoice
             {
                 Type = DocType.Invoice,
                 Number = $"FA-{newNumber}",
-                Currency = "CZK",
+                Currency = "Kč",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
             };
@@ -487,13 +550,14 @@ namespace InvoiceApp.ViewModels
         [RelayCommand]
         private void NewOrder()
         {
+            _isNewDocument = true;
             var newNumber = _num.ReserveOrderNumber();
             Current.PropertyChanged -= Current_PropertyChanged;
             Current = new Invoice
             {
                 Type = DocType.Order,
                 Number = $"OBJ-{newNumber}",
-                Currency = "CZK",
+                Currency = "Kč",
                 PaymentMethod = "Převodem",
                 TaxableSupplyDate = DateTime.Today
             };
@@ -519,44 +583,93 @@ namespace InvoiceApp.ViewModels
 
         public void LoadDocument(Invoice doc)
         {
-            // Odpojíme staré eventy
+            _isNewDocument = false;
             Current.PropertyChanged -= Current_PropertyChanged;
-            
-            // Nastavíme Current na předaný dokument (nebo jeho kopii, pokud chceme být safe, ale tady editujeme přímo)
-            // Pro jednoduchost použijeme přímo referenci, ale pozor: změny se projeví v historii až po uložení (pokud je to stejná instance v paměti).
-            // Lepší je udělat hlubokou kopii nebo prostě přepsat vlastnosti.
-            // Zde přepíšeme vlastnosti do nové instance, aby se neovlivnila historie dokud se neuloží.
-            // Ale počkat, JSON serializace v historii vytváří nové objekty při načtení.
-            // Takže pokud doc přišel z HistoryViewModelu, je to samostatná instance.
             
             Current = doc;
             Current.PropertyChanged += Current_PropertyChanged;
 
-            // Synchronizace Items (ObservableCollection)
             Items.Clear();
-            foreach (var item in doc.Items)
-            {
-                Items.Add(item);
-            }
+            foreach (var item in doc.Items) Items.Add(item);
 
-            // Nastavení stavu UI
             SupplierIsVatPayer = !string.IsNullOrEmpty(doc.Supplier.DIC);
-            
-            // Nastavení banky v combu
             if (!string.IsNullOrEmpty(doc.Supplier.Bank))
-            {
                 SelectedBank = Banks.FirstOrDefault(b => b.Name == doc.Supplier.Bank);
-            }
 
-            // Nastavení vyhledávacích textů
             SupplierSearchText = doc.Supplier.Name;
             CustomerSearchText = doc.Customer.Name;
 
             HookSupplierWatcher(Current.Supplier);
             RaiseTotalsChanged();
             OnPropertyChanged(nameof(DisplayNumber));
+        }
+
+        public void CreateFromOrder(Invoice order)
+        {
+            _isNewDocument = true;
+            Current.PropertyChanged -= Current_PropertyChanged;
+
+            var newNumber = _num.ReserveInvoiceNumber(); 
+            // Vytvoříme novou instanci faktury na základě objednávky
+            Current = new Invoice
+            {
+                Type = DocType.Invoice,
+                Number = $"FA-{newNumber}",
+                IssueDate = DateTime.Today,
+                TaxableSupplyDate = DateTime.Today,
+                DueDate = DateTime.Today.AddDays(PaymentTermDays),
+                Currency = order.Currency,
+                PaymentMethod = order.PaymentMethod,
+                Notes = order.Notes,
+                
+                // Hluboká kopie objektů Party, aby změna na faktuře neměnila zpětně objednávku
+                Supplier = new Party 
+                { 
+                    Name = order.Supplier.Name, Address = order.Supplier.Address, City = order.Supplier.City,
+                    ICO = order.Supplier.ICO, DIC = order.Supplier.DIC, Bank = order.Supplier.Bank,
+                    AccountNumber = order.Supplier.AccountNumber, SWIFT = order.Supplier.SWIFT, IBAN = order.Supplier.IBAN,
+                    Email = order.Supplier.Email, Phone = order.Supplier.Phone, Country = order.Supplier.Country
+                },
+                Customer = new Party 
+                { 
+                    Name = order.Customer.Name, Address = order.Customer.Address, City = order.Customer.City,
+                    ICO = order.Customer.ICO, DIC = order.Customer.DIC, Email = order.Customer.Email, 
+                    Phone = order.Customer.Phone, Country = order.Customer.Country
+                }
+            };
             
-            // Přepočítat splatnost jen pokud je to potřeba, ale tady už je datum nastavené
+            Current.VariableSymbol = new string(newNumber.Where(char.IsDigit).ToArray());
+            if (Current.VariableSymbol.Length > 10) Current.VariableSymbol = Current.VariableSymbol[^10..];
+
+            Current.PropertyChanged += Current_PropertyChanged;
+
+            // Zkopírovat položky (nové instance)
+            Items.Clear();
+            foreach (var existing in order.Items)
+            {
+                var newItem = new InvoiceItem
+                {
+                    Name = existing.Name,
+                    Quantity = existing.Quantity,
+                    Unit = existing.Unit,
+                    UnitPrice = existing.UnitPrice,
+                    VatRate = existing.VatRate
+                };
+                Items.Add(newItem);
+                Current.Items.Add(newItem);
+            }
+
+            // UI stav
+            SupplierIsVatPayer = !string.IsNullOrEmpty(Current.Supplier.DIC);
+            if (!string.IsNullOrEmpty(Current.Supplier.Bank))
+                SelectedBank = Banks.FirstOrDefault(b => b.Name == Current.Supplier.Bank);
+
+            SupplierSearchText = Current.Supplier.Name;
+            CustomerSearchText = Current.Customer.Name;
+
+            HookSupplierWatcher(Current.Supplier);
+            RaiseTotalsChanged();
+            OnPropertyChanged(nameof(DisplayNumber));
         }
 
         private readonly ConfigService _configService = new();

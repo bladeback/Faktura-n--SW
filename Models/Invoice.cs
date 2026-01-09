@@ -52,7 +52,7 @@ namespace InvoiceApp.Models
         public ObservableCollection<InvoiceItem> Items { get; set; } = new();
 
         [ObservableProperty] private string variableSymbol = string.Empty;
-        [ObservableProperty] private string currency = "CZK";
+        [ObservableProperty] private string currency = "Kč";
         [ObservableProperty] private string notes = string.Empty;
 
         [ObservableProperty] private string? paymentMethod;

@@ -33,5 +33,19 @@ namespace InvoiceApp.Views
                 }
             }
         }
+        private void DataGrid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is not UIElement element) return;
+
+            e.Handled = true;
+            var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+            {
+                RoutedEvent = UIElement.MouseWheelEvent,
+                Source = sender
+            };
+            
+            var parent = System.Windows.Media.VisualTreeHelper.GetParent(element) as UIElement;
+            parent?.RaiseEvent(eventArg);
+        }
     }
 }

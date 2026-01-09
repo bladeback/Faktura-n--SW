@@ -1,0 +1,167 @@
+[
+  {
+    "Items": [
+      {
+        "TotalPrice": 36300.00,
+        "Name": "redak\u010Dn\u00ED dvoustrana formou rozhovoru - o rozm\u011Bru 410x285mm v projektu Poln\u00E1, vyd\u00E1n\u00ED 15.12.2025, zve\u0159ejn\u011Bn\u00ED redak\u010Dn\u00EDho rozhovoru na i-rozhovory.cz, FB, 300.000 zobr. magaz\u00EDnu p\u0159es iDNES.cz, DENIK.cz",
+        "Unit": "ks",
+        "Quantity": 1,
+        "UnitPrice": 30000,
+        "VatRate": 0.21
+      }
+    ],
+    "PaymentIban": "CZ0630300000001132212018",
+    "SubtotalNet": 30000,
+    "VatTotal": 0,
+    "Total": 30000,
+    "Type": 1,
+    "Number": "OBJ-20260001",
+    "IssueDate": "2026-01-09T00:00:00+01:00",
+    "DueDate": "2026-01-09T00:00:00+01:00",
+    "Supplier": {
+      "SWIFT": "AIRACZPP",
+      "Name": "Bc. Martin Novotn\u00FD",
+      "Address": "J. A. Komensk\u00E9ho 536",
+      "City": "Ok\u0159\u00ED\u0161ky 67521",
+      "ICO": "01642065",
+      "DIC": "",
+      "Bank": "Air Bank a.s.",
+      "AccountNumber": "1132212018/3030",
+      "IBAN": "CZ0630300000001132212018",
+      "Email": "bc.novotny.martin@seznam.cz",
+      "Phone": "731 616 883",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "Customer": {
+      "SWIFT": null,
+      "Name": "NYKO MEDIA s.r.o.",
+      "Address": "Brn\u011Bnsk\u00E1 2806/71",
+      "City": "Jihlava 58601",
+      "ICO": "21945543",
+      "DIC": "CZ21945543",
+      "Bank": "",
+      "AccountNumber": "",
+      "IBAN": "",
+      "Email": "",
+      "Phone": "",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "VariableSymbol": "20260001",
+    "Currency": "CZK",
+    "Notes": "",
+    "PaymentMethod": "P\u0159evodem",
+    "ConstantSymbol": null,
+    "TaxableSupplyDate": "2026-01-09T00:00:00+01:00",
+    "IsPaid": false
+  },
+  {
+    "Items": [
+      {
+        "TotalPrice": 84700.00,
+        "Name": "V\u00FDvoj webov\u00E9 aplikace CRM na zak\u00E1zku \u2013 anal\u00FDza, n\u00E1vrh, programov\u00E1n\u00ED, testov\u00E1n\u00ED, nasazen\u00ED",
+        "Unit": "ks",
+        "Quantity": 1,
+        "UnitPrice": 70000,
+        "VatRate": 0.21
+      }
+    ],
+    "PaymentIban": "CZ0630300000001132212018",
+    "SubtotalNet": 70000,
+    "VatTotal": 0,
+    "Total": 70000,
+    "Type": 0,
+    "Number": "FA-20250022",
+    "IssueDate": "2025-12-29T00:00:00",
+    "DueDate": "2026-01-12T00:00:00",
+    "Supplier": {
+      "SWIFT": "AIRACZPP",
+      "Name": "Bc. Martin Novotn\u00FD",
+      "Address": "J. A. Komensk\u00E9ho 536",
+      "City": "Ok\u0159\u00ED\u0161ky 67521",
+      "ICO": "01642065",
+      "DIC": "",
+      "Bank": "Air Bank a.s.",
+      "AccountNumber": "1132212018/3030",
+      "IBAN": "CZ0630300000001132212018",
+      "Email": "bc.novotny.martin@seznam.cz",
+      "Phone": "731 616 883",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "Customer": {
+      "SWIFT": null,
+      "Name": "NYKO MEDIA s.r.o.",
+      "Address": "Brn\u011Bnsk\u00E1 2806/71",
+      "City": "Jihlava 58601",
+      "ICO": "21945543",
+      "DIC": "CZ21945543",
+      "Bank": "",
+      "AccountNumber": "",
+      "IBAN": "",
+      "Email": "",
+      "Phone": "",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "VariableSymbol": "20250022",
+    "Currency": "CZK",
+    "Notes": "",
+    "PaymentMethod": "P\u0159evodem",
+    "ConstantSymbol": "0308",
+    "TaxableSupplyDate": "2026-01-05T00:00:00+01:00",
+    "IsPaid": true
+  },
+  {
+    "Items": [
+      {
+        "TotalPrice": 36300.00,
+        "Name": "redak\u010Dn\u00ED dvoustrana formou rozhovoru - o rozm\u011Bru 410x285mm v projektu Poln\u00E1, vyd\u00E1n\u00ED 15.12.2025, zve\u0159ejn\u011Bn\u00ED redak\u010Dn\u00EDho rozhovoru na i-rozhovory.cz, FB, 300.000 zobr. magaz\u00EDnu p\u0159es iDNES.cz, DENIK.cz",
+        "Unit": "ks",
+        "Quantity": 1,
+        "UnitPrice": 30000,
+        "VatRate": 0.21
+      }
+    ],
+    "PaymentIban": "CZ0630300000001132212018",
+    "SubtotalNet": 30000,
+    "VatTotal": 0,
+    "Total": 30000,
+    "Type": 0,
+    "Number": "FA-20260001",
+    "IssueDate": "2026-01-09T00:00:00+01:00",
+    "DueDate": "2026-01-23T00:00:00+01:00",
+    "Supplier": {
+      "SWIFT": "AIRACZPP",
+      "Name": "Bc. Martin Novotn\u00FD",
+      "Address": "J. A. Komensk\u00E9ho 536",
+      "City": "Ok\u0159\u00ED\u0161ky 67521",
+      "ICO": "01642065",
+      "DIC": "",
+      "Bank": "Air Bank a.s.",
+      "AccountNumber": "1132212018/3030",
+      "IBAN": "CZ0630300000001132212018",
+      "Email": "bc.novotny.martin@seznam.cz",
+      "Phone": "731 616 883",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "Customer": {
+      "SWIFT": null,
+      "Name": "NYKO MEDIA s.r.o.",
+      "Address": "Brn\u011Bnsk\u00E1 2806/71",
+      "City": "Jihlava 58601",
+      "ICO": "21945543",
+      "DIC": "CZ21945543",
+      "Bank": "",
+      "AccountNumber": "",
+      "IBAN": "",
+      "Email": "",
+      "Phone": "",
+      "Country": "\u010Cesk\u00E1 republika"
+    },
+    "VariableSymbol": "20260001",
+    "Currency": "CZK",
+    "Notes": "",
+    "PaymentMethod": "P\u0159evodem",
+    "ConstantSymbol": "0308",
+    "TaxableSupplyDate": "2026-01-09T00:00:00+01:00",
+    "IsPaid": false
+  }
+]

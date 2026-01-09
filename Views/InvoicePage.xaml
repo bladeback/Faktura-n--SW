@@ -85,15 +85,15 @@
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Číslo:" Style="{StaticResource FormLabel}"/>
                                 <TextBox   Grid.Row="1" Grid.Column="1"
-                                           Text="{Binding DisplayNumber, Mode=OneWay}"
-                                           IsReadOnly="True"
+                                           Text="{Binding DisplayNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           IsReadOnly="False"
                                            Style="{StaticResource FormTextBox}"
                                            Background="#F9FAFB"
                                            Margin="0,4"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Vystaveno:" Style="{StaticResource FormLabel}"/>
                                 <DatePicker Grid.Row="2" Grid.Column="1"
-                                            SelectedDate="{Binding Current.IssueDate}"
+                                            SelectedDate="{Binding Current.IssueDate, UpdateSourceTrigger=PropertyChanged}"
                                             Margin="0,4"
                                             VerticalContentAlignment="Center"
                                             Padding="4"/>
@@ -478,6 +478,7 @@
                                   AutoGenerateColumns="False"
                                   CanUserAddRows="False"
                                   BorderThickness="0"
+                                  PreviewMouseWheel="DataGrid_PreviewMouseWheel"
                                   GridLinesVisibility="Horizontal"
                                   HorizontalGridLinesBrush="#E5E7EB"
                                   VerticalGridLinesBrush="Transparent"

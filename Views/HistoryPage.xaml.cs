@@ -11,6 +11,7 @@ namespace InvoiceApp.Views
             if (DataContext is ViewModels.HistoryViewModel vm)
             {
                 vm.RequestEdit += Vm_RequestEdit;
+                vm.RequestConvert += Vm_RequestConvert;
             }
         }
 
@@ -18,6 +19,12 @@ namespace InvoiceApp.Views
         {
             var window = System.Windows.Window.GetWindow(this) as MainWindow;
             window?.EditDocument(doc);
+        }
+
+        private void Vm_RequestConvert(Models.Invoice order)
+        {
+            var window = System.Windows.Window.GetWindow(this) as MainWindow;
+            window?.ConvertOrder(order);
         }
     }
 }

@@ -500,18 +500,17 @@ namespace InvoiceApp.Services
 
             container.AlignRight().Width(350).Column(col =>
             {
-                col.Item().Row(row =>
-                {
-                    row.RelativeItem().Text(t => t.Span("Celkem (bez zaokrouhlení)").Bold());
-                    row.RelativeItem().AlignRight().Text(t => t.Span(FormatMoney(baseTotal, inv.Currency)).Bold());
-                });
+                /* Celkem (bez zaokrouhlení) removed */
 
-                col.Item().Row(row =>
+                if (Math.Abs(rounding) >= 0.5m)
                 {
-                    row.RelativeItem().Text("Zaokrouhlení");
-                    string sign = rounding >= 0 ? "+" : "-";
-                    row.RelativeItem().AlignRight().Text($"{sign}{FormatMoney(Math.Abs(rounding), inv.Currency)}");
-                });
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text("Zaokrouhlení");
+                        string sign = rounding >= 0 ? "+" : "-";
+                        row.RelativeItem().AlignRight().Text($"{sign}{FormatMoney(Math.Abs(rounding), inv.Currency)}");
+                    });
+                }
 
                 col.Item().PaddingTop(6).Element(c =>
                     c.Border(1).BorderColor(ThemeColor).Padding(8).Row(r =>
@@ -573,18 +572,17 @@ namespace InvoiceApp.Services
                 {
                     footer.Cell().ColumnSpan(4).BorderTop(1).BorderColor(Colors.Grey.Medium).PaddingTop(5).Column(col =>
                     {
-                        col.Item().Row(row =>
-                        {
-                            row.RelativeItem().Text(t => t.Span("Celkem (bez zaokrouhlení)").Bold());
-                            row.RelativeItem().AlignRight().Text(t => t.Span(FormatMoney(grandTotal, inv.Currency)).Bold());
-                        });
+                        /* Celkem (bez zaokrouhlení) removed */
 
-                        col.Item().Row(row =>
+                        if (Math.Abs(rounding) >= 0.5m)
                         {
-                            row.RelativeItem().Text("Zaokrouhlení");
-                            var sign = rounding >= 0 ? "+" : "-";
-                            row.RelativeItem().AlignRight().Text($"{sign}{FormatMoney(Math.Abs(rounding), inv.Currency)}");
-                        });
+                            col.Item().Row(row =>
+                            {
+                                row.RelativeItem().Text("Zaokrouhlení");
+                                var sign = rounding >= 0 ? "+" : "-";
+                                row.RelativeItem().AlignRight().Text($"{sign}{FormatMoney(Math.Abs(rounding), inv.Currency)}");
+                            });
+                        }
 
                         col.Item().PaddingTop(6).Element(c =>
                             c.Border(1).BorderColor(ThemeColor).Padding(8).Row(r =>
@@ -606,8 +604,10 @@ namespace InvoiceApp.Services
         private static string FormatMoney(decimal value, string? currency)
         {
             var ci = new CultureInfo("cs-CZ");
-            var formatted = string.Format(ci, "{0:N2}", value).Replace(' ', '\u00A0');
-            return string.IsNullOrWhiteSpace(currency) ? formatted : $"{formatted}\u00A0{currency}";
+            var formatted = string.Format(ci, "{0:N0}", value).Replace(' ', '\u00A0');
+            var curr = string.IsNullOrWhiteSpace(currency) ? "Kč" : currency;
+            if (string.Equals(curr.Trim(), "CZK", StringComparison.OrdinalIgnoreCase)) curr = "Kč";
+            return $"{formatted}\u00A0{curr}";
         }
 
         private static string FormatNumber(decimal value)

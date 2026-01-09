@@ -35,17 +35,17 @@ namespace InvoiceApp.Services
 
         // --------- VEŘEJNÉ API ----------
 
-        // Vrátí rezervované číslo FA (bez prefixu). Netrvale – dokud neproběhne CommitInvoice().
-        public string ReserveInvoiceNumber()
+        // Upraveno pro podporu konkrétního roku (volitelně)
+        public string ReserveInvoiceNumber(int? year = null)
         {
             lock (_sync)
             {
-                _reservedFa = BuildNext("FA");
+                var targetYear = year ?? DateTime.Now.Year;
+                _reservedFa = BuildNext("FA", targetYear);
                 return _reservedFa;
             }
         }
 
-        // Trvale potvrdí (uloží) poslední rezervované číslo FA.
         public void CommitInvoice()
         {
             lock (_sync)
@@ -56,17 +56,16 @@ namespace InvoiceApp.Services
             }
         }
 
-        // Vrátí rezervované číslo OBJ (bez prefixu). Netrvale – dokud neproběhne CommitOrder().
-        public string ReserveOrderNumber()
+        public string ReserveOrderNumber(int? year = null)
         {
             lock (_sync)
             {
-                _reservedObj = BuildNext("OBJ");
+                var targetYear = year ?? DateTime.Now.Year;
+                _reservedObj = BuildNext("OBJ", targetYear);
                 return _reservedObj;
             }
         }
 
-        // Trvale potvrdí (uloží) poslední rezervované číslo OBJ.
         public void CommitOrder()
         {
             lock (_sync)
@@ -133,17 +132,14 @@ namespace InvoiceApp.Services
 
         // --------- INTERNÍ LOGIKA ----------
 
-        private string BuildNext(string kind) // kind = "FA" / "OBJ"
+        private string BuildNext(string kind, int yearVal) 
         {
-            var year = DateTime.Now.ToString("yyyy");
+            var year = yearVal.ToString();
 
             if (!_counters.Years.TryGetValue(year, out var y))
             {
                 y = new YearCounters();
                 _counters.Years[year] = y;
-                // Pokud zakládáme nový rok a je to 2025, můžeme (volitelně) inicializovat
-                // Ale logika "Load" už to řeší při prvním spuštění.
-                // Zde necháme 1, pokud uživatel v nastavení nezměnil.
             }
 
             long next = kind == "FA" ? y.FaNext : y.ObjNext;
