@@ -232,6 +232,27 @@
         </Setter>
     </Style>
 
+    <!-- SearchBox (Alias or slight variation of FormTextBox) -->
+    <Style x:Key="SearchBox" BasedOn="{StaticResource FormTextBox}" TargetType="TextBox">
+        <!-- Could add specific search icon logic here later if needed -->
+        <Setter Property="Padding" Value="12,10"/> 
+    </Style>
+
+    <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
+        <Border x:Name="Border" Grid.Column="2" CornerRadius="8" Background="{DynamicResource Brush.InputBackground}" BorderBrush="{DynamicResource Brush.InputBorder}" BorderThickness="1">
+            <Path x:Name="Arrow" Grid.Column="1" Fill="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Right" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z" Margin="0,0,10,0"/>
+        </Border>
+        <ControlTemplate.Triggers>
+             <Trigger Property="IsChecked" Value="True">
+                 <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
+             </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="ComboBoxTextBox" TargetType="TextBox">
+        <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+    </ControlTemplate>
+
     <Style x:Key="FormComboBox" TargetType="ComboBox">
         <Setter Property="Background" Value="{DynamicResource Brush.InputBackground}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.InputBorder}"/>
@@ -276,21 +297,6 @@
         </Setter>
     </Style>
 
-    <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
-        <Border x:Name="Border" Grid.Column="2" CornerRadius="8" Background="{DynamicResource Brush.InputBackground}" BorderBrush="{DynamicResource Brush.InputBorder}" BorderThickness="1">
-            <Path x:Name="Arrow" Grid.Column="1" Fill="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Right" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z" Margin="0,0,10,0"/>
-        </Border>
-        <ControlTemplate.Triggers>
-             <Trigger Property="IsChecked" Value="True">
-                 <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Brush.Primary}"/>
-             </Trigger>
-        </ControlTemplate.Triggers>
-    </ControlTemplate>
-
-    <ControlTemplate x:Key="ComboBoxTextBox" TargetType="TextBox">
-        <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
-    </ControlTemplate>
-
     <Style x:Key="FormCheckBox" TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
         <Setter Property="FontSize" Value="14"/>
@@ -304,7 +310,7 @@
          ========================================================================= -->
 
     <!-- Column Header -->
-    <Style TargetType="DataGridColumnHeader">
+    <Style x:Key="ModernHeaderStyle" TargetType="DataGridColumnHeader">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}"/>
         <Setter Property="FontSize" Value="12"/>

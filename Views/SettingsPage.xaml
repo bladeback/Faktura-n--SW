@@ -91,7 +91,7 @@
                         </Grid>
 
                         <!-- Formatting Toolbar (Shared) -->
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Background="{DynamicResource Brush.Surface}">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Background="{DynamicResource Brush.InputBackground}">
                             <Button Content="B" FontWeight="Bold" Click="InsertBold_Click" ToolTip="Tučně" Style="{StaticResource FormattingButton}"/>
                             <Button Content="I" FontStyle="Italic" Click="InsertItalic_Click" ToolTip="Kurzíva" Style="{StaticResource FormattingButton}"/>
                             <Button Content="S" FontSize="10" Click="InsertSize_Click" ToolTip="Velikost" Style="{StaticResource FormattingButton}">

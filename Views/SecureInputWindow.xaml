@@ -1,15 +1,17 @@
 <Window x:Class="InvoiceApp.Views.SecureInputWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Potvrzení akce" Height="180" Width="350"
+        Title="Potvrzení akce" SizeToContent="Height" Width="350"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
-        WindowStyle="ToolWindow">
+        WindowStyle="ToolWindow"
+        Background="{DynamicResource Brush.CardBackground}"
+        Foreground="{DynamicResource Brush.TextPrimary}">
     <StackPanel Margin="20">
         <TextBlock Text="Pro potvrzení napište 'DELETE':" Margin="0,0,0,10" FontWeight="Bold"/>
-        <TextBox x:Name="InputBox" Margin="0,0,0,15" Padding="5"/>
+        <TextBox x:Name="InputBox" Margin="0,0,0,15" Padding="5" Style="{StaticResource FormTextBox}"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Zrušit" IsCancel="True" Padding="10,5" Margin="0,0,10,0"/>
-            <Button Content="Potvrdit" IsDefault="True" Click="OkButton_Click" Padding="10,5" Background="#DC2626" Foreground="White"/>
+            <Button Content="Zrušit" IsCancel="True" Margin="0,0,10,0" Style="{StaticResource SecondaryButton}"/>
+            <Button Content="Potvrdit" IsDefault="True" Click="OkButton_Click" Style="{StaticResource BtnDanger}"/>
         </StackPanel>
     </StackPanel>
 </Window>

@@ -1,6 +1,8 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 
+using InvoiceApp.ViewModels;
+
 namespace InvoiceApp.Views
 {
     public partial class SettingsPage : UserControl
@@ -10,6 +12,7 @@ namespace InvoiceApp.Views
         public SettingsPage()
         {
             InitializeComponent();
+            DataContext = new SettingsViewModel();
             
             // Track last focused textbox
             FooterInvoiceBox.GotFocus += (s, e) => _lastFocusedTextBox = FooterInvoiceBox;

@@ -8,7 +8,7 @@
         ResizeMode="CanResize"
         MinHeight="520"
         MinWidth="520"
-        Background="{StaticResource Brush.Surface}">
+        Background="{DynamicResource Brush.CardBackground}">
     <DockPanel>
 
         <!-- akční tlačítka dole -->
